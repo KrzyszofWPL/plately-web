@@ -94,11 +94,12 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode }),
     });
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      panelMsg.textContent = 'Nie udało się zmienić trybu.';
+      panelMsg.textContent = 'Błąd (' + res.status + '): ' + (data.error || 'nieznany') +
+        (data.details ? ' — ' + data.details : '');
       return;
     }
-    const data = await res.json();
     setBadge(data.mode);
     panelMsg.textContent = 'Zmieniono. Zmiana jest widoczna od razu, bez redeployu.';
   }
