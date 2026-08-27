@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 — nie znaleziono strony · Plately</title>
+<!-- An error page that gets indexed is worse than no error page: it competes
+     with the real homepage for the brand query. -->
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="apple-touch-icon" href="/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/error.css">
+</head>
+<!-- Vercel serves this file automatically for any unmatched path in a static
+     deployment, so it never receives a ?code query — data-code supplies it. -->
+<body data-code="404">
+  <main class="pl-err">
+    <div class="pl-halo" aria-hidden="true"></div>
+    <div class="pl-inner">
+      <a href="/" class="pl-logo" aria-label="Plately — strona główna">
+        <img src="/logo.png" alt="" width="72" height="72">
+      </a>
+      <p class="pl-code" aria-hidden="true">404</p>
+      <h1 data-i18n="title">Tej strony tu nie ma</h1>
+      <p class="pl-lead" data-i18n="lead">Link jest nieaktualny albo w adresie wkradła się literówka. Nic się nie stało — poniżej są dwa miejsca, w których na pewno coś jest.</p>
+      <div class="pl-actions">
+        <a href="/" class="pl-btn pl-btn-primary" data-i18n="home">Strona główna</a>
+        <a href="https://app.plately.eu/" class="pl-btn pl-btn-ghost" data-i18n="app">Otwórz aplikację</a>
+      </div>
+      <p class="pl-meta"><span data-i18n="errLabel">Błąd</span> <span class="pl-mono">404 · NOT_FOUND</span></p>
+    </div>
+  </main>
+<script src="/error.js" defer></script>
+</body>
+</html>

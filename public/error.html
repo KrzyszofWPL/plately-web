@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Błąd · Plately</title>
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="apple-touch-icon" href="/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/error.css">
+</head>
+<!-- The catch-all. Anything that is not a plain 404 lands here as
+     /error?code=NNN; error.js turns the number into a headline. data-code is
+     the fallback for a direct hit with no query string. -->
+<body data-code="500">
+  <main class="pl-err">
+    <div class="pl-halo" aria-hidden="true"></div>
+    <div class="pl-inner">
+      <a href="/" class="pl-logo" aria-label="Plately — strona główna">
+        <img src="/logo.png" alt="" width="72" height="72">
+      </a>
+      <p class="pl-code" aria-hidden="true">500</p>
+      <h1 data-i18n="title">Coś poszło nie tak po naszej stronie</h1>
+      <p class="pl-lead" data-i18n="lead">To nasz błąd, nie Twój. Odśwież stronę za chwilę — jeśli problem wróci, daj nam znać.</p>
+      <div class="pl-actions">
+        <a href="/" class="pl-btn pl-btn-primary" data-i18n="home">Strona główna</a>
+        <a href="https://app.plately.eu/" class="pl-btn pl-btn-ghost" data-i18n="app">Otwórz aplikację</a>
+      </div>
+      <p class="pl-meta"><span data-i18n="errLabel">Błąd</span> <span class="pl-mono">500 · INTERNAL_SERVER_ERROR</span></p>
+    </div>
+  </main>
+<script src="/error.js" defer></script>
+</body>
+</html>

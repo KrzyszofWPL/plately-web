@@ -1,0 +1,15 @@
+# https://www.plately.eu/robots.txt
+# Served in every site mode. During maintenance the pages themselves answer
+# 503 (see middleware.js), which tells crawlers to come back rather than to
+# drop the URL — but robots.txt itself must stay reachable, or Google treats
+# the whole host as temporarily un-crawlable.
+
+User-agent: *
+Allow: /
+
+# The admin panel is a private login, not content. It is behind auth anyway;
+# this just keeps it out of the crawl budget and out of the index.
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://www.plately.eu/sitemap.xml
