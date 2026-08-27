@@ -3,35 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Plately</title>
+<title>Przerwa techniczna · Plately</title>
+<!-- Served with HTTP 503 by middleware.js, never 200 — see the comment there
+     for why that distinction is the difference between "come back later" and
+     a soft 404 in Search Console. -->
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="color-scheme" content="dark">
 <link rel="icon" type="image/png" href="/logo.png">
+<link rel="apple-touch-icon" href="/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; }
-  html { background: #0a0a0b; }
-  body { margin: 0; background: #0a0a0b; color: #f4f4f5; font-family: "Inter", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  a { color: #34d399; text-decoration: none; }
-  a:hover { color: #6ee7b7; }
-  ::selection { background: #34d399; color: #04140d; }
-  @keyframes plHalo { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
-  @keyframes plFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
-</style>
+<link rel="stylesheet" href="/error.css">
 </head>
-<body>
-  <div style="min-height:100dvh; background:#0a0a0b; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 24px; position:relative; overflow:hidden;">
-    <div style="position:absolute; top:-30vh; left:50%; transform:translateX(-50%); width:min(1100px,140vw); height:min(1100px,140vw); border-radius:50%; background:radial-gradient(circle at 50% 50%, rgba(52,211,153,.16), rgba(10,10,11,0) 62%); pointer-events:none; animation:plHalo 7s ease-in-out infinite;"></div>
-    <div style="position:relative; display:flex; flex-direction:column; align-items:center; text-align:center; max-width:560px;">
-      <div style="animation:plFloat 7.5s ease-in-out infinite;">
-        <img src="/logo.png" alt="Plately" style="width:104px; height:104px; border-radius:26px; display:block; box-shadow:0 24px 60px rgba(52,211,153,.22);">
+<body data-code="503">
+  <main class="pl-err">
+    <div class="pl-halo" aria-hidden="true"></div>
+    <div class="pl-inner">
+      <span class="pl-logo">
+        <img src="/logo.png" alt="Plately" width="72" height="72">
+      </span>
+      <p class="pl-code" aria-hidden="true">503</p>
+      <h1 data-i18n="title">Chwilowo niedostępne</h1>
+      <p class="pl-lead" data-i18n="lead">Prowadzimy prace nad serwisem. Aplikacja działa normalnie — wróć tu za jakiś czas.</p>
+      <div class="pl-actions">
+        <a href="https://app.plately.eu/" class="pl-btn pl-btn-primary" data-i18n="app">Otwórz aplikację</a>
       </div>
-      <h1 style="margin:22px 0 0; font-size:clamp(34px,6vw,58px); line-height:1.05; letter-spacing:-.03em; font-weight:700;">We're building something good.</h1>
-      <p style="margin:20px 0 0; max-width:44ch; font-size:clamp(15px,1.3vw,18px); line-height:1.62; color:#8a8a92;">The Plately website is under maintenance. Check back soon, the app keeps running as usual.</p>
-      <div style="margin-top:38px; padding-top:26px; border-top:1px solid rgba(255,255,255,.08); width:100%; display:flex; align-items:center; justify-content:center; gap:10px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.06em; color:#8a8a92; text-transform:uppercase;">
-        Plately.eu · © 2026
-      </div>
+      <p class="pl-meta"><span data-i18n="errLabel">Błąd</span> <span class="pl-mono">503 · SERVICE_UNAVAILABLE</span></p>
     </div>
-  </div>
+  </main>
+<script src="/error.js" defer></script>
 </body>
 </html>

@@ -1,31 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="./support.js"></script>
-</head>
-<body>
-<x-dc>
-<helmet>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Plately</title>
-<link rel="icon" type="image/png" href="/logo.png" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<title>Plately — darmowy asystent diety, nawodnienia i wagi z AI</title>
+<meta name="description" content="Plately zamienia zdjęcie posiłku w pełny rozkład makroskładników, pilnuje nawodnienia i prowadzi Cię do docelowej wagi. Trener AI, 12 języków, całkowicie za darmo. Działa w przeglądarce na Androidzie, iOS, Windows i macOS.">
+<link rel="canonical" href="https://www.plately.eu/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta name="author" content="Plately">
+<meta name="application-name" content="Plately">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="color-scheme" content="dark">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Plately">
+<meta property="og:url" content="https://www.plately.eu/">
+<meta property="og:title" content="Plately — darmowy asystent diety, nawodnienia i wagi z AI">
+<meta property="og:description" content="Zdjęcie posiłku zamienia się w pełny rozkład makroskładników. Nawodnienie, kontrola wagi i trener AI. Za darmo, w 12 językach, w każdej przeglądarce.">
+<meta property="og:image" content="https://www.plately.eu/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Plately — asystent diety oparty na AI">
+<meta property="og:locale" content="pl_PL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="uk_UA">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="it_IT">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="pt_PT">
+<meta property="og:locale:alternate" content="ja_JP">
+<meta property="og:locale:alternate" content="zh_CN">
+<meta property="og:locale:alternate" content="ko_KR">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Plately — darmowy asystent diety, nawodnienia i wagi z AI">
+<meta name="twitter:description" content="Zdjęcie posiłku zamienia się w pełny rozkład makroskładników. Nawodnienie, kontrola wagi i trener AI. Za darmo, w 12 językach.">
+<meta name="twitter:image" content="https://www.plately.eu/og.png">
+<meta name="twitter:image:alt" content="Plately — asystent diety oparty na AI">
+
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="apple-touch-icon" href="/logo.png">
+<!-- Deliberately no web app manifest: this is the marketing page, and offering
+     to install *it* would put a shortcut to a brochure on someone's home
+     screen. The installable PWA is the app itself, at app.plately.eu. -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.plately.eu/#organization",
+      "name": "Plately",
+      "url": "https://www.plately.eu/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.plately.eu/logo.png",
+        "width": 1024,
+        "height": 1024
+      },
+      "description": "Plately to darmowy asystent diety, nawodnienia i kontroli wagi oparty na sztucznej inteligencji."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.plately.eu/#website",
+      "url": "https://www.plately.eu/",
+      "name": "Plately",
+      "description": "Darmowy asystent diety, nawodnienia i kontroli wagi oparty na AI.",
+      "publisher": { "@id": "https://www.plately.eu/#organization" },
+      "inLanguage": ["pl", "en", "de", "uk", "ru", "fr", "it", "es", "pt", "ja", "zh", "ko"]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://www.plately.eu/#webpage",
+      "url": "https://www.plately.eu/",
+      "name": "Plately — darmowy asystent diety, nawodnienia i wagi z AI",
+      "isPartOf": { "@id": "https://www.plately.eu/#website" },
+      "about": { "@id": "https://www.plately.eu/#app" },
+      "inLanguage": "pl"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.plately.eu/#app",
+      "name": "Plately",
+      "url": "https://app.plately.eu/",
+      "applicationCategory": "HealthApplication",
+      "applicationSubCategory": "Nutrition",
+      "operatingSystem": "Android, iOS, Windows, macOS, Linux, Web",
+      "browserRequirements": "Wymaga nowoczesnej przeglądarki z obsługą JavaScript.",
+      "description": "Plately zamienia zdjęcie posiłku w pełny rozkład makroskładników, pilnuje nawodnienia i prowadzi do docelowej wagi z pomocą trenera AI.",
+      "inLanguage": ["pl", "en", "de", "uk", "ru", "fr", "it", "es", "pt", "ja", "zh", "ko"],
+      "publisher": { "@id": "https://www.plately.eu/#organization" },
+      "screenshot": "https://www.plately.eu/og.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "PLN",
+        "availability": "https://schema.org/InStock"
+      },
+      "featureList": [
+        "Analiza posiłku ze zdjęcia",
+        "Rozkład makroskładników",
+        "Śledzenie nawodnienia",
+        "Kontrola wagi",
+        "Trener AI",
+        "12 języków"
+      ]
+    }
+  ]
+}
+</script>
+
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html { background: #0a0a0b; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: #0a0a0b; color: #f4f4f5; font-family: "Inter", ui-sans-serif, system-ui, sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
   a { color: #34d399; text-decoration: none; }
   a:hover { color: #6ee7b7; }
+  img { max-width: 100%; }
   ::selection { background: #34d399; color: #04140d; }
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08); border-radius: 4px; }
+
+  /* Keyboard focus has to stay visible: every interactive element here is a
+     custom-styled pill, and the UA outline is invisible on this background. */
+  :focus-visible { outline: 2px solid #34d399; outline-offset: 3px; border-radius: 4px; }
+
+  .pl-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  /* Icons ship as an inline sprite rather than a CDN script: one fewer
+     third-party origin, no render-blocking fetch, and they are already in the
+     markup for any crawler that does not run JavaScript. */
+  .i { width: 1em; height: 1em; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
   @keyframes plFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
   @keyframes plBar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @keyframes plRing { from { stroke-dashoffset: 427; } to { stroke-dashoffset: 124; } }
@@ -35,13 +150,76 @@
   @keyframes plShine { 0% { transform: translateX(-130%) skewX(-18deg); } 55%, 100% { transform: translateX(230%) skewX(-18deg); } }
   @keyframes plMenu { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
   @keyframes plHalo { 0%,100% { opacity: .25; } 50% { opacity: .6; } }
+
   .pl-reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1); }
   .pl-reveal.pl-in { opacity: 1; transform: none; }
+  /* Nothing adds .pl-in without JS, so the whole page would render invisible.
+     Anyone with scripting off — and any crawler that only parses — gets the
+     finished state instead of a blank screen. */
+  .no-js .pl-reveal { opacity: 1; transform: none; transition: none; }
+
+  .pl-langbtn { display: flex; align-items: center; gap: 8px; background: #131316; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 8px 12px 8px 11px; color: #f4f4f5; font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: .04em; cursor: pointer; transition: border-color .2s ease, background-color .2s ease; }
+  .pl-langbtn:hover { border-color: rgba(52,211,153,.45); background: #17251f; }
+  .pl-langopt { display: flex; align-items: center; gap: 7px; text-align: left; font-family: inherit; font-size: 12px; font-weight: 500; padding: 8px 10px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; background: transparent; color: #e4e4e7; transition: background-color .15s ease; }
+  .pl-langopt:hover { background: #1f2023; }
+  .pl-langopt[aria-current="true"] { border-color: rgba(52,211,153,.35); background: #17251f; color: #34d399; }
+
+  .pl-navlink { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; letter-spacing: .02em; color: #f4f4f5; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 9px 16px; flex: none; transition: border-color .2s ease, background-color .2s ease, color .2s ease; }
+  .pl-navlink:hover { border-color: rgba(52,211,153,.45); background: rgba(52,211,153,.08); color: #34d399; }
+
+  .pl-cta { display: inline-flex; align-items: center; gap: 10px; background: #34d399; color: #04140d; font-size: 15px; font-weight: 600; padding: 15px 26px; border-radius: 999px; transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease; }
+  .pl-cta:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(52,211,153,.28); color: #04140d; }
+  .pl-ghost { display: inline-flex; align-items: center; gap: 10px; color: #f4f4f5; font-size: 15px; font-weight: 500; padding: 15px 24px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; transition: border-color .2s ease, background-color .2s ease; }
+  .pl-ghost:hover { border-color: rgba(255,255,255,.28); background: #131316; color: #f4f4f5; }
+
+  .pl-card { background: #131316; border: 1px solid rgba(255,255,255,.08); border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 14px; transition: border-color .3s ease, transform .3s cubic-bezier(.2,.8,.2,1); }
+  .pl-card:hover { border-color: var(--pl-accent, rgba(52,211,153,.4)); transform: translateY(-4px); }
+
+  .pl-store { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 11px; padding: 17px 22px; border-radius: 20px; background: linear-gradient(135deg, #34d399 0%, #10a37f 100%); color: #04140d; font-size: 16px; font-weight: 600; letter-spacing: -.005em; box-shadow: 0 14px 34px rgba(52,211,153,.28); transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease; }
+  .pl-store:hover { transform: translateY(-2px); box-shadow: 0 20px 46px rgba(52,211,153,.4); color: #04140d; }
+  .pl-store:active { transform: translateY(0) scale(.985); }
+
+  .pl-alt { display: inline-flex; align-items: center; justify-content: center; gap: 9px; margin-top: 12px; width: 100%; padding: 13px 20px; border: 1px solid rgba(255,255,255,.12); border-radius: 18px; color: #e4e4e7; font-size: 14px; font-weight: 500; transition: border-color .2s ease, background-color .2s ease, color .2s ease; }
+  .pl-alt:hover { border-color: rgba(216,30,60,.5); background: rgba(216,30,60,.08); color: #f4f4f5; }
+
+  .pl-dock a { position: relative; overflow: hidden; display: flex; align-items: center; gap: 11px; padding: 10px 18px 10px 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; background: rgba(19,19,22,.9); backdrop-filter: blur(18px); box-shadow: 0 18px 40px rgba(0,0,0,.6); transition: border-color .25s ease, transform .25s cubic-bezier(.2,.8,.2,1); }
+  .pl-dock a:hover { border-color: rgba(52,211,153,.6); transform: translateY(-3px); color: #f4f4f5; }
+
+  /* The float, glow, shine and reveal are decoration; for anyone who gets
+     motion sickness from them they are a reason to leave the page. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+    .pl-reveal { opacity: 1; transform: none; }
+  }
 </style>
-<script src="https://unpkg.com/lucide@0.427.0/dist/umd/lucide.min.js"></script>
-<script src="./image-slot.js"></script>
-<script src="./landing-i18n.js"></script>
-</helmet>
+</head>
+<body class="no-js">
+<script>document.body.classList.remove('no-js');</script>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></symbol>
+<symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+<symbol id="i-signal" viewBox="0 0 24 24"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></symbol>
+<symbol id="i-battery" viewBox="0 0 24 24"><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><path d="M22 11v2"/><path d="M6 11v2"/><path d="M10 11v2"/><path d="M14 11v2"/></symbol>
+<symbol id="i-glass-water" viewBox="0 0 24 24"><path d="M5.116 4.104A1 1 0 0 1 6.11 3h11.78a1 1 0 0 1 .994 1.105L17.19 20.21A2 2 0 0 1 15.2 22H8.8a2 2 0 0 1-2-1.79z"/><path d="M6 12a5 5 0 0 1 6 0 5 5 0 0 0 6 0"/></symbol>
+<symbol id="i-droplet" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol>
+<symbol id="i-scale" viewBox="0 0 24 24"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+<symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-scan-line" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></symbol>
+<symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol id="i-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></symbol>
+<symbol id="i-monitor" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></symbol>
+</defs></svg>
+
+<a href="#tresc" class="pl-sr">Przejdź do treści</a>
 
 <div style="min-height:100dvh; background:#0a0a0b; position:relative;">
 
@@ -49,37 +227,31 @@
     <div style="max-width:1180px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; gap:14px;">
       <div style="display:flex; align-items:center; gap:14px; min-width:0;">
         <div style="position:relative; flex:none;">
-          <button type="button" id="pl-langbtn" onClick="{{ toggleLangMenu }}" style="display:flex; align-items:center; gap:8px; background:#131316; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:8px 12px 8px 11px; color:#f4f4f5; font-family:inherit; font-size:12px; font-weight:600; letter-spacing:.04em; cursor:pointer; transition:border-color .2s ease, background-color .2s ease;" style-hover="border-color:rgba(52,211,153,.45); background:#17251f;">
-            <i data-lucide="globe" style="width:15px; height:15px; color:#34d399;"></i>
-            <span style="text-transform:uppercase; font-family:'JetBrains Mono',monospace;">{{ lang }}</span>
-            <i data-lucide="chevron-down" style="width:13px; height:13px; color:#8a8a92;"></i>
+          <button type="button" id="pl-langbtn" class="pl-langbtn" aria-haspopup="true" aria-expanded="false" aria-controls="pl-langmenu">
+            <svg class="i" style="width:15px; height:15px; color:#34d399;" aria-hidden="true"><use href="#i-globe"/></svg>
+            <span class="pl-sr" data-i18n="langLabel">Język</span>
+            <span id="pl-langcode" style="text-transform:uppercase; font-family:'JetBrains Mono',monospace;">pl</span>
+            <svg class="i" style="width:13px; height:13px; color:#8a8a92;" aria-hidden="true"><use href="#i-chevron-down"/></svg>
           </button>
-          <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
-          <div id="pl-langmenu" style="position:absolute; top:calc(100% + 10px); left:0; z-index:70; width:min(320px, 78vw); padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.1); background:rgba(16,16,19,.96); backdrop-filter:blur(20px); box-shadow:0 24px 60px rgba(0,0,0,.65); opacity:1; animation:plMenu .2s cubic-bezier(.2,.8,.2,1);">
-            <div style="font-size:9px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#8a8a92; padding:2px 6px 8px;">{{ t.langLabel }}</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
-              <sc-for list="{{ langs }}" as="l" hint-placeholder-count="12">
-                <button type="button" onClick="{{ l.pick }}" style="{{ l.style }}" style-hover="background:#1f2023;">
-                  <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.08em; text-transform:uppercase; opacity:.65;">{{ l.code }}</span>
-                  {{ l.label }}
-                </button>
-              </sc-for>
-            </div>
+          <div id="pl-langmenu" hidden style="position:absolute; top:calc(100% + 10px); left:0; z-index:70; width:min(320px, 78vw); padding:10px; border-radius:18px; border:1px solid rgba(255,255,255,.1); background:rgba(16,16,19,.96); backdrop-filter:blur(20px); box-shadow:0 24px 60px rgba(0,0,0,.65); animation:plMenu .2s cubic-bezier(.2,.8,.2,1);">
+            <div style="font-size:9px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#8a8a92; padding:2px 6px 8px;" data-i18n="langLabel">Język</div>
+            <div id="pl-langlist" style="display:grid; grid-template-columns:1fr 1fr; gap:4px;"></div>
           </div>
-          </sc-if>
         </div>
         <div style="display:flex; align-items:center; gap:11px; min-width:0;">
           <div style="width:36px; height:36px; border-radius:12px; overflow:hidden; flex:none; border:1px solid rgba(255,255,255,.08);">
-            <img src="logo.png" alt="Plately" style="width:100%; height:100%; object-fit:cover; display:block;" />
+            <img src="/logo.png" alt="Logo Plately" width="36" height="36" style="width:100%; height:100%; object-fit:cover; display:block;">
           </div>
           <div style="font-size:17px; font-weight:600; letter-spacing:-.01em;">Plately</div>
         </div>
       </div>
-      <a href="#pobierz" style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:500; letter-spacing:.02em; color:#f4f4f5; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:9px 16px; flex:none; transition:border-color .2s ease, background-color .2s ease, color .2s ease;" style-hover="border-color:rgba(52,211,153,.45); background:rgba(52,211,153,.08); color:#34d399;">
-        <i data-lucide="download" style="width:15px; height:15px;"></i>{{ t.navDownload }}
+      <a href="#pobierz" class="pl-navlink">
+        <svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-download"/></svg><span data-i18n="navDownload">Pobierz</span>
       </a>
     </div>
   </header>
+
+  <main id="tresc">
 
   <section style="position:relative; overflow:hidden; padding:clamp(44px,6vw,92px) 24px clamp(52px,7vw,100px);">
     <div style="position:absolute; top:-180px; left:50%; width:900px; height:900px; margin-left:-450px; border-radius:50%; background:radial-gradient(circle, rgba(52,211,153,.16) 0%, rgba(52,211,153,0) 62%); pointer-events:none; animation:plGlow 9s ease-in-out infinite;"></div>
@@ -89,38 +261,36 @@
         <div class="pl-reveal" style="display:flex; flex-wrap:wrap; gap:8px;">
           <span style="display:inline-flex; align-items:center; gap:9px; padding:7px 14px 7px 11px; border:1px solid rgba(255,255,255,.08); background:#131316; border-radius:999px; font-size:11px; font-weight:500; letter-spacing:.09em; text-transform:uppercase; color:#8a8a92;">
             <span style="width:6px; height:6px; border-radius:50%; background:#34d399; animation:plPulse 2.4s ease-in-out infinite;"></span>
-            {{ t.badge }}
+            <span data-i18n="badge">Asystent diety oparty na AI</span>
           </span>
           <span style="display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border:1px solid rgba(52,211,153,.3); background:#17251f; border-radius:999px; font-size:11px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:#34d399;">
-            <i data-lucide="gift" style="width:13px; height:13px;"></i>{{ t.freePill }}
+            <svg class="i" style="width:13px; height:13px;" aria-hidden="true"><use href="#i-gift"/></svg><span data-i18n="freePill">Darmowa na zawsze</span>
           </span>
         </div>
         <h1 class="pl-reveal" style="margin:22px 0 0; font-size:clamp(40px,6.2vw,76px); line-height:1; font-weight:800; letter-spacing:-.035em; text-wrap:balance;">
-          {{ t.h1a }}<br />
-          <span style="color:#34d399;">{{ t.h1b }}</span> {{ t.h1c }}
+          <span data-i18n="h1a">Jedz świadomie.</span><br>
+          <span style="color:#34d399;" data-i18n="h1b">Analizuj</span> <span data-i18n="h1c">każdy gram.</span>
         </h1>
-        <p class="pl-reveal" style="margin:26px 0 0; max-width:36ch; font-size:clamp(16px,1.35vw,19px); line-height:1.62; color:#8a8a92; text-wrap:pretty;">{{ t.lead }}</p>
+        <p class="pl-reveal" style="margin:26px 0 0; max-width:36ch; font-size:clamp(16px,1.35vw,19px); line-height:1.62; color:#8a8a92; text-wrap:pretty;" data-i18n="lead">Plately zamienia zdjęcie posiłku w pełny rozkład makro, pilnuje nawodnienia i prowadzi Cię do docelowej wagi — z trenerem AI, który zna Twój kontekst.</p>
         <div class="pl-reveal" style="margin-top:34px; display:flex; flex-wrap:wrap; gap:12px;">
-          <a href="#pobierz" style="display:inline-flex; align-items:center; gap:10px; background:#34d399; color:#04140d; font-size:15px; font-weight:600; padding:15px 26px; border-radius:999px; transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease;" style-hover="transform:translateY(-2px); box-shadow:0 14px 40px rgba(52,211,153,.28); color:#04140d;">
-            {{ t.ctaInstall }}
-            <i data-lucide="arrow-right" style="width:17px; height:17px;"></i>
+          <a href="https://app.plately.eu/" class="pl-cta">
+            <span data-i18n="ctaOpen">Otwórz aplikację</span>
+            <svg class="i" style="width:17px; height:17px;" aria-hidden="true"><use href="#i-arrow-right"/></svg>
           </a>
-          <a href="#klimat" style="display:inline-flex; align-items:center; gap:10px; color:#f4f4f5; font-size:15px; font-weight:500; padding:15px 24px; border:1px solid rgba(255,255,255,.12); border-radius:999px; transition:border-color .2s ease, background-color .2s ease;" style-hover="border-color:rgba(255,255,255,.28); background:#131316; color:#f4f4f5;">
-            {{ t.ctaHow }}
-          </a>
+          <a href="#klimat" class="pl-ghost" data-i18n="ctaHow">Zobacz, jak działa</a>
         </div>
         <div class="pl-reveal" style="margin-top:38px; display:flex; flex-wrap:wrap; gap:28px; padding-top:26px; border-top:1px solid rgba(255,255,255,.08);">
           <div>
-            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:#f4f4f5;">{{ t.statA }}</div>
-            <div style="margin-top:4px; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#8a8a92;">{{ t.statALbl }}</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:#f4f4f5;" data-i18n="statA">4 s</div>
+            <div style="margin-top:4px; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#8a8a92;" data-i18n="statALbl">Analiza posiłku</div>
           </div>
           <div>
-            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:#f4f4f5;">{{ t.statB }}</div>
-            <div style="margin-top:4px; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#8a8a92;">{{ t.statBLbl }}</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:#f4f4f5;" data-i18n="statB">12</div>
+            <div style="margin-top:4px; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#8a8a92;" data-i18n="statBLbl">Języków</div>
           </div>
           <div>
-            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:#34d399;">{{ t.statC }}</div>
-            <div style="margin-top:4px; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#8a8a92;">{{ t.statCLbl }}</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:#34d399;" data-i18n="statC">0</div>
+            <div style="margin-top:4px; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#8a8a92;" data-i18n="statCLbl">Opłat i reklam</div>
           </div>
         </div>
       </div>
@@ -129,33 +299,33 @@
         <div style="position:absolute; inset:8% 12%; border-radius:50%; background:radial-gradient(circle, rgba(52,211,153,.2) 0%, rgba(91,156,246,.08) 45%, rgba(0,0,0,0) 70%); filter:blur(24px); pointer-events:none;"></div>
         <div id="pl-phone" style="position:relative; width:min(348px, 88vw); animation:plFloat 7.5s ease-in-out infinite; transition:transform .4s cubic-bezier(.2,.8,.2,1);">
           <div style="border-radius:46px; padding:9px; background:linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,.03) 40%, rgba(255,255,255,.09)); box-shadow:0 40px 90px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.05);">
-            <div style="border-radius:38px; overflow:hidden; background:#0a0a0b; border:1px solid rgba(255,255,255,.06);">
+            <div style="border-radius:38px; overflow:hidden; background:#0a0a0b; border:1px solid rgba(255,255,255,.06);" role="img" aria-label="Podgląd aplikacji Plately: dzienny bilans kalorii, makroskładniki i nawodnienie">
 
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 14px 6px; font-family:'JetBrains Mono',monospace; font-size:10px; color:#8a8a92; letter-spacing:.04em;">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 14px 6px; font-family:'JetBrains Mono',monospace; font-size:10px; color:#8a8a92; letter-spacing:.04em;" aria-hidden="true">
                 <span>9:41</span>
                 <span style="display:inline-flex; gap:5px; align-items:center;">
-                  <i data-lucide="signal" style="width:12px; height:12px;"></i>
-                  <i data-lucide="battery-full" style="width:14px; height:14px;"></i>
+                  <svg class="i" style="width:12px; height:12px;"><use href="#i-signal"/></svg>
+                  <svg class="i" style="width:14px; height:14px;"><use href="#i-battery"/></svg>
                 </span>
               </div>
 
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 14px 14px; border-bottom:1px solid rgba(255,255,255,.08);">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 14px 14px; border-bottom:1px solid rgba(255,255,255,.08);" aria-hidden="true">
                 <div style="display:flex; align-items:center; gap:10px; min-width:0;">
                   <div style="width:36px; height:36px; border-radius:12px; overflow:hidden; flex:none; border:1px solid rgba(255,255,255,.08);">
-                    <img src="logo.png" alt="" style="width:100%; height:100%; object-fit:cover; display:block;" />
+                    <img src="/logo.png" alt="" width="36" height="36" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;">
                   </div>
                   <div style="min-width:0;">
                     <div style="font-size:15px; font-weight:600; letter-spacing:-.01em;">Plately</div>
-                    <div style="font-size:11px; color:#8a8a92; margin-top:1px;">{{ t.pDate }}</div>
+                    <div style="font-size:11px; color:#8a8a92; margin-top:1px;" data-i18n="pDate">czwartek, 30 lipca</div>
                   </div>
                 </div>
-                <span style="flex:none; font-size:9px; font-weight:500; letter-spacing:.09em; text-transform:uppercase; background:#17251f; color:#34d399; padding:5px 9px; border-radius:999px;">{{ t.pGoal }}</span>
+                <span style="flex:none; font-size:9px; font-weight:500; letter-spacing:.09em; text-transform:uppercase; background:#17251f; color:#34d399; padding:5px 9px; border-radius:999px;" data-i18n="pGoal">Redukcja</span>
               </div>
 
-              <div style="padding:14px; display:flex; flex-direction:column; gap:10px; background:#0a0a0b;">
+              <div style="padding:14px; display:flex; flex-direction:column; gap:10px; background:#0a0a0b;" aria-hidden="true">
 
                 <div style="background:#131316; border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:16px;">
-                  <div style="font-size:10px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:#8a8a92;">{{ t.pCal }}</div>
+                  <div style="font-size:10px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:#8a8a92;" data-i18n="pCal">Kalorie (kcal)</div>
                   <div style="position:relative; width:150px; height:150px; margin:10px auto 4px;">
                     <svg viewBox="0 0 160 160" style="width:100%; height:100%; transform:rotate(-90deg);">
                       <circle cx="80" cy="80" r="68" fill="transparent" stroke="#242629" stroke-width="10"></circle>
@@ -163,28 +333,28 @@
                     </svg>
                     <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                       <span style="font-size:32px; font-weight:700; letter-spacing:-.02em; line-height:1;">1520</span>
-                      <span style="font-size:9px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:#8a8a92; margin-top:4px;">{{ t.pEaten }}</span>
+                      <span style="font-size:9px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:#8a8a92; margin-top:4px;" data-i18n="pEaten">Zjedzone</span>
                       <span style="display:block; width:32px; height:1px; background:rgba(255,255,255,.08); margin:6px 0;"></span>
                       <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#34d399;">2140 kcal</span>
                     </div>
                   </div>
                   <div style="display:flex; justify-content:space-between; margin-top:8px;">
                     <div>
-                      <div style="font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#8a8a92;">{{ t.pTarget }}</div>
+                      <div style="font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#8a8a92;" data-i18n="pTarget">Cel</div>
                       <div style="font-size:14px; font-weight:600; margin-top:2px;">2140 kcal</div>
                     </div>
                     <div style="text-align:right;">
-                      <div style="font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#8a8a92;">{{ t.pLeft }}</div>
+                      <div style="font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#8a8a92;" data-i18n="pLeft">Zostało</div>
                       <div style="font-size:14px; font-weight:600; margin-top:2px;">620 kcal</div>
                     </div>
                   </div>
                 </div>
 
                 <div style="background:#131316; border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:16px; display:flex; flex-direction:column; gap:13px;">
-                  <div style="font-size:10px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:#8a8a92;">{{ t.pMacros }}</div>
+                  <div style="font-size:10px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:#8a8a92;" data-i18n="pMacros">Makroskładniki</div>
                   <div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
-                      <span style="display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:500;"><span style="width:8px; height:8px; border-radius:50%; background:#34d399; flex:none;"></span>{{ t.pProtein }}</span>
+                      <span style="display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:500;"><span style="width:8px; height:8px; border-radius:50%; background:#34d399; flex:none;"></span><span data-i18n="pProtein">Białko</span></span>
                       <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a8a92; flex:none;">118 / 150 g</span>
                     </div>
                     <div style="height:10px; border-radius:999px; background:#242629; overflow:hidden;">
@@ -193,7 +363,7 @@
                   </div>
                   <div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
-                      <span style="display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:500;"><span style="width:8px; height:8px; border-radius:50%; background:#5b9cf6; flex:none;"></span>{{ t.pCarbs }}</span>
+                      <span style="display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:500;"><span style="width:8px; height:8px; border-radius:50%; background:#5b9cf6; flex:none;"></span><span data-i18n="pCarbs">Węglowodany</span></span>
                       <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a8a92; flex:none;">164 / 220 g</span>
                     </div>
                     <div style="height:10px; border-radius:999px; background:#242629; overflow:hidden;">
@@ -202,7 +372,7 @@
                   </div>
                   <div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
-                      <span style="display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:500;"><span style="width:8px; height:8px; border-radius:50%; background:#a1a1aa; flex:none;"></span>{{ t.pFat }}</span>
+                      <span style="display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:500;"><span style="width:8px; height:8px; border-radius:50%; background:#a1a1aa; flex:none;"></span><span data-i18n="pFat">Tłuszcze</span></span>
                       <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a8a92; flex:none;">48 / 65 g</span>
                     </div>
                     <div style="height:10px; border-radius:999px; background:#242629; overflow:hidden;">
@@ -214,9 +384,9 @@
                 <div style="background:#131316; border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:16px;">
                   <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,.08);">
                     <span style="display:inline-flex; align-items:center; gap:7px; font-size:10px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:#8a8a92;">
-                      <i data-lucide="glass-water" style="width:14px; height:14px; color:#5b9cf6;"></i>{{ t.pHydration }}
+                      <svg class="i" style="width:14px; height:14px; color:#5b9cf6;"><use href="#i-glass-water"/></svg><span data-i18n="pHydration">Nawodnienie</span>
                     </span>
-                    <span style="font-size:9px; font-weight:500; letter-spacing:.07em; text-transform:uppercase; background:#132534; color:#5b9cf6; padding:5px 9px; border-radius:999px; flex:none;">{{ t.pHydTarget }}</span>
+                    <span style="font-size:9px; font-weight:500; letter-spacing:.07em; text-transform:uppercase; background:#132534; color:#5b9cf6; padding:5px 9px; border-radius:999px; flex:none;" data-i18n="pHydTarget">Cel 2450 ml</span>
                   </div>
                   <div style="position:relative; height:86px; margin-top:12px; border-radius:16px; overflow:hidden; background:#1f2023; display:flex; align-items:flex-end;">
                     <div style="width:100%; height:71%; background:rgba(91,156,246,.85); position:relative; animation:plWater 1.8s cubic-bezier(.2,.8,.2,1) .6s both;">
@@ -224,50 +394,50 @@
                     </div>
                     <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                       <span style="font-size:22px; font-weight:700; letter-spacing:-.01em;">1750 <span style="font-size:11px; font-weight:500; color:#e4e4e7;">ml</span></span>
-                      <span style="font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#e4e4e7; margin-top:2px;">{{ t.pDrunk }}</span>
+                      <span style="font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#e4e4e7; margin-top:2px;" data-i18n="pDrunk">Dziś wypite</span>
                     </div>
                   </div>
                   <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:12px;">
                     <div style="background:#1f2023; border-radius:12px; padding:9px 4px; display:flex; flex-direction:column; align-items:center; gap:3px;">
-                      <i data-lucide="droplet" style="width:14px; height:14px; color:#5b9cf6;"></i>
-                      <span style="font-size:9px; font-weight:500; letter-spacing:.07em; text-transform:uppercase;">{{ t.pGlass }}</span>
+                      <svg class="i" style="width:14px; height:14px; color:#5b9cf6;"><use href="#i-droplet"/></svg>
+                      <span style="font-size:9px; font-weight:500; letter-spacing:.07em; text-transform:uppercase;" data-i18n="pGlass">Szklanka</span>
                       <span style="font-family:'JetBrains Mono',monospace; font-size:9px; color:#8a8a92;">250ml</span>
                     </div>
                     <div style="background:#1f2023; border-radius:12px; padding:9px 4px; display:flex; flex-direction:column; align-items:center; gap:3px;">
-                      <i data-lucide="droplet" style="width:14px; height:14px; color:#5b9cf6;"></i>
-                      <span style="font-size:9px; font-weight:500; letter-spacing:.07em; text-transform:uppercase;">{{ t.pBottle }}</span>
+                      <svg class="i" style="width:14px; height:14px; color:#5b9cf6;"><use href="#i-droplet"/></svg>
+                      <span style="font-size:9px; font-weight:500; letter-spacing:.07em; text-transform:uppercase;" data-i18n="pBottle">Butelka</span>
                       <span style="font-family:'JetBrains Mono',monospace; font-size:9px; color:#8a8a92;">500ml</span>
                     </div>
                     <div style="background:#1f2023; border-radius:12px; padding:9px 4px; display:flex; flex-direction:column; align-items:center; gap:3px;">
-                      <i data-lucide="droplet" style="width:14px; height:14px; color:#5b9cf6;"></i>
-                      <span style="font-size:9px; font-weight:500; letter-spacing:.07em; text-transform:uppercase;">{{ t.pShaker }}</span>
+                      <svg class="i" style="width:14px; height:14px; color:#5b9cf6;"><use href="#i-droplet"/></svg>
+                      <span style="font-size:9px; font-weight:500; letter-spacing:.07em; text-transform:uppercase;" data-i18n="pShaker">Shaker</span>
                       <span style="font-family:'JetBrains Mono',monospace; font-size:9px; color:#8a8a92;">750ml</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div style="background:#101013; border-top:1px solid rgba(255,255,255,.08); display:flex; align-items:center; padding:8px 6px 12px;">
+              <div style="background:#101013; border-top:1px solid rgba(255,255,255,.08); display:flex; align-items:center; padding:8px 6px 12px;" aria-hidden="true">
                 <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                  <i data-lucide="layout-grid" style="width:20px; height:20px; color:#34d399;"></i>
-                  <span style="font-size:9px; font-weight:600; letter-spacing:.04em; color:#34d399;">{{ t.nav1 }}</span>
+                  <svg class="i" style="width:20px; height:20px; color:#34d399;"><use href="#i-grid"/></svg>
+                  <span style="font-size:9px; font-weight:600; letter-spacing:.04em; color:#34d399;" data-i18n="nav1">Panel</span>
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                  <i data-lucide="scale" style="width:20px; height:20px; color:#8a8a92;"></i>
-                  <span style="font-size:9px; font-weight:500; letter-spacing:.04em; color:#8a8a92;">{{ t.nav2 }}</span>
+                  <svg class="i" style="width:20px; height:20px; color:#8a8a92;"><use href="#i-scale"/></svg>
+                  <span style="font-size:9px; font-weight:500; letter-spacing:.04em; color:#8a8a92;" data-i18n="nav2">Waga</span>
                 </div>
                 <div style="width:58px; flex:none; display:flex; justify-content:center;">
                   <div style="width:50px; height:50px; border-radius:16px; background:#34d399; color:#04140d; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 26px rgba(52,211,153,.3);">
-                    <i data-lucide="plus" style="width:24px; height:24px;"></i>
+                    <svg class="i" style="width:24px; height:24px;"><use href="#i-plus"/></svg>
                   </div>
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                  <i data-lucide="sparkles" style="width:20px; height:20px; color:#8a8a92;"></i>
-                  <span style="font-size:9px; font-weight:500; letter-spacing:.04em; color:#8a8a92;">{{ t.nav3 }}</span>
+                  <svg class="i" style="width:20px; height:20px; color:#8a8a92;"><use href="#i-sparkles"/></svg>
+                  <span style="font-size:9px; font-weight:500; letter-spacing:.04em; color:#8a8a92;" data-i18n="nav3">Trener</span>
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                  <i data-lucide="user" style="width:20px; height:20px; color:#8a8a92;"></i>
-                  <span style="font-size:9px; font-weight:500; letter-spacing:.04em; color:#8a8a92;">{{ t.nav4 }}</span>
+                  <svg class="i" style="width:20px; height:20px; color:#8a8a92;"><use href="#i-user"/></svg>
+                  <span style="font-size:9px; font-weight:500; letter-spacing:.04em; color:#8a8a92;" data-i18n="nav4">Profil</span>
                 </div>
               </div>
             </div>
@@ -277,23 +447,23 @@
     </div>
   </section>
 
-  <section class="pl-reveal" style="padding:0 24px;">
+  <section class="pl-reveal" style="padding:0 24px;" aria-label="Za darmo">
     <div style="max-width:1180px; margin:0 auto; border:1px solid rgba(52,211,153,.22); background:linear-gradient(100deg, #101013 0%, #12191680 55%, #101013 100%); border-radius:28px; padding:clamp(24px,3vw,34px); display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:22px; align-items:center;">
       <div style="display:flex; align-items:center; gap:14px;">
         <span style="width:44px; height:44px; flex:none; border-radius:14px; background:#17251f; color:#34d399; display:flex; align-items:center; justify-content:center;">
-          <i data-lucide="gift" style="width:21px; height:21px;"></i>
+          <svg class="i" style="width:21px; height:21px;" aria-hidden="true"><use href="#i-gift"/></svg>
         </span>
-        <div style="font-size:clamp(19px,2vw,25px); font-weight:700; letter-spacing:-.02em; line-height:1.2; text-wrap:balance;">{{ t.freeTitle }}</div>
+        <p style="margin:0; font-size:clamp(19px,2vw,25px); font-weight:700; letter-spacing:-.02em; line-height:1.2; text-wrap:balance;" data-i18n="freeTitle">W pełni darmowa. Dla każdego. Na zawsze.</p>
       </div>
       <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end;">
         <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#e4e4e7; border:1px solid rgba(255,255,255,.1); background:#131316; border-radius:999px; padding:10px 15px;">
-          <i data-lucide="check" style="width:14px; height:14px; color:#34d399;"></i>{{ t.freeB1 }}
+          <svg class="i" style="width:14px; height:14px; color:#34d399;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="freeB1">Zero opłat i subskrypcji</span>
         </span>
         <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#e4e4e7; border:1px solid rgba(255,255,255,.1); background:#131316; border-radius:999px; padding:10px 15px;">
-          <i data-lucide="check" style="width:14px; height:14px; color:#34d399;"></i>{{ t.freeB2 }}
+          <svg class="i" style="width:14px; height:14px; color:#34d399;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="freeB2">Żadnych funkcji premium</span>
         </span>
         <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#e4e4e7; border:1px solid rgba(255,255,255,.1); background:#131316; border-radius:999px; padding:10px 15px;">
-          <i data-lucide="check" style="width:14px; height:14px; color:#34d399;"></i>{{ t.freeB3 }}
+          <svg class="i" style="width:14px; height:14px; color:#34d399;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="freeB3">Bez reklam</span>
         </span>
       </div>
     </div>
@@ -302,51 +472,51 @@
   <section id="klimat" style="padding:clamp(56px,7vw,110px) 24px;">
     <div style="max-width:1180px; margin:0 auto;">
       <div class="pl-reveal" style="max-width:44ch;">
-        <div style="font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#34d399;">{{ t.eyebrow }}</div>
-        <h2 style="margin:16px 0 0; font-size:clamp(30px,4vw,50px); line-height:1.08; font-weight:700; letter-spacing:-.03em; text-wrap:balance;">{{ t.h2 }}</h2>
-        <p style="margin:18px 0 0; font-size:17px; line-height:1.6; color:#8a8a92; text-wrap:pretty;">{{ t.lead2 }}</p>
+        <p style="margin:0; font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#34d399;" data-i18n="eyebrow">Klimat aplikacji</p>
+        <h2 style="margin:16px 0 0; font-size:clamp(30px,4vw,50px); line-height:1.08; font-weight:700; letter-spacing:-.03em; text-wrap:balance;" data-i18n="h2">Spokój zamiast liczenia</h2>
+        <p style="margin:18px 0 0; font-size:17px; line-height:1.6; color:#8a8a92; text-wrap:pretty;" data-i18n="lead2">Cztery filary, na których stoi codzienne korzystanie z Plately.</p>
       </div>
 
       <div style="margin-top:clamp(36px,4vw,56px); display:grid; grid-template-columns:repeat(auto-fit, minmax(258px, 1fr)); gap:16px;">
-        <div class="pl-reveal" style="background:#131316; border:1px solid rgba(255,255,255,.08); border-radius:28px; padding:28px; display:flex; flex-direction:column; gap:14px; transition:border-color .3s ease, transform .3s cubic-bezier(.2,.8,.2,1);" style-hover="border-color:rgba(52,211,153,.4); transform:translateY(-4px);">
+        <div class="pl-reveal pl-card">
           <div style="width:44px; height:44px; border-radius:14px; background:#17251f; color:#34d399; display:flex; align-items:center; justify-content:center;">
-            <i data-lucide="scan-line" style="width:21px; height:21px;"></i>
+            <svg class="i" style="width:21px; height:21px;" aria-hidden="true"><use href="#i-scan-line"/></svg>
           </div>
-          <h3 style="margin:6px 0 0; font-size:19px; font-weight:600; letter-spacing:-.015em;">{{ t.c1t }}</h3>
-          <p style="margin:0; font-size:14px; line-height:1.62; color:#8a8a92; text-wrap:pretty;">{{ t.c1d }}</p>
+          <h3 style="margin:6px 0 0; font-size:19px; font-weight:600; letter-spacing:-.015em;" data-i18n="c1t">Zdjęcie zamiast tabelek</h3>
+          <p style="margin:0; font-size:14px; line-height:1.62; color:#8a8a92; text-wrap:pretty;" data-i18n="c1d">Fotografujesz talerz, AI rozpoznaje składniki i sama rozbija posiłek na kalorie, białko, węglowodany i tłuszcze.</p>
         </div>
 
-        <div class="pl-reveal" style="background:#131316; border:1px solid rgba(255,255,255,.08); border-radius:28px; padding:28px; display:flex; flex-direction:column; gap:14px; transition:border-color .3s ease, transform .3s cubic-bezier(.2,.8,.2,1);" style-hover="border-color:rgba(91,156,246,.4); transform:translateY(-4px);">
+        <div class="pl-reveal pl-card" style="--pl-accent:rgba(91,156,246,.4);">
           <div style="width:44px; height:44px; border-radius:14px; background:#132534; color:#5b9cf6; display:flex; align-items:center; justify-content:center;">
-            <i data-lucide="glass-water" style="width:21px; height:21px;"></i>
+            <svg class="i" style="width:21px; height:21px;" aria-hidden="true"><use href="#i-glass-water"/></svg>
           </div>
-          <h3 style="margin:6px 0 0; font-size:19px; font-weight:600; letter-spacing:-.015em;">{{ t.c2t }}</h3>
-          <p style="margin:0; font-size:14px; line-height:1.62; color:#8a8a92; text-wrap:pretty;">{{ t.c2d }}</p>
+          <h3 style="margin:6px 0 0; font-size:19px; font-weight:600; letter-spacing:-.015em;" data-i18n="c2t">Nawodnienie w tle</h3>
+          <p style="margin:0; font-size:14px; line-height:1.62; color:#8a8a92; text-wrap:pretty;" data-i18n="c2d">Szklanka, butelka, shaker — jedno dotknięcie. Cel liczony z Twojej masy ciała, a nie z ogólnej reguły.</p>
         </div>
 
-        <div class="pl-reveal" style="background:#131316; border:1px solid rgba(255,255,255,.08); border-radius:28px; padding:28px; display:flex; flex-direction:column; gap:14px; transition:border-color .3s ease, transform .3s cubic-bezier(.2,.8,.2,1);" style-hover="border-color:rgba(52,211,153,.4); transform:translateY(-4px);">
+        <div class="pl-reveal pl-card">
           <div style="width:44px; height:44px; border-radius:14px; background:#17251f; color:#34d399; display:flex; align-items:center; justify-content:center;">
-            <i data-lucide="sparkles" style="width:21px; height:21px;"></i>
+            <svg class="i" style="width:21px; height:21px;" aria-hidden="true"><use href="#i-sparkles"/></svg>
           </div>
-          <h3 style="margin:6px 0 0; font-size:19px; font-weight:600; letter-spacing:-.015em;">{{ t.c3t }}</h3>
-          <p style="margin:0; font-size:14px; line-height:1.62; color:#8a8a92; text-wrap:pretty;">{{ t.c3d }}</p>
+          <h3 style="margin:6px 0 0; font-size:19px; font-weight:600; letter-spacing:-.015em;" data-i18n="c3t">Trener, który Cię zna</h3>
+          <p style="margin:0; font-size:14px; line-height:1.62; color:#8a8a92; text-wrap:pretty;" data-i18n="c3d">Sen, stres, poziom aktywności, dieta i przeszkody — trener AI układa plan na podstawie Twojego kontekstu.</p>
         </div>
 
-        <div class="pl-reveal" style="background:#131316; border:1px solid rgba(255,255,255,.08); border-radius:28px; padding:28px; display:flex; flex-direction:column; gap:14px; transition:border-color .3s ease, transform .3s cubic-bezier(.2,.8,.2,1);" style-hover="border-color:rgba(255,255,255,.28); transform:translateY(-4px);">
+        <div class="pl-reveal pl-card" style="--pl-accent:rgba(255,255,255,.28);">
           <div style="width:44px; height:44px; border-radius:14px; background:#1b1c1f; color:#e4e4e7; display:flex; align-items:center; justify-content:center;">
-            <i data-lucide="shield-check" style="width:21px; height:21px;"></i>
+            <svg class="i" style="width:21px; height:21px;" aria-hidden="true"><use href="#i-shield-check"/></svg>
           </div>
-          <h3 style="margin:6px 0 0; font-size:19px; font-weight:600; letter-spacing:-.015em;">{{ t.c4t }}</h3>
-          <p style="margin:0; font-size:14px; line-height:1.62; color:#8a8a92; text-wrap:pretty;">{{ t.c4d }}</p>
+          <h3 style="margin:6px 0 0; font-size:19px; font-weight:600; letter-spacing:-.015em;" data-i18n="c4t">Twoje dane zostają Twoje</h3>
+          <p style="margin:0; font-size:14px; line-height:1.62; color:#8a8a92; text-wrap:pretty;" data-i18n="c4d">Logowanie Google i ochrona na poziomie bazy: nikt poza Tobą nie odczyta Twojego dziennika. Możesz użyć własnego klucza AI.</p>
         </div>
       </div>
 
       <div class="pl-reveal" style="margin-top:16px; display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
         <div style="background:#101013; border:1px solid rgba(255,255,255,.08); border-radius:28px; padding:clamp(28px,3vw,40px); display:flex; flex-direction:column; justify-content:space-between; gap:24px;">
           <div style="display:flex; align-items:center; gap:10px; font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:#8a8a92;">
-            <i data-lucide="scale" style="width:15px; height:15px; color:#34d399;"></i>{{ t.wLabel }}
+            <svg class="i" style="width:15px; height:15px; color:#34d399;" aria-hidden="true"><use href="#i-scale"/></svg><span data-i18n="wLabel">Kontrola wagi</span>
           </div>
-          <div style="display:flex; align-items:flex-end; gap:7px; height:96px;">
+          <div style="display:flex; align-items:flex-end; gap:7px; height:96px;" aria-hidden="true">
             <div style="flex:1; height:64%; background:#242629; border-radius:6px 6px 0 0;"></div>
             <div style="flex:1; height:72%; background:#242629; border-radius:6px 6px 0 0;"></div>
             <div style="flex:1; height:58%; background:#242629; border-radius:6px 6px 0 0;"></div>
@@ -357,13 +527,13 @@
           </div>
           <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;">
             <span style="font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:700;">−4,2 kg</span>
-            <span style="font-size:13px; color:#8a8a92;">{{ t.wSub }}</span>
+            <span style="font-size:13px; color:#8a8a92;" data-i18n="wSub">w 6 tygodni</span>
           </div>
         </div>
         <div style="background:#101013; border:1px solid rgba(255,255,255,.08); border-radius:28px; padding:clamp(28px,3vw,40px); display:flex; flex-direction:column; justify-content:center; gap:18px;">
-          <div style="font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:#8a8a92;">{{ t.coachLabel }}</div>
-          <div style="align-self:flex-end; max-width:88%; background:#1b1c1f; border:1px solid rgba(255,255,255,.08); border-radius:18px 18px 6px 18px; padding:13px 16px; font-size:14px; line-height:1.5;">{{ t.chatQ }}</div>
-          <div style="align-self:flex-start; max-width:92%; background:#17251f; border:1px solid rgba(52,211,153,.22); color:#d7fbea; border-radius:18px 18px 18px 6px; padding:13px 16px; font-size:14px; line-height:1.55;">{{ t.chatA }}</div>
+          <div style="font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:#8a8a92;" data-i18n="coachLabel">Rozmowa z trenerem</div>
+          <p style="margin:0; align-self:flex-end; max-width:88%; background:#1b1c1f; border:1px solid rgba(255,255,255,.08); border-radius:18px 18px 6px 18px; padding:13px 16px; font-size:14px; line-height:1.5;" data-i18n="chatQ">Zjadłem za mało białka trzeci dzień z rzędu.</p>
+          <p style="margin:0; align-self:flex-start; max-width:92%; background:#17251f; border:1px solid rgba(52,211,153,.22); color:#d7fbea; border-radius:18px 18px 18px 6px; padding:13px 16px; font-size:14px; line-height:1.55;" data-i18n="chatA">Dorzuć 40 g białka w kolacji — twaróg albo jajka. Przy Twoim deficycie to ochroni masę mięśniową.</p>
         </div>
       </div>
     </div>
@@ -372,174 +542,74 @@
   <section id="pobierz" style="padding:clamp(56px,7vw,110px) 24px clamp(80px,9vw,140px); border-top:1px solid rgba(255,255,255,.08); position:relative; overflow:hidden;">
     <div style="position:absolute; bottom:-320px; left:50%; width:820px; height:820px; margin-left:-410px; border-radius:50%; background:radial-gradient(circle, rgba(52,211,153,.13) 0%, rgba(52,211,153,0) 65%); pointer-events:none;"></div>
     <div class="pl-reveal" style="max-width:760px; margin:0 auto; text-align:center; position:relative;">
-      <h2 style="margin:0; font-size:clamp(30px,4.4vw,56px); line-height:1.08; font-weight:700; letter-spacing:-.035em; text-wrap:balance;">{{ t.ctaH2 }}</h2>
-      <p style="margin:20px auto 0; max-width:48ch; font-size:17px; line-height:1.6; color:#8a8a92; text-wrap:pretty;">{{ t.ctaLead }}</p>
+      <h2 style="margin:0; font-size:clamp(30px,4.4vw,56px); line-height:1.08; font-weight:700; letter-spacing:-.035em; text-wrap:balance;" data-i18n="ctaH2">Zacznij dziś. Pierwszy posiłek zajmie 4 sekundy.</h2>
+      <p style="margin:20px auto 0; max-width:48ch; font-size:17px; line-height:1.6; color:#8a8a92; text-wrap:pretty;" data-i18n="ctaLead">Plately działa w przeglądarce — na telefonie, tablecie i komputerze. Bez instalowania, w 12 językach.</p>
 
       <div style="margin:40px auto 0; max-width:452px; border:1px solid rgba(255,255,255,.1); border-radius:30px; padding:20px; background:#0e0e11; position:relative;">
-        <div style="position:absolute; inset:-1px; border-radius:30px; background:radial-gradient(120% 100% at 50% 0%, rgba(200,16,46,.16), rgba(0,0,0,0) 60%); pointer-events:none; animation:plHalo 6s ease-in-out infinite;"></div>
+        <div style="position:absolute; inset:-1px; border-radius:30px; background:radial-gradient(120% 100% at 50% 0%, rgba(52,211,153,.16), rgba(0,0,0,0) 60%); pointer-events:none; animation:plHalo 6s ease-in-out infinite;"></div>
         <div style="position:relative; display:flex; align-items:center; gap:14px; text-align:left;">
           <div style="width:54px; height:54px; flex:none; border-radius:17px; overflow:hidden; border:1px solid rgba(255,255,255,.1); background:#131316;">
-            <image-slot id="ag-badge" shape="rounded" radius="16" placeholder="logo AppGallery"></image-slot>
+            <img src="/logo.png" alt="" width="54" height="54" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;">
           </div>
           <div style="min-width:0;">
-            <div style="font-size:10px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#8a8a92;">{{ t.availIn }}</div>
-            <div style="display:flex; align-items:baseline; gap:7px; margin-top:3px;">
-              <span style="font-size:12px; font-weight:700; letter-spacing:.16em; color:#d24; text-transform:uppercase;">{{ t.storeSub }}</span>
-              <span style="font-size:19px; font-weight:600; letter-spacing:-.01em; color:#f4f4f5;">{{ t.store }}</span>
+            <div style="font-size:10px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#8a8a92;" data-i18n="availIn">Dostępne w</div>
+            <div style="display:flex; align-items:baseline; gap:7px; margin-top:3px; flex-wrap:wrap;">
+              <span style="font-size:12px; font-weight:700; letter-spacing:.16em; color:#34d399; text-transform:uppercase;" data-i18n="storeSub">Przeglądarka</span>
+              <span style="font-size:19px; font-weight:600; letter-spacing:-.01em; color:#f4f4f5;">app.plately.eu</span>
             </div>
           </div>
         </div>
 
-        <a href="https://appgallery.huawei.com/" target="_blank" rel="noopener" style="position:relative; overflow:hidden; margin-top:16px; display:flex; align-items:center; justify-content:center; gap:11px; padding:17px 22px; border-radius:20px; background:linear-gradient(135deg, #d81e3c 0%, #a70f26 100%); color:#fff; font-size:16px; font-weight:600; letter-spacing:-.005em; box-shadow:0 14px 34px rgba(200,16,46,.28); transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease;" style-hover="transform:translateY(-2px); box-shadow:0 20px 46px rgba(200,16,46,.4); color:#fff;" style-active="transform:translateY(0) scale(.985);">
+        <a href="https://app.plately.eu/" class="pl-store" style="margin-top:16px;">
           <span style="position:absolute; top:0; bottom:0; left:0; width:34%; background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.34), rgba(255,255,255,0)); animation:plShine 3.6s ease-in-out infinite; pointer-events:none;"></span>
-          <i data-lucide="download" style="width:19px; height:19px; position:relative;"></i>
-          <span style="position:relative;">{{ t.ctaInstall }}</span>
+          <svg class="i" style="width:19px; height:19px; position:relative;" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+          <span style="position:relative;" data-i18n="ctaOpen">Otwórz aplikację</span>
+        </a>
+
+        <a href="https://appgallery.huawei.com/" target="_blank" rel="noopener" class="pl-alt">
+          <svg class="i" style="width:16px; height:16px;" aria-hidden="true"><use href="#i-download"/></svg>
+          <span data-i18n="ctaAndroid">Wersja na Androida (AppGallery)</span>
         </a>
 
         <div style="margin-top:14px; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a8a92; letter-spacing:.03em; flex-wrap:wrap;">
-          <i data-lucide="smartphone" style="width:13px; height:13px;"></i>{{ t.sysreq }}
+          <svg class="i" style="width:13px; height:13px;" aria-hidden="true"><use href="#i-monitor"/></svg><span data-i18n="sysreq">Android · iOS · Windows · macOS · 0 zł</span>
         </div>
       </div>
     </div>
   </section>
 
+  </main>
+
   <footer style="border-top:1px solid rgba(255,255,255,.08); padding:28px 24px 34px;">
     <div style="max-width:1180px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; font-size:12px; color:#8a8a92;">
       <div style="display:flex; align-items:center; gap:10px;">
         <div style="width:24px; height:24px; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,.08); flex:none;">
-          <img src="logo.png" alt="" style="width:100%; height:100%; object-fit:cover; display:block;" />
+          <img src="/logo.png" alt="" width="24" height="24" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;">
         </div>
-        {{ t.footer }}
+        <span data-i18n="footer">Plately — inteligentny asystent diety, nawodnienia i kontroli wagi.</span>
       </div>
-      <div style="font-family:'JetBrains Mono',monospace; letter-spacing:.04em;">© 2026 · {{ t.freePill }}</div>
+      <div style="font-family:'JetBrains Mono',monospace; letter-spacing:.04em;">© 2026 · <span data-i18n="freePill">Darmowa na zawsze</span></div>
     </div>
   </footer>
 
-  <div id="pl-dock" style="position:fixed; right:20px; bottom:20px; z-index:50; opacity:0; transform:translateY(16px); transition:opacity .4s ease, transform .4s cubic-bezier(.2,.8,.2,1); pointer-events:none;">
-    <a href="https://appgallery.huawei.com/" target="_blank" rel="noopener" style="position:relative; overflow:hidden; display:flex; align-items:center; gap:11px; padding:10px 18px 10px 12px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background:rgba(19,19,22,.9); backdrop-filter:blur(18px); box-shadow:0 18px 40px rgba(0,0,0,.6); transition:border-color .25s ease, transform .25s cubic-bezier(.2,.8,.2,1);" style-hover="border-color:rgba(216,30,60,.6); transform:translateY(-3px); color:#f4f4f5;">
+  <div id="pl-dock" class="pl-dock" style="position:fixed; right:20px; bottom:20px; z-index:50; opacity:0; transform:translateY(16px); transition:opacity .4s ease, transform .4s cubic-bezier(.2,.8,.2,1); pointer-events:none;">
+    <a href="https://app.plately.eu/">
       <span style="position:absolute; top:0; bottom:0; left:0; width:40%; background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.14), rgba(255,255,255,0)); animation:plShine 4.4s ease-in-out infinite; pointer-events:none;"></span>
-      <span style="position:relative; width:34px; height:34px; flex:none; border-radius:12px; background:linear-gradient(135deg, #d81e3c 0%, #a70f26 100%); color:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(200,16,46,.35);">
-        <i data-lucide="download" style="width:16px; height:16px;"></i>
+      <span style="position:relative; width:34px; height:34px; flex:none; border-radius:12px; background:linear-gradient(135deg, #34d399 0%, #10a37f 100%); color:#04140d; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(52,211,153,.35);">
+        <svg class="i" style="width:16px; height:16px;" aria-hidden="true"><use href="#i-arrow-right"/></svg>
       </span>
       <span style="position:relative;">
-        <span style="display:block; font-size:9px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#8a8a92;">{{ t.availIn }}</span>
-        <span style="display:block; font-size:13px; font-weight:600; color:#f4f4f5;">{{ t.store }}</span>
+        <span style="display:block; font-size:9px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#8a8a92;" data-i18n="availIn">Dostępne w</span>
+        <span style="display:block; font-size:13px; font-weight:600; color:#f4f4f5;" data-i18n="ctaOpen">Otwórz aplikację</span>
       </span>
     </a>
   </div>
 </div>
-</x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;showFloatingDock&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Zachowanie&quot;},&quot;phoneTilt&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Zachowanie&quot;},&quot;revealOnScroll&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Zachowanie&quot;}}">
-class Component extends DCLogic {
-  state = { lang: 'pl', menu: false };
 
-  componentDidMount() {
-    let saved = null;
-    try { saved = localStorage.getItem('plately_landing_lang'); } catch (e) {}
-    const dict = window.PLATELY_I18N || {};
-    const nav = (navigator.language || 'pl').slice(0, 2).toLowerCase();
-    const initial = (saved && dict[saved]) ? saved : (dict[nav] ? nav : 'pl');
-    if (initial !== this.state.lang) this.setState({ lang: initial });
-
-    this.icons();
-    this.revealInit();
-
-    const phone = document.getElementById('pl-phone');
-    this.onMove = (ev) => {
-      if (!phone || window.innerWidth < 900 || this.props.phoneTilt === false) return;
-      const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-      phone.style.animation = 'none';
-      phone.style.transform = `perspective(1400px) rotateX(${((ev.clientY - cy) / cy) * -5}deg) rotateY(${((ev.clientX - cx) / cx) * 6}deg)`;
-    };
-    window.addEventListener('mousemove', this.onMove);
-
-    this.onScroll = () => {
-      const dock = document.getElementById('pl-dock');
-      if (!dock) return;
-      const cta = document.getElementById('pobierz');
-      const nearCta = cta && cta.getBoundingClientRect().top < window.innerHeight * 0.9;
-      const show = this.props.showFloatingDock !== false && window.scrollY > 420 && !nearCta;
-      dock.style.opacity = show ? '1' : '0';
-      dock.style.transform = show ? 'none' : 'translateY(16px)';
-      dock.style.pointerEvents = show ? 'auto' : 'none';
-    };
-    window.addEventListener('scroll', this.onScroll, { passive: true });
-    this.onScroll();
-
-    this.onDocClick = (e) => {
-      if (!this.state.menu) return;
-      if (e.target.closest('#pl-langmenu') || e.target.closest('#pl-langbtn')) return;
-      this.setState({ menu: false });
-    };
-    document.addEventListener('click', this.onDocClick);
-  }
-
-  revealInit() {
-    if (this.props.revealOnScroll === false) {
-      document.querySelectorAll('.pl-reveal').forEach(el => el.classList.add('pl-in'));
-      return;
-    }
-    let n = 0;
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        const el = e.target;
-        setTimeout(() => el.classList.add('pl-in'), (n++ % 5) * 90);
-        io.unobserve(el);
-      });
-    }, { threshold: 0.05, rootMargin: '0px 0px -6% 0px' });
-    document.querySelectorAll('.pl-reveal').forEach(el => io.observe(el));
-    this.sweep = () => {
-      document.querySelectorAll('.pl-reveal:not(.pl-in)').forEach(el => {
-        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('pl-in');
-      });
-    };
-    window.addEventListener('scroll', this.sweep, { passive: true });
-    window.addEventListener('load', this.sweep);
-    setTimeout(this.sweep, 900);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('mousemove', this.onMove);
-    window.removeEventListener('scroll', this.onScroll);
-    document.removeEventListener('click', this.onDocClick);
-    if (this.sweep) { window.removeEventListener('scroll', this.sweep); window.removeEventListener('load', this.sweep); }
-  }
-
-  componentDidUpdate() { this.icons(); }
-
-  icons() {
-    const run = () => window.lucide && window.lucide.createIcons();
-    run();
-    setTimeout(run, 250);
-    setTimeout(run, 1100);
-  }
-
-  setLang(code) {
-    try { localStorage.setItem('plately_landing_lang', code); } catch (e) {}
-    document.documentElement.lang = code;
-    this.setState({ lang: code, menu: false });
-  }
-
-  renderVals() {
-    const dict = window.PLATELY_I18N || {};
-    const lang = dict[this.state.lang] ? this.state.lang : 'pl';
-    const t = dict[lang] || {};
-    const langs = (window.PLATELY_LANGS || []).map(l => ({
-      code: l.code,
-      label: l.label,
-      pick: () => this.setLang(l.code),
-      style: 'display:flex; align-items:center; gap:7px; text-align:left; font-family:inherit; font-size:12px; font-weight:500; padding:8px 10px; border-radius:10px; cursor:pointer; border:1px solid ' +
-        (l.code === lang ? 'rgba(52,211,153,.35)' : 'transparent') + '; background:' +
-        (l.code === lang ? '#17251f' : 'transparent') + '; color:' + (l.code === lang ? '#34d399' : '#e4e4e7') + '; transition:background-color .15s ease;'
-    }));
-    return {
-      t, lang, langs,
-      menuOpen: this.state.menu,
-      toggleLangMenu: (e) => { e.stopPropagation(); this.setState({ menu: !this.state.menu }); }
-    };
-  }
-}
-</script>
+<!-- Deferred scripts run in order, so the dictionary is always complete before
+     landing.js reads it. -->
+<script src="/landing-i18n.js" defer></script>
+<script src="/landing-web.js" defer></script>
+<script src="/landing.js" defer></script>
 </body>
 </html>
