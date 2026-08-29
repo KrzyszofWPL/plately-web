@@ -1,0 +1,15 @@
+# Lokalne kopie robocze — .bak, katalogi pre-pro i inne rzeczy, które nigdy
+# nie były częścią repozytorium.
+_backup/
+
+# Sekrety. api/admin/* czyta ADMIN_PASSWORD_HASH, PEPPER i SESSION_SECRET
+# z process.env — te wartości ustawia się w panelu Vercela i nie mają prawa
+# trafić do repozytorium nawet przypadkiem.
+.env
+.env.*
+!.env.example
+
+node_modules/
+.vercel/
+.DS_Store
+Thumbs.db

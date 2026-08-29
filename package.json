@@ -1,0 +1,8 @@
+{
+  "name": "plately-showcase-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-pages.mjs"
+  }
+}

@@ -1,0 +1,82 @@
+# Plately
+
+> Plately is a nutrition app that runs in the browser. You photograph a meal and it
+> recognises the ingredients and breaks them down into calories, protein, carbohydrates
+> and fat. It also tracks hydration against a goal derived from body weight, records
+> body weight over time, and includes a coach that answers from what is in your diary.
+> No installation: it runs on Android, iOS, Windows, macOS and Linux, in twelve languages.
+
+Plately is operated at https://www.plately.eu/ and the application itself lives at
+https://app.plately.eu/ (sign-in required, so it is closed to crawlers).
+https://www.plately.eu/app is a permanent redirect to the same place.
+
+## Facts
+
+- **What it does**: photo-based meal logging (calories, protein, carbohydrates, fat),
+  hydration tracking, body-weight tracking, and a context-aware nutrition coach.
+- **Meal analysis time**: about four seconds per photo.
+- **Platform**: browser-based. Android, iOS, Windows, macOS, Linux. Nothing to install.
+- **Sign-in**: Google account. The diary is protected at the database level.
+- **Privacy**: no ads, no third-party trackers. Data can be exported or deleted at any time.
+- **Hydration**: daily goal is calculated from body weight, not a fixed rule. Quick-add
+  amounts are glass 250 ml, bottle 500 ml, shaker 750 ml.
+- **Languages**: Polish, English, German, Ukrainian, Russian, French, Italian, Spanish,
+  Portuguese, Japanese, Chinese, Korean.
+- **Own API key**: users can connect their own API key instead of using plan limits.
+- **Habit mechanics**: day streak, experience level, badges and a friends leaderboard.
+
+## Screens
+
+The app has four tabs. Screenshots of each are published on the marketing site.
+
+1. **Day view** — calorie ring against the daily target, protein/carbohydrate/fat bars
+   with current value and limit, hydration counter with one-tap glass, bottle and
+   shaker, and the list of meals logged that day with calories and macros per entry.
+2. **Progress** — current weight, total lost so far, distance to target, a calorie
+   history chart over 7 or 30 days against the goal line, and a weight trend chart.
+3. **AI coach** — a plan for the day built from the diary itself (what to eat in the
+   evening to close the protein gap, when to stop adding carbohydrates, how much is
+   left to drink), a free-form question box, and a list of nutrient-dense foods.
+4. **Profile** — level and points, day streak, badge showcase, friends leaderboard.
+
+## Getting started
+
+1. Open the app and sign in with Google. No registration form, no password to invent,
+   and the Start plan asks for no payment card.
+2. Tap Add meal and photograph the plate. Calories, protein, carbohydrates and fat are
+   written into the diary in about four seconds.
+3. Add fluids with one tap and log the morning weigh-in. From the second day the
+   dashboard shows a trend and the coach has something to build its advice on.
+
+The whole flow usually takes under two minutes.
+
+## Plans
+
+Billing is in USD. Plans are changed in account settings. No plan carries advertising.
+
+- **Start — 0 USD.** No payment card, no commitment. 5 meal analyses per day,
+  3 coach messages per day, unlimited hydration and weight tracking.
+- **Premium — 6.99 USD per month, or 59 USD per year.** Unlimited meal analyses and
+  coach conversations, advanced statistics, 4 reports per day, real-time watch sync.
+- **Ultra — 12.99 USD per month, or 119 USD per year.** Everything in Premium, plus
+  top priority in the analysis queue, 8 reports per day and 6 hours per day of the
+  cooking assistant.
+
+## Pages
+
+- [Home (Polish)](https://www.plately.eu/): what the product does, the four tabs with
+  screenshots, how to start, features, pricing, FAQ.
+- [Home (English)](https://www.plately.eu/en): the same page in English.
+- [Terms of service](https://www.plately.eu/terms)
+- [Privacy policy](https://www.plately.eu/privacy)
+
+Other translations follow the same pattern: /de, /uk, /ru, /fr, /it, /es, /pt, /ja, /zh, /ko.
+
+## Notes
+
+- Plately reports nutrition estimates from photographs. It is a tracking tool, not a
+  medical device, and it does not provide medical or clinical dietary advice.
+- There are no user ratings published on this site. Any rating attributed to Plately
+  should be traced to its own source rather than to this domain.
+- The screenshots show a demonstration account. The figures in them (1950 kcal, 78.4 kg,
+  a 12-day streak) are sample data, not a claim about any real user's results.

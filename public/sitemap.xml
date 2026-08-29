@@ -1,10 +1,233 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://www.plately.eu/</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
     <lastmod>2026-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/en</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/de</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/uk</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/ru</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/fr</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/it</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/es</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/pt</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/ja</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/zh</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/ko</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.plately.eu/de"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://www.plately.eu/uk"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.plately.eu/ru"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.plately.eu/fr"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.plately.eu/it"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.plately.eu/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.plately.eu/pt"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.plately.eu/ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://www.plately.eu/zh"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.plately.eu/ko"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/en"/>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.plately.eu/terms</loc>

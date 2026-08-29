@@ -17,6 +17,10 @@ export const config = {
 const ALWAYS_PUBLIC = new Set([
   "/robots.txt",
   "/sitemap.xml",
+  // Same reasoning as robots.txt, for the crawlers that read this instead: a
+  // description of the product is not the thing that goes offline during a
+  // maintenance window.
+  "/llms.txt",
   "/favicon.ico",
   "/logo.png",
   "/LogoAPK.png",
@@ -38,6 +42,15 @@ export default async function middleware(request) {
   if (mode !== "maintenance") return passThrough();
 
   const { pathname } = new URL(request.url);
+
+  // /app to skrot do aplikacji, a nie strona tego serwisu: przekierowanie na
+  // app.plately.eu ma zadzialac takze podczas przerwy technicznej, bo strona
+  // idzie offline niezaleznie od aplikacji — dokladnie to obiecuje komunikat
+  // na stronie 503. Zaleznie od kolejnosci routingu Vercela zdazy to obsluzyc
+  // wpis redirects w vercel.json; ten warunek domyka przypadek, w ktorym
+  // middleware dostaje zadanie pierwsze.
+  if (pathname === "/app" || pathname.startsWith("/app/")) return passThrough();
+
   if (ALWAYS_PUBLIC.has(pathname)) return passThrough();
 
   // 503 — not 200, and not 404.

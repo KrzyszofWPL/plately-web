@@ -12,4 +12,12 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
+# No blanket rule for GPTBot, ClaudeBot, PerplexityBot, Google-Extended and the
+# rest: the wildcard above already admits them, and that is deliberate. Blocking
+# them removes Plately from AI answers without buying anything back, since the
+# marketing copy here is public by design.
+
+# A plain-text product summary for the crawlers that look for one.
+# https://www.plately.eu/llms.txt
+
 Sitemap: https://www.plately.eu/sitemap.xml
