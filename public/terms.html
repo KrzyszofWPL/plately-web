@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regulamin Korzystania — Plately</title>
+<meta name="description" content="Regulamin korzystania z Plately — asystenta diety, nawodnienia i kontroli wagi.">
+<link rel="canonical" href="https://www.plately.eu/terms">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="apple-touch-icon" href="/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { background: #0a0a0b; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #0a0a0b; color: #f4f4f5; font-family: "Inter", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #34d399; text-decoration: none; }
+  a:hover { color: #6ee7b7; }
+  ::selection { background: #34d399; color: #04140d; }
+  :focus-visible { outline: 2px solid #34d399; outline-offset: 3px; border-radius: 4px; }
+
+  header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(18px); background: rgba(10,10,11,.72); border-bottom: 1px solid rgba(255,255,255,.08); }
+  .bar { max-width: 820px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 11px; color: #f4f4f5; }
+  .brand img { width: 32px; height: 32px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); display: block; }
+  .brand span { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+  .langs { display: flex; align-items: center; gap: 6px; }
+  .langs button { font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: #131316; color: #e4e4e7; cursor: pointer; transition: border-color .2s ease, background-color .2s ease, color .2s ease; }
+  .langs button:hover { border-color: rgba(52,211,153,.45); }
+  .langs button[aria-pressed="true"] { border-color: rgba(52,211,153,.5); background: #17251f; color: #34d399; }
+
+  main { max-width: 820px; margin: 0 auto; padding: clamp(36px,5vw,64px) 24px clamp(56px,7vw,88px); }
+  .back { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #8a8a92; margin-bottom: 26px; }
+  .back:hover { color: #34d399; }
+  h1 { margin: 0; font-size: clamp(30px,4.4vw,46px); line-height: 1.1; font-weight: 700; letter-spacing: -.03em; text-wrap: balance; }
+  .updated { margin: 12px 0 0; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; color: #8a8a92; letter-spacing: .03em; }
+  .note { margin: 26px 0 0; padding: 14px 16px; border: 1px solid rgba(255,255,255,.1); background: #131316; border-radius: 16px; font-size: 13px; line-height: 1.6; color: #8a8a92; }
+  article section { margin-bottom: 34px; }
+  /* The first heading sits directly under the "last updated" line, which needs
+     more room than the gap between two paragraphs. */
+  article > section:first-of-type { margin-top: clamp(30px,4vw,44px); }
+  .note + section { margin-top: clamp(24px,3vw,34px); }
+  h2 { margin: 0 0 12px; font-size: 18px; font-weight: 600; letter-spacing: -.015em; color: #f4f4f5; }
+  article p { margin: 0 0 12px; font-size: 15px; line-height: 1.72; color: #b6b6bd; text-wrap: pretty; }
+  article strong { color: #f4f4f5; font-weight: 600; }
+  article ul { margin: 0 0 12px; padding-left: 20px; }
+  article li { font-size: 15px; line-height: 1.72; color: #b6b6bd; margin-bottom: 6px; }
+  article li::marker { color: #34d399; }
+
+  footer { border-top: 1px solid rgba(255,255,255,.08); }
+  .fbar { max-width: 820px; margin: 0 auto; padding: 26px 24px 34px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; color: #8a8a92; }
+  .fbar span { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <a class="brand" href="/">
+      <img src="/logo.png" alt="" width="32" height="32">
+      <span>Plately</span>
+    </a>
+    <div class="langs" role="group" aria-label="Language / Język">
+      <button type="button" data-lang="pl" lang="pl" aria-pressed="true">Polski</button>
+      <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <a class="back" href="/">&larr; <span data-chrome="home">Strona główna</span></a>
+    <article id="doc-pl" lang="pl">
+      <h1>Regulamin Korzystania</h1>
+      <p class="updated">Ostatnia aktualizacja: 2026-08-29</p>
+      <p class="note" id="note-pl" hidden>Regulamin i Polityka Prywatności są prowadzone wyłącznie po polsku i po angielsku. Wybierz język powyżej.</p>
+      <section>
+        <h2>1. Czym jest Plately</h2>
+        <p>Plately to aplikacja mobilna, która pomaga śledzić posiłki, nawodnienie i wagę oraz korzystać z asystenta AI do szacowania wartości odżywczych i układania planów.</p>
+        <p>Korzystanie z aplikacji oznacza zawarcie umowy o świadczenie usług drogą elektroniczną na warunkach opisanych poniżej. Jeżeli nie akceptujesz tych warunków, nie zakładaj konta.</p>
+      </section>
+      <section>
+        <h2>2. To nie jest porada medyczna</h2>
+        <p>Plately nie jest wyrobem medycznym i nie zastępuje kontaktu z lekarzem, dietetykiem klinicznym ani innym specjalistą.</p>
+        <p>Wartości kaloryczne i makroskładniki są <strong>szacunkami</strong> generowanymi przez model AI na podstawie zdjęcia lub opisu. Bywają błędne, czasem znacząco. Nie opieraj na nich decyzji medycznych.</p>
+        <p>Jeżeli jesteś w ciąży, karmisz piersią, masz zaburzenia odżywiania, cukrzycę, chorobę nerek, wątroby, tarczycy lub przyjmujesz leki wpływające na metabolizm — skonsultuj każdą zmianę diety z lekarzem przed jej wprowadzeniem.</p>
+        <p>Aplikacja nie służy do diagnozowania, leczenia ani zapobiegania chorobom.</p>
+      </section>
+      <section>
+        <h2>3. Konto</h2>
+        <p>Konto zakładasz przez logowanie Google. Nie tworzymy ani nie przechowujemy haseł.</p>
+        <p>Musisz mieć ukończone 16 lat. Jeżeli masz mniej, korzystaj z aplikacji wyłącznie za zgodą rodzica lub opiekuna prawnego.</p>
+        <p>Odpowiadasz za dostęp do swojego konta Google. Jedno konto Google = jedno konto w Plately.</p>
+        <p>Możesz w każdej chwili usunąć konto z poziomu aplikacji. Usunięcie jest trwałe i obejmuje wszystkie Twoje dane.</p>
+      </section>
+      <section>
+        <h2>4. Plany i limity</h2>
+        <p>Plan Darmowy obejmuje 5 analiz AI dziennie, 3 wiadomości do AI Coacha dziennie, śledzenie nawodnienia i podstawowych danych, dzienny raport z danych ze smartwatcha oraz domyślny motyw.</p>
+        <p>Plan Premium ($6.99 / miesiąc lub $59 / rok) znosi limity analiz i Coacha, odblokowuje własny kolor akcentu, pełną synchronizację ze smartwatchem i priorytetowe wsparcie AI.</p>
+        <p>Plan Ultra ($12.99 / miesiąc lub $119 / rok) obejmuje wszystko z Premium, narzędzia Pro oraz najwyższy priorytet w kolejkach AI.</p>
+        <p>Kucharz AI (sesja z kamerą i głosem, 1,5 godziny dziennie w Premium i 6 godzin w Ultra) jest zapowiedziany, ale jeszcze nieuruchomiony — na razie nie jest dostępny w żadnym planie i nie stanowi części opłacanej usługi. Udostępnimy go planom Premium i Ultra bez dopłaty, gdy będzie gotowy.</p>
+        <p>Limity dzienne resetują się o północy w Twojej strefie czasowej.</p>
+        <p>Przy pierwszej rejestracji otrzymujesz 7 dni pełnego Premium za darmo. Okres próbny przysługuje raz — jego ponowne uzyskanie przez zakładanie kolejnych kont lub czyszczenie danych urządzenia stanowi naruszenie Regulaminu.</p>
+      </section>
+      <section>
+        <h2>5. Płatności</h2>
+        <p>Płatności realizujemy wyłącznie w kryptowalutach, przez zewnętrznego operatora płatności. Nie przyjmujemy kart płatniczych i nie przetwarzamy danych bankowych.</p>
+        <p>Dostęp włącza się po potwierdzeniu transakcji w sieci blockchain — zwykle w kilka minut, przy zatorach w sieci dłużej.</p>
+        <p>Płatność jest jednorazowa i <strong>nie odnawia się automatycznie</strong>. Po upływie opłaconego okresu konto wraca do planu Darmowego, a Twoje dane pozostają nienaruszone.</p>
+        <p>Wysłanie kwoty niższej niż wymagana, użycie innej sieci niż wskazana lub wysłanie środków po wygaśnięciu adresu płatności może skutkować nieodwracalną utratą środków. Transakcje blockchain są nieodwracalne i nie mamy technicznej możliwości ich cofnięcia.</p>
+        <p>Prawo odstąpienia: jeżeli jesteś konsumentem, przysługuje Ci 14 dni na odstąpienie od umowy. Rozpoczynając korzystanie z funkcji płatnych przed upływem tego terminu, zgadzasz się na rozpoczęcie świadczenia i tracisz prawo odstąpienia w zakresie już wykorzystanych świadczeń (art. 38 ustawy o prawach konsumenta).</p>
+        <p>Reklamacje płatności zgłaszaj przez formularz kontaktowy w aplikacji. Odpowiadamy w ciągu 14 dni.</p>
+      </section>
+      <section>
+        <h2>6. Zasady korzystania</h2>
+        <p>Nie wolno: obchodzić limitów planu, zakładać wielu kont w celu wielokrotnego wykorzystania okresu próbnego, korzystać z naszego proxy AI poza aplikacją, automatyzować zapytań, ani przesyłać treści bezprawnych, cudzych danych osobowych lub materiałów, do których nie masz praw.</p>
+        <p>Funkcje społecznościowe: publikujesz wyłącznie własne treści. Pseudonim jest widoczny publicznie — nie może podszywać się pod inną osobę lub markę ani zawierać treści obraźliwych czy reklamowych. Pseudonimy naruszające tę zasadę zmieniamy lub usuwamy, a konto może zostać zablokowane.</p>
+        <p>Treści obraźliwe, nękające lub nielegalne będą usuwane. Nie wolno automatycznie pobierać danych z tablic wyników ani z profili publicznych.</p>
+        <p>Możemy ograniczyć lub zawiesić konto, które w sposób oczywisty narusza powyższe zasady lub zagraża stabilności usługi. O ile to możliwe, uprzedzimy o tym.</p>
+      </section>
+      <section>
+        <h2>7. Dostępność usługi</h2>
+        <p>Plately działa na darmowych limitach zewnętrznych dostawców (Supabase, Google AI, hosting). Oznacza to, że funkcje AI mogą być czasowo niedostępne lub spowolnione przy dużym obciążeniu.</p>
+        <p>Nie gwarantujemy nieprzerwanej dostępności. Dane, które już zapisałeś/aś, pozostają dostępne również wtedy, gdy funkcje AI nie działają.</p>
+        <p>W miarę możliwości informujemy o istotnych zmianach w aplikacji z wyprzedzeniem.</p>
+      </section>
+      <section>
+        <h2>8. Odpowiedzialność</h2>
+        <p>Aplikacja jest udostępniana w stanie, w jakim jest. W zakresie dozwolonym przez prawo nie odpowiadamy za skutki decyzji żywieniowych i treningowych podjętych na podstawie szacunków AI.</p>
+        <p>Nie ogranicza to odpowiedzialności za szkodę wyrządzoną umyślnie ani odpowiedzialności, której zgodnie z prawem wyłączyć nie można — w tym uprawnień konsumenckich.</p>
+      </section>
+      <section>
+        <h2>9. Zmiany Regulaminu</h2>
+        <p>O zmianach istotnych poinformujemy w aplikacji z co najmniej 14-dniowym wyprzedzeniem. Dalsze korzystanie po tym terminie oznacza akceptację. Jeżeli zmiany Ci nie odpowiadają, możesz usunąć konto — niewykorzystaną część opłaconego okresu zwrócimy proporcjonalnie.</p>
+      </section>
+      <section>
+        <h2>10. Prawo właściwe</h2>
+        <p>Umowa podlega prawu polskiemu. Nie ogranicza to ochrony wynikającej z bezwzględnie obowiązujących przepisów kraju Twojego zwykłego pobytu.</p>
+        <p>Spory konsumenckie możesz kierować także na platformę ODR Komisji Europejskiej: ec.europa.eu/consumers/odr</p>
+      </section>
+    </article>
+    <article id="doc-en" lang="en" hidden>
+      <h1>Terms of Service</h1>
+      <p class="updated">Last updated: 2026-08-29</p>
+      <p class="note" id="note-en" hidden>The Terms and the Privacy Policy are maintained in Polish and English only. Pick a language above.</p>
+      <section>
+        <h2>1. What Plately is</h2>
+        <p>Plately is a mobile app for tracking meals, hydration and weight, with an AI assistant that estimates nutrition and drafts plans.</p>
+        <p>Using the app forms an agreement on the terms below. If you do not accept them, please do not create an account.</p>
+      </section>
+      <section>
+        <h2>2. This is not medical advice</h2>
+        <p>Plately is not a medical device and does not replace a doctor, clinical dietitian or any other professional.</p>
+        <p>Calories and macronutrients are <strong>estimates</strong> produced by an AI model from a photo or a description. They can be wrong, sometimes badly. Do not base medical decisions on them.</p>
+        <p>If you are pregnant or breastfeeding, have an eating disorder, diabetes, kidney, liver or thyroid disease, or take medication that affects metabolism, talk to a doctor before changing your diet.</p>
+        <p>The app does not diagnose, treat or prevent any condition.</p>
+      </section>
+      <section>
+        <h2>3. Your account</h2>
+        <p>Accounts are created through Google sign-in. We never create or store passwords.</p>
+        <p>You must be at least 16. If you are younger, use the app only with a parent or guardian’s consent.</p>
+        <p>You are responsible for access to your Google account. One Google account means one Plately account.</p>
+        <p>You can delete your account from inside the app at any time. Deletion is permanent and covers all of your data.</p>
+      </section>
+      <section>
+        <h2>4. Plans and limits</h2>
+        <p>Free includes 5 AI analyses per day, 3 AI Coach messages per day, hydration and basic tracking, one daily smartwatch report, and the default theme.</p>
+        <p>Premium ($6.99/month or $59/year) removes the analysis and Coach limits and unlocks custom accent colours, full smartwatch sync and priority AI support.</p>
+        <p>Ultra ($12.99/month or $119/year) includes everything in Premium, Pro tools, and the highest priority in AI queues.</p>
+        <p>The AI Cooking Teacher (a live camera-and-voice session, 1.5 hours a day on Premium and 6 on Ultra) is announced but not switched on: it is currently unavailable on every plan and forms no part of what you are paying for. It will be released to Premium and Ultra at no extra cost once it is ready.</p>
+        <p>Daily limits reset at midnight in your own timezone.</p>
+        <p>Your first sign-up includes 7 days of full Premium. The trial is once per person; obtaining it repeatedly through additional accounts or by clearing device data breaches these terms.</p>
+      </section>
+      <section>
+        <h2>5. Payments</h2>
+        <p>Payments are made in cryptocurrency through an external payment processor. We do not accept cards and never handle banking details.</p>
+        <p>Access unlocks once the network confirms the transaction — usually within minutes, longer when the network is congested.</p>
+        <p>Payments are one-off and <strong>do not renew automatically</strong>. When a paid period ends your account returns to Free and your data is untouched.</p>
+        <p>Sending less than the requested amount, using a different network than the one shown, or paying after the address expires can result in permanent loss of funds. Blockchain transactions are irreversible and we have no technical means to undo them.</p>
+        <p>Right of withdrawal: as a consumer you have 14 days to withdraw. By starting to use paid features within that period you consent to performance beginning, and lose the right of withdrawal for what you have already used.</p>
+        <p>Payment complaints go through the in-app contact form. We reply within 14 days.</p>
+      </section>
+      <section>
+        <h2>6. Acceptable use</h2>
+        <p>You may not circumvent plan limits, create multiple accounts to re-use the trial, use our AI proxy outside the app, automate requests, or upload unlawful content, other people’s personal data, or material you have no rights to.</p>
+        <p>Social features: post only your own content. Your nickname is publicly visible — it must not impersonate a person or a brand, and must not be abusive or promotional. Nicknames that break this are changed or removed, and it may cost you your account.</p>
+        <p>Abusive, harassing or unlawful content is removed. Automated scraping of the leaderboards or of public profiles is not permitted.</p>
+        <p>We may limit or suspend an account that clearly breaches the above or threatens the stability of the service. Where possible we will warn you first.</p>
+      </section>
+      <section>
+        <h2>7. Availability</h2>
+        <p>Plately runs on the free tiers of external providers (Supabase, Google AI, hosting). AI features may therefore be temporarily unavailable or slow under load.</p>
+        <p>We do not guarantee uninterrupted availability. Data you have already saved stays available even when AI features are down.</p>
+        <p>We announce significant changes in the app ahead of time where we can.</p>
+      </section>
+      <section>
+        <h2>8. Liability</h2>
+        <p>The app is provided as is. To the extent the law allows, we are not liable for the outcome of dietary or training decisions taken on the basis of AI estimates.</p>
+        <p>Nothing here limits liability for intentional harm, or any liability that cannot lawfully be excluded, including consumer rights.</p>
+      </section>
+      <section>
+        <h2>9. Changes to these terms</h2>
+        <p>We announce material changes in the app at least 14 days in advance. Continuing to use the app after that means you accept them. If you do not, you can delete your account and we will refund the unused part of any paid period pro rata.</p>
+      </section>
+      <section>
+        <h2>10. Governing law</h2>
+        <p>Polish law applies. This does not remove protections you have under the mandatory law of your country of residence.</p>
+        <p>Consumer disputes may also be raised through the European Commission ODR platform: ec.europa.eu/consumers/odr</p>
+      </section>
+    </article>
+</main>
+
+<footer>
+  <div class="fbar">
+    <span>&copy; 2026 Plately</span>
+    <a href="/privacy" data-chrome="other">Polityka prywatności</a>
+  </div>
+</footer>
+
+<script>
+// Language here is independent of the app's twelve: these documents exist in
+// Polish and English only, so a reader arriving with any other language stored
+// gets English and is told why rather than being handed a document in a
+// language nobody told them they had switched to.
+(function () {
+  'use strict';
+  var CHROME = {"pl":{"home":"Strona główna","other":"Polityka prywatności"},"en":{"home":"Home","other":"Privacy Policy"}};
+  var stored = null;
+  try { stored = localStorage.getItem('plately_landing_lang'); } catch (e) {}
+  var site = stored || (navigator.language || 'pl').slice(0, 2).toLowerCase();
+  var translated = site === 'pl' || site === 'en';
+  var active = translated ? site : 'en';
+
+  function apply(code) {
+    active = code;
+    ['pl', 'en'].forEach(function (c) {
+      var el = document.getElementById('doc-' + c);
+      if (el) el.hidden = c !== code;
+      var note = document.getElementById('note-' + c);
+      // The explanation belongs only to the reader who did not choose English.
+      if (note) note.hidden = translated || c !== code || code !== 'en';
+    });
+    document.documentElement.lang = code;
+    document.querySelectorAll('[data-lang]').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-lang') === code ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-chrome]').forEach(function (el) {
+      var value = CHROME[code][el.getAttribute('data-chrome')];
+      if (value) el.textContent = value;
+    });
+  }
+
+  document.querySelectorAll('[data-lang]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      translated = true;
+      try { localStorage.setItem('plately_landing_lang', b.getAttribute('data-lang')); } catch (e) {}
+      apply(b.getAttribute('data-lang'));
+    });
+  });
+
+  apply(active);
+})();
+</script>
+</body>
+</html>

@@ -17,11 +17,10 @@ window.PLATELY_LANGS = [
 
 window.PLATELY_I18N = {
   pl: {
-    
     h1a: 'Jedz świadomie.', h1b: 'Analizuj', h1c: 'każdy gram.',
     ctaHow: 'Zobacz, jak działa',
     statA: '4 s', statALbl: 'Analiza posiłku', statB: '12',
-    pDate: 'czwartek, 30 lipca', pGoal: 'Redukcja', pCal: 'Kalorie (kcal)', pEaten: 'Zjedzone', pTarget: 'Cel', pLeft: 'Zostało',
+    pDate: 'czwartek, 30 lipca', pCal: 'Kalorie (kcal)', pEaten: 'Zjedzone', pTarget: 'Cel', pLeft: 'Zostało',
     pMacros: 'Makroskładniki', pProtein: 'Białko', pCarbs: 'Węglowodany', pFat: 'Tłuszcze',
     pHydration: 'Nawodnienie', pHydTarget: 'Cel 2450 ml', pDrunk: 'Dziś wypite', pGlass: 'Szklanka', pBottle: 'Butelka', pShaker: 'Shaker',
     nav1: 'Panel', nav2: 'Waga', nav3: 'Trener', nav4: 'Profil',
@@ -37,11 +36,10 @@ window.PLATELY_I18N = {
     langLabel: 'Język'
   },
   en: {
-    
     h1a: 'Eat with intent.', h1b: 'Analyze', h1c: 'every gram.',
     ctaHow: 'See how it works',
     statA: '4 s', statALbl: 'Meal analysis', statB: '12',
-    pDate: 'Thursday, 30 July', pGoal: 'Cutting', pCal: 'Calories (kcal)', pEaten: 'Eaten', pTarget: 'Target', pLeft: 'Remaining',
+    pDate: 'Thursday, 30 July', pCal: 'Calories (kcal)', pEaten: 'Eaten', pTarget: 'Target', pLeft: 'Remaining',
     pMacros: 'Macros', pProtein: 'Protein', pCarbs: 'Carbs', pFat: 'Fat',
     pHydration: 'Hydration', pHydTarget: 'Goal 2450 ml', pDrunk: 'Today', pGlass: 'Glass', pBottle: 'Bottle', pShaker: 'Shaker',
     nav1: 'Home', nav2: 'Weight', nav3: 'Coach', nav4: 'Profile',
@@ -57,11 +55,10 @@ window.PLATELY_I18N = {
     langLabel: 'Language'
   },
   de: {
-    
     h1a: 'Iss bewusst.', h1b: 'Analysiere', h1c: 'jedes Gramm.',
     ctaHow: 'So funktioniert es',
     statA: '4 s', statALbl: 'Mahlzeit-Analyse', statB: '12',
-    pDate: 'Donnerstag, 30. Juli', pGoal: 'Defizit', pCal: 'Kalorien (kcal)', pEaten: 'Gegessen', pTarget: 'Ziel', pLeft: 'Übrig',
+    pDate: 'Donnerstag, 30. Juli', pCal: 'Kalorien (kcal)', pEaten: 'Gegessen', pTarget: 'Ziel', pLeft: 'Übrig',
     pMacros: 'Makros', pProtein: 'Protein', pCarbs: 'Kohlenhydrate', pFat: 'Fett',
     pHydration: 'Flüssigkeit', pHydTarget: 'Ziel 2450 ml', pDrunk: 'Heute getrunken', pGlass: 'Glas', pBottle: 'Flasche', pShaker: 'Shaker',
     nav1: 'Start', nav2: 'Gewicht', nav3: 'Coach', nav4: 'Profil',
@@ -77,11 +74,10 @@ window.PLATELY_I18N = {
     langLabel: 'Sprache'
   },
   uk: {
-    
     h1a: 'Їж усвідомлено.', h1b: 'Аналізуй', h1c: 'кожен грам.',
     ctaHow: 'Як це працює',
     statA: '4 с', statALbl: 'Аналіз страви', statB: '12',
-    pDate: 'четвер, 30 липня', pGoal: 'Схуднення', pCal: 'Калорії (ккал)', pEaten: "З'їдено", pTarget: 'Ціль', pLeft: 'Залишилось',
+    pDate: 'четвер, 30 липня', pCal: 'Калорії (ккал)', pEaten: "З'їдено", pTarget: 'Ціль', pLeft: 'Залишилось',
     pMacros: 'Макроси', pProtein: 'Білок', pCarbs: 'Вуглеводи', pFat: 'Жири',
     pHydration: 'Вода', pHydTarget: 'Ціль 2450 мл', pDrunk: 'Сьогодні', pGlass: 'Склянка', pBottle: 'Бутылка', pShaker: 'Шейкер',
     nav1: 'Панель', nav2: 'Вага', nav3: 'Тренер', nav4: 'Профіль',
@@ -97,11 +93,10 @@ window.PLATELY_I18N = {
     langLabel: 'Мова'
   },
   ru: {
-    
     h1a: 'Ешь осознанно.', h1b: 'Анализируй', h1c: 'каждый грамм.',
     ctaHow: 'Как это работает',
     statA: '4 с', statALbl: 'Анализ блюда', statB: '12',
-    pDate: 'четверг, 30 июля', pGoal: 'Похудение', pCal: 'Калории (ккал)', pEaten: 'Съедено', pTarget: 'Цель', pLeft: 'Осталось',
+    pDate: 'четверг, 30 июля', pCal: 'Калории (ккал)', pEaten: 'Съедено', pTarget: 'Цель', pLeft: 'Осталось',
     pMacros: 'Макросы', pProtein: 'Белок', pCarbs: 'Углеводы', pFat: 'Жиры',
     pHydration: 'Вода', pHydTarget: 'Цель 2450 мл', pDrunk: 'Сегодня', pGlass: 'Стакан', pBottle: 'Бутылка', pShaker: 'Шейкер',
     nav1: 'Панель', nav2: 'Вес', nav3: 'Тренер', nav4: 'Профиль',
@@ -117,11 +112,10 @@ window.PLATELY_I18N = {
     langLabel: 'Язык'
   },
   fr: {
-    
     h1a: 'Mange en conscience.', h1b: 'Analyse', h1c: 'chaque gramme.',
     ctaHow: 'Voir le fonctionnement',
     statA: '4 s', statALbl: 'Analyse du repas', statB: '12',
-    pDate: 'jeudi 30 juillet', pGoal: 'Perte', pCal: 'Calories (kcal)', pEaten: 'Consommé', pTarget: 'Objectif', pLeft: 'Restant',
+    pDate: 'jeudi 30 juillet', pCal: 'Calories (kcal)', pEaten: 'Consommé', pTarget: 'Objectif', pLeft: 'Restant',
     pMacros: 'Macros', pProtein: 'Protéines', pCarbs: 'Glucides', pFat: 'Lipides',
     pHydration: 'Hydratation', pHydTarget: 'Objectif 2450 ml', pDrunk: "Aujourd'hui", pGlass: 'Verre', pBottle: 'Bouteille', pShaker: 'Shaker',
     nav1: 'Accueil', nav2: 'Poids', nav3: 'Coach', nav4: 'Profil',
@@ -137,11 +131,10 @@ window.PLATELY_I18N = {
     langLabel: 'Langue'
   },
   it: {
-    
     h1a: 'Mangia con criterio.', h1b: 'Analizza', h1c: 'ogni grammo.',
     ctaHow: 'Guarda come funziona',
     statA: '4 s', statALbl: 'Analisi del pasto', statB: '12',
-    pDate: 'giovedì 30 luglio', pGoal: 'Definizione', pCal: 'Calorie (kcal)', pEaten: 'Assunte', pTarget: 'Obiettivo', pLeft: 'Rimaste',
+    pDate: 'giovedì 30 luglio', pCal: 'Calorie (kcal)', pEaten: 'Assunte', pTarget: 'Obiettivo', pLeft: 'Rimaste',
     pMacros: 'Macro', pProtein: 'Proteine', pCarbs: 'Carboidrati', pFat: 'Grassi',
     pHydration: 'Idratazione', pHydTarget: 'Obiettivo 2450 ml', pDrunk: 'Oggi', pGlass: 'Bicchiere', pBottle: 'Bottiglia', pShaker: 'Shaker',
     nav1: 'Home', nav2: 'Peso', nav3: 'Coach', nav4: 'Profilo',
@@ -157,11 +150,10 @@ window.PLATELY_I18N = {
     langLabel: 'Lingua'
   },
   es: {
-    
     h1a: 'Come con intención.', h1b: 'Analiza', h1c: 'cada gramo.',
     ctaHow: 'Ver cómo funciona',
     statA: '4 s', statALbl: 'Análisis de comida', statB: '12',
-    pDate: 'jueves, 30 de julio', pGoal: 'Definición', pCal: 'Calorías (kcal)', pEaten: 'Consumido', pTarget: 'Objetivo', pLeft: 'Restante',
+    pDate: 'jueves, 30 de julio', pCal: 'Calorías (kcal)', pEaten: 'Consumido', pTarget: 'Objetivo', pLeft: 'Restante',
     pMacros: 'Macros', pProtein: 'Proteína', pCarbs: 'Carbohidratos', pFat: 'Grasas',
     pHydration: 'Hidratación', pHydTarget: 'Meta 2450 ml', pDrunk: 'Hoy', pGlass: 'Vaso', pBottle: 'Botella', pShaker: 'Shaker',
     nav1: 'Inicio', nav2: 'Peso', nav3: 'Coach', nav4: 'Perfil',
@@ -177,11 +169,10 @@ window.PLATELY_I18N = {
     langLabel: 'Idioma'
   },
   pt: {
-    
     h1a: 'Coma com consciência.', h1b: 'Analise', h1c: 'cada grama.',
     ctaHow: 'Ver como funciona',
     statA: '4 s', statALbl: 'Análise da refeição', statB: '12',
-    pDate: 'quinta, 30 de julho', pGoal: 'Definição', pCal: 'Calorias (kcal)', pEaten: 'Consumidas', pTarget: 'Meta', pLeft: 'Restantes',
+    pDate: 'quinta, 30 de julho', pCal: 'Calorias (kcal)', pEaten: 'Consumidas', pTarget: 'Meta', pLeft: 'Restantes',
     pMacros: 'Macros', pProtein: 'Proteína', pCarbs: 'Carboidratos', pFat: 'Gorduras',
     pHydration: 'Hidratação', pHydTarget: 'Meta 2450 ml', pDrunk: 'Hoje', pGlass: 'Copo', pBottle: 'Garrafa', pShaker: 'Shaker',
     nav1: 'Início', nav2: 'Peso', nav3: 'Coach', nav4: 'Perfil',
@@ -197,11 +188,10 @@ window.PLATELY_I18N = {
     langLabel: 'Idioma'
   },
   ja: {
-    
     h1a: '意識して食べる。', h1b: '分析する', h1c: '1グラムまで。',
     ctaHow: '使い方を見る',
     statA: '4秒', statALbl: '食事の解析', statB: '12',
-    pDate: '7月30日 木曜日', pGoal: '減量', pCal: 'カロリー (kcal)', pEaten: '摂取', pTarget: '目標', pLeft: '残り',
+    pDate: '7月30日 木曜日', pCal: 'カロリー (kcal)', pEaten: '摂取', pTarget: '目標', pLeft: '残り',
     pMacros: 'マクロ栄養素', pProtein: 'タンパク質', pCarbs: '炭水化物', pFat: '脂質',
     pHydration: '水分補給', pHydTarget: '目標 2450 ml', pDrunk: '今日の摂取', pGlass: 'グラス', pBottle: 'ボトル', pShaker: 'シェイカー',
     nav1: 'ホーム', nav2: '体重', nav3: 'コーチ', nav4: 'プロフィール',
@@ -217,11 +207,10 @@ window.PLATELY_I18N = {
     langLabel: '言語'
   },
   zh: {
-    
     h1a: '吃得有意识。', h1b: '分析', h1c: '每一克。',
     ctaHow: '看看怎么用',
     statA: '4 秒', statALbl: '餐食分析', statB: '12',
-    pDate: '7月30日 星期四', pGoal: '减脂', pCal: '热量 (kcal)', pEaten: '已摄入', pTarget: '目标', pLeft: '剩余',
+    pDate: '7月30日 星期四', pCal: '热量 (kcal)', pEaten: '已摄入', pTarget: '目标', pLeft: '剩余',
     pMacros: '宏量营养素', pProtein: '蛋白质', pCarbs: '碳水', pFat: '脂肪',
     pHydration: '饮水', pHydTarget: '目标 2450 ml', pDrunk: '今日饮水', pGlass: '杯', pBottle: '瓶', pShaker: '摇壶',
     nav1: '首页', nav2: '体重', nav3: '教练', nav4: '我的',
@@ -237,11 +226,10 @@ window.PLATELY_I18N = {
     langLabel: '语言'
   },
   ko: {
-    
     h1a: '의식적으로 먹기.', h1b: '분석하세요', h1c: '1그램까지.',
     ctaHow: '작동 방식 보기',
     statA: '4초', statALbl: '식사 분석', statB: '12',
-    pDate: '7월 30일 목요일', pGoal: '감량', pCal: '칼로리 (kcal)', pEaten: '섭취', pTarget: '목표', pLeft: '남음',
+    pDate: '7월 30일 목요일', pCal: '칼로리 (kcal)', pEaten: '섭취', pTarget: '목표', pLeft: '남음',
     pMacros: '매크로', pProtein: '단백질', pCarbs: '탄수화물', pFat: '지방',
     pHydration: '수분', pHydTarget: '목표 2450 ml', pDrunk: '오늘 섭취', pGlass: '컵', pBottle: '병', pShaker: '셰이커',
     nav1: '홈', nav2: '체중', nav3: '코치', nav4: '프로필',
