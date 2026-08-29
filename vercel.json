@@ -1,8 +1,21 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node scripts/build-pages.mjs",
   "outputDirectory": "public",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/app",
+      "destination": "https://app.plately.eu/",
+      "permanent": true
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "https://app.plately.eu/:path*",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

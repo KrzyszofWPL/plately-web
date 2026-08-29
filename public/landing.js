@@ -8,83 +8,50 @@
 // crawler downloaded contained no copy, no <title> and no description — the
 // exact shape Search Console reports as a soft 404.
 //
-// Now the markup ships finished and in Polish. Everything here is progressive
-// enhancement: with JS off the page is still complete, just monolingual.
+// Now the markup ships finished — and, since scripts/build-pages.mjs bakes the
+// copy in, finished in whichever of the twelve languages the URL asks for.
+// Everything here is progressive enhancement: with JS off the page is still
+// complete.
+//
+// The dictionaries used to ship to the browser (58 kB across two files) so this
+// script could swap the text after load. That cost every visitor the download
+// and left Google with one indexable page for twelve translations, because the
+// other eleven only ever existed after JavaScript ran. Both problems go away
+// when each language is its own URL: the text is already correct on arrival,
+// and the switcher below is a set of ordinary links.
 // ============================================================================
 
 (function () {
   'use strict';
 
-  var STORE_KEY = 'plately_landing_lang';
-  var DEFAULT_LANG = 'pl';
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var dict = window.PLATELY_I18N || {};
-  var langs = window.PLATELY_LANGS || [];
+  // Kept here rather than in a dictionary file: twelve labels are cheaper to
+  // inline than another request, and this is all the switcher needs.
+  var LANGS = [
+    { code: 'pl', label: 'Polski' },
+    { code: 'en', label: 'English' },
+    { code: 'de', label: 'Deutsch' },
+    { code: 'uk', label: 'Українська' },
+    { code: 'ru', label: 'Русский' },
+    { code: 'fr', label: 'Français' },
+    { code: 'it', label: 'Italiano' },
+    { code: 'es', label: 'Español' },
+    { code: 'pt', label: 'Português' },
+    { code: 'ja', label: '日本語' },
+    { code: 'zh', label: '中文' },
+    { code: 'ko', label: '한국어' }
+  ];
 
-  // --------------------------------------------------------------------------
-  // Language
-  // --------------------------------------------------------------------------
-
-  function savedLang() {
-    try {
-      return localStorage.getItem(STORE_KEY);
-    } catch (e) {
-      // Storage blocked (private mode, cookie-blocking extension). Not fatal —
-      // the choice just will not survive a reload.
-      return null;
-    }
+  // Polish is the site root, so it has no prefix; everything else is /<code>,
+  // with no trailing slash — vercel.json sets trailingSlash:false, so /en/ would
+  // 308 to /en. This must agree with scripts/build-pages.mjs, the sitemap and
+  // the hreflang block, or the four will disagree about where a language lives.
+  function hrefFor(code) {
+    return code === 'pl' ? '/' : '/' + code;
   }
 
-  function initialLang() {
-    var saved = savedLang();
-    if (saved && dict[saved]) return saved;
-    var nav = (navigator.language || DEFAULT_LANG).slice(0, 2).toLowerCase();
-    return dict[nav] ? nav : DEFAULT_LANG;
-  }
-
-  function setMeta(selector, value) {
-    if (!value) return;
-    var el = document.head.querySelector(selector);
-    if (el) el.setAttribute('content', value);
-  }
-
-  function applyLang(code) {
-    var t = dict[code];
-    if (!t) return;
-
-    document.querySelectorAll('[data-i18n]').forEach(function (el) {
-      var value = t[el.getAttribute('data-i18n')];
-      if (typeof value === 'string') el.textContent = value;
-    });
-
-    document.documentElement.lang = code;
-
-    // The head is part of the translation too: leaving a Polish <title> on a
-    // page the reader switched to Korean is the kind of detail that reads as
-    // broken rather than as "not translated yet".
-    if (t.metaTitle) document.title = t.metaTitle;
-    setMeta('meta[name="description"]', t.metaDesc);
-    setMeta('meta[property="og:title"]', t.metaTitle);
-    setMeta('meta[property="og:description"]', t.metaDesc);
-    setMeta('meta[name="twitter:title"]', t.metaTitle);
-    setMeta('meta[name="twitter:description"]', t.metaDesc);
-
-    var codeEl = document.getElementById('pl-langcode');
-    if (codeEl) codeEl.textContent = code;
-
-    document.querySelectorAll('#pl-langlist [data-lang]').forEach(function (btn) {
-      btn.setAttribute('aria-current', btn.getAttribute('data-lang') === code ? 'true' : 'false');
-    });
-  }
-
-  function chooseLang(code) {
-    try {
-      localStorage.setItem(STORE_KEY, code);
-    } catch (e) {}
-    applyLang(code);
-    closeMenu();
-  }
+  var currentLang = document.documentElement.lang || 'pl';
 
   // --------------------------------------------------------------------------
   // Language menu
@@ -110,25 +77,25 @@
     btn.setAttribute('aria-expanded', 'false');
   }
 
-  if (list && langs.length) {
-    langs.forEach(function (l) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'pl-langopt';
-      b.setAttribute('data-lang', l.code);
-      b.setAttribute('lang', l.code);
-      b.setAttribute('aria-current', 'false');
+  // Anchors, not buttons. A crawler follows these and finds the other eleven
+  // translations; a reader gets a URL they can bookmark and share, and the
+  // choice survives a cleared localStorage because it is in the address.
+  if (list) {
+    LANGS.forEach(function (l) {
+      var a = document.createElement('a');
+      a.className = 'pl-langopt';
+      a.href = hrefFor(l.code);
+      a.setAttribute('lang', l.code);
+      a.setAttribute('hreflang', l.code);
+      a.setAttribute('aria-current', l.code === currentLang ? 'true' : 'false');
 
       var code = document.createElement('span');
       code.style.cssText = "font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.08em; text-transform:uppercase; opacity:.65;";
       code.textContent = l.code;
 
-      b.appendChild(code);
-      b.appendChild(document.createTextNode(' ' + l.label));
-      b.addEventListener('click', function () {
-        chooseLang(l.code);
-      });
-      list.appendChild(b);
+      a.appendChild(code);
+      a.appendChild(document.createTextNode(' ' + l.label));
+      list.appendChild(a);
     });
   }
 
@@ -152,8 +119,6 @@
       if (btn) btn.focus();
     }
   });
-
-  applyLang(initialLang());
 
   // --------------------------------------------------------------------------
   // Scroll reveal

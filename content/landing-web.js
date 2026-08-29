@@ -60,7 +60,7 @@
       ftProduct: 'Produkt',
       ftLegalHead: 'Dokumenty', ftTerms: 'Regulamin', ftPrivacy: 'Polityka prywatności',
       ftRights: 'Wszelkie prawa zastrzeżone.',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — asystent diety, nawodnienia i kontroli wagi',
       metaDesc: 'Plately zamienia zdjęcie posiłku w pełny rozkład makroskładników, pilnuje nawodnienia i prowadzi Cię do docelowej wagi. 12 języków, działa w przeglądarce na Androidzie, iOS, Windows i macOS.'
     },
 
@@ -96,7 +96,7 @@
       ftProduct: 'Product',
       ftLegalHead: 'Legal', ftTerms: 'Terms of Service', ftPrivacy: 'Privacy Policy',
       ftRights: 'All rights reserved.',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — diet, hydration and weight assistant',
       metaDesc: 'Plately turns a photo of your meal into a full macro breakdown, keeps an eye on your hydration and guides you to your target weight. 12 languages, runs in the browser on Android, iOS, Windows and macOS.'
     },
 
@@ -132,7 +132,7 @@
       ftProduct: 'Produkt',
       ftLegalHead: 'Rechtliches', ftTerms: 'AGB', ftPrivacy: 'Datenschutz',
       ftRights: 'Alle Rechte vorbehalten.',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — Assistent für Ernährung, Flüssigkeit und Gewicht',
       metaDesc: 'Plately verwandelt ein Foto deiner Mahlzeit in eine vollständige Makro-Aufschlüsselung, achtet auf deine Flüssigkeitszufuhr und führt dich zum Zielgewicht. 12 Sprachen, im Browser auf Android, iOS, Windows und macOS.'
     },
 
@@ -168,7 +168,7 @@
       ftProduct: 'Продукт',
       ftLegalHead: 'Документи', ftTerms: 'Умови користування', ftPrivacy: 'Політика конфіденційності',
       ftRights: 'Усі права захищено.',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — асистент харчування, води та ваги',
       metaDesc: 'Plately перетворює фото страви на повний розподіл макроелементів, стежить за водним балансом і веде вас до цільової ваги. 12 мов, у браузері на Android, iOS, Windows і macOS.'
     },
 
@@ -204,7 +204,7 @@
       ftProduct: 'Продукт',
       ftLegalHead: 'Документы', ftTerms: 'Условия использования', ftPrivacy: 'Политика конфиденциальности',
       ftRights: 'Все права защищены.',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — ассистент питания, воды и веса',
       metaDesc: 'Plately превращает фото блюда в полный разбор макронутриентов, следит за водным балансом и ведёт вас к целевому весу. 12 языков, в браузере на Android, iOS, Windows и macOS.'
     },
 
@@ -240,7 +240,7 @@
       ftProduct: 'Produit',
       ftLegalHead: 'Documents', ftTerms: 'Conditions d’utilisation', ftPrivacy: 'Politique de confidentialité',
       ftRights: 'Tous droits réservés.',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — assistant d’alimentation, d’hydratation et de poids',
       metaDesc: 'Plately transforme la photo d’un repas en répartition complète des macros, surveille votre hydratation et vous guide vers votre poids cible. 12 langues, dans le navigateur sur Android, iOS, Windows et macOS.'
     },
 
@@ -276,7 +276,7 @@
       ftProduct: 'Prodotto',
       ftLegalHead: 'Documenti', ftTerms: 'Termini di servizio', ftPrivacy: 'Informativa sulla privacy',
       ftRights: 'Tutti i diritti riservati.',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — assistente per dieta, idratazione e peso',
       metaDesc: 'Plately trasforma la foto di un pasto in una ripartizione completa dei macronutrienti, tiene d’occhio l’idratazione e ti guida al peso desiderato. 12 lingue, nel browser su Android, iOS, Windows e macOS.'
     },
 
@@ -312,7 +312,7 @@
       ftProduct: 'Producto',
       ftLegalHead: 'Documentos', ftTerms: 'Términos del servicio', ftPrivacy: 'Política de privacidad',
       ftRights: 'Todos los derechos reservados.',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — asistente de dieta, hidratación y peso',
       metaDesc: 'Plately convierte la foto de una comida en un desglose completo de macronutrientes, vigila tu hidratación y te guía hasta tu peso objetivo. 12 idiomas, en el navegador en Android, iOS, Windows y macOS.'
     },
 
@@ -348,7 +348,7 @@
       ftProduct: 'Produto',
       ftLegalHead: 'Documentos', ftTerms: 'Termos de utilização', ftPrivacy: 'Política de privacidade',
       ftRights: 'Todos os direitos reservados.',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — assistente de dieta, hidratação e peso',
       metaDesc: 'O Plately transforma a foto de uma refeição num desdobramento completo de macronutrientes, cuida da tua hidratação e guia-te até ao peso desejado. 12 idiomas, no navegador em Android, iOS, Windows e macOS.'
     },
 
@@ -384,7 +384,7 @@
       ftProduct: 'プロダクト',
       ftLegalHead: '規約', ftTerms: '利用規約', ftPrivacy: 'プライバシーポリシー',
       ftRights: '無断転載を禁じます。',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — 食事・水分・体重を管理するアシスタント',
       metaDesc: 'Plately は食事の写真からマクロ栄養素を算出し、水分補給を見守り、目標体重まで導きます。12言語対応、Android・iOS・Windows・macOS のブラウザで動作します。'
     },
 
@@ -420,7 +420,7 @@
       ftProduct: '产品',
       ftLegalHead: '条款', ftTerms: '服务条款', ftPrivacy: '隐私政策',
       ftRights: '保留所有权利。',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — 饮食、饮水与体重助手',
       metaDesc: 'Plately 把一张餐食照片变成完整的宏量营养素分析，帮你关注饮水，并引导你达到目标体重。支持 12 种语言，可在 Android、iOS、Windows 与 macOS 的浏览器中使用。'
     },
 
@@ -456,7 +456,7 @@
       ftProduct: '제품',
       ftLegalHead: '약관', ftTerms: '이용약관', ftPrivacy: '개인정보 처리방침',
       ftRights: '모든 권리 보유.',
-      metaTitle: 'Plately',
+      metaTitle: 'Plately — 식단, 수분, 체중 어시스턴트',
       metaDesc: 'Plately는 식사 사진을 완전한 매크로 영양소 분석으로 바꾸고, 수분 섭취를 챙기며, 목표 체중까지 이끌어 줍니다. 12개 언어, Android·iOS·Windows·macOS 브라우저에서 작동합니다.'
     }
   };
