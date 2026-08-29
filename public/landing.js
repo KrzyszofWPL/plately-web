@@ -217,16 +217,22 @@
 
   // --------------------------------------------------------------------------
   // Floating dock — appears once the hero CTA has scrolled away, hides again
-  // when the real download card comes into view so the two never compete.
+  // from the pricing section down. Every screen below that point already has a
+  // real button on it, and on a phone the dock sits exactly on top of the
+  // "choose plan" button of whichever card is in view.
   // --------------------------------------------------------------------------
 
   var dock = document.getElementById('pl-dock');
-  var cta = document.getElementById('pobierz');
+  var stoppers = ['cennik', 'pobierz']
+    .map(function (id) { return document.getElementById(id); })
+    .filter(Boolean);
 
   if (dock) {
+    var reached = function (el) {
+      return el.getBoundingClientRect().top < window.innerHeight * 0.9;
+    };
     var onScroll = function () {
-      var nearCta = cta && cta.getBoundingClientRect().top < window.innerHeight * 0.9;
-      var show = window.scrollY > 420 && !nearCta;
+      var show = window.scrollY > 420 && !stoppers.some(reached);
       dock.style.opacity = show ? '1' : '0';
       dock.style.transform = show ? 'none' : 'translateY(16px)';
       dock.style.pointerEvents = show ? 'auto' : 'none';
