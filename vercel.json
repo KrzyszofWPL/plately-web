@@ -6,6 +6,11 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/pl",
+      "destination": "/",
+      "permanent": true
+    },
+    {
       "source": "/app",
       "destination": "https://app.plately.eu/",
       "permanent": true
