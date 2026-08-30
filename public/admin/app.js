@@ -232,15 +232,45 @@
 
   var turnstileLoading = null;
 
+  function turnstileReady() {
+    return Boolean(window.turnstile && typeof window.turnstile.render === "function");
+  }
+
+  /**
+   * Loads Cloudflare's widget script, and is specific about how it failed.
+   *
+   * Three different things go wrong here and they used to collapse into one
+   * message. A blocked request, a script that loads without installing the API
+   * (which is what a stub injected by an extension looks like), and a request
+   * that simply never comes back are three different conversations with
+   * whoever has to fix it.
+   */
   function loadTurnstile() {
-    if (window.turnstile) return Promise.resolve();
+    if (turnstileReady()) return Promise.resolve();
     if (turnstileLoading) return turnstileLoading;
     turnstileLoading = new Promise(function (resolve, reject) {
       var script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
       script.async = true;
-      script.onload = resolve;
-      script.onerror = function () { reject(new Error("Turnstile did not load")); };
+      var settled = false;
+      var finish = function (err) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        // Let a later attempt start over rather than replaying this failure
+        // forever from the cached promise.
+        if (err) turnstileLoading = null;
+        if (err) reject(err); else resolve();
+      };
+      var timer = setTimeout(function () {
+        finish(new Error("challenges.cloudflare.com did not answer within 12 seconds"));
+      }, 12000);
+      script.onload = function () {
+        finish(turnstileReady() ? null : new Error("the script loaded but installed no widget API — something is replacing it"));
+      };
+      script.onerror = function () {
+        finish(new Error("the browser refused the request to challenges.cloudflare.com — usually an ad blocker, a privacy extension or a network filter"));
+      };
       document.head.appendChild(script);
     });
     return turnstileLoading;
@@ -272,6 +302,26 @@
     if (!host || !S.turnstile.siteKey) return;
     loadTurnstile().then(function () {
       if (!document.getElementById("turnstile")) return;
+      // render() throws on a bad site key or a container that already holds a
+      // widget. Catching it here rather than letting it fall into the promise
+      // chain is what keeps "could not download" and "could not start" apart.
+      try {
+        renderWidget(host);
+      } catch (err) {
+        S.turnstile.token = null;
+        turnstileNote("Bot check could not start: " + (err && err.message ? err.message : err));
+        openGate();
+      }
+    }).catch(function (err) {
+      // The widget is one of three gates; if Cloudflare is unreachable the
+      // other two still stand, so the desk stays usable rather than dead.
+      S.turnstile.token = null;
+      turnstileNote("Bot check unavailable — " + (err && err.message ? err.message : err));
+      openGate();
+    });
+  }
+
+  function renderWidget(host) {
       S.turnstile.widget = window.turnstile.render(host, {
         sitekey: S.turnstile.siteKey,
         theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
@@ -293,13 +343,6 @@
           openGate();
         },
       });
-    }).catch(function () {
-      // The widget is one of three gates; if Cloudflare is unreachable the
-      // other two still stand, so the desk stays usable rather than dead.
-      S.turnstile.token = null;
-      turnstileNote("Could not load the bot check from Cloudflare.");
-      openGate();
-    });
   }
 
   function resetTurnstile() {
