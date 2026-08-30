@@ -1,5 +1,6 @@
 // ============================================================================
-// /api/staff/* — sign-in, the PIN, and who may be an agent at all.
+// /api/staff/* — sign-in, the PIN, the authenticator, and who may be an agent
+// at all.
 //
 // One catch-all function rather than a file per route on purpose: Vercel's
 // Hobby plan caps a deployment at twelve Serverless/Edge Functions, and this
@@ -8,14 +9,28 @@
 //
 // The sign-in dance, end to end:
 //
-//   POST /api/staff/start      Google URL out (+ state cookie). No bot check here:
-//                              the sign-in page is a plain "continue with Google"
-//                              button and Google runs its own
-//   GET  /api/staff/callback   Google comes back with a code; we swap it for an
-//                              id_token, match the address against `staff`, and
-//                              issue a *pre-session* — proof of Google, nothing more
-//   POST /api/staff/pin        PIN + Turnstile; on success the real session cookie
-//   GET  /api/staff/session    what the panel calls on load to decide what to draw
+//   POST /api/staff/start        Google URL out (+ state cookie). No bot check
+//                                here: the sign-in page is a plain "continue
+//                                with Google" button and Google runs its own
+//   GET  /api/staff/callback     Google comes back with a code; we swap it for
+//                                an id_token, match the address against
+//                                `staff`, and issue a *pre-session* — proof of
+//                                Google, nothing more
+//   POST /api/staff/pin          PIN + Turnstile. On success the pre-session is
+//                                reissued marked `pin`, NOT upgraded to a real
+//                                session: there is still one step to go
+//   POST /api/staff/totp-enrol   first run only — mints a secret and hands back
+//                                the QR code to point a phone at
+//   POST /api/staff/totp         six digits from the authenticator app. This is
+//                                the step that finally issues the session
+//                                cookie the panel runs on
+//   GET  /api/staff/session      what the panel calls on load to decide what to
+//                                draw
+//
+// Every step after Google refuses to run unless the one before it left its
+// mark on the pre-session, so the order cannot be skipped by calling the
+// endpoints directly — which is the only reason a three-step sign-in is worth
+// more than a one-step one.
 //
 // Nothing below trusts the browser for permissions: every privileged route
 // re-reads the staff row and re-checks the role there.
@@ -27,6 +42,7 @@ import {
   issuePreSession,
   issueSession,
   readPreSession,
+  readPinnedPreSession,
   requireStaff,
   can,
   permissionMap,
@@ -41,8 +57,17 @@ import {
   logEvent,
   parseCookies,
   MAX_PIN_ATTEMPTS,
+  MAX_TOTP_ATTEMPTS,
   PIN_LOCK_MINUTES,
 } from "../_lib/staff-session.js";
+import {
+  generateTotpSecret,
+  verifyTotp,
+  isValidTotpFormat,
+  otpauthUri,
+  groupSecret,
+  qrSvg,
+} from "../_lib/totp.js";
 import { hmacHex, timingSafeEqual } from "../_lib/auth.js";
 import { selectOne, select, insert, update, q } from "../_lib/db.js";
 
@@ -122,10 +147,10 @@ function decodeJwtPayload(token) {
 /**
  * Turnstile, with the reason attached.
  *
- * Guards the PIN routes only. The first step hands off to Google, which has
- * its own abuse handling and hands us nothing worth brute-forcing; the PIN is
- * four digits on an account that is already half authenticated, which is the
- * step actually worth a bot's time.
+ * Guards the PIN and authenticator routes only. The first step hands off to
+ * Google, which has its own abuse handling and hands us nothing worth
+ * brute-forcing; a short numeric secret on an account that is already part way
+ * authenticated is the step actually worth a bot's time.
  *
  * The reason is safe to show: it names *our* misconfiguration, never anything
  * about the visitor. Hiding it turned a five-second fix ("the secret key is
@@ -167,6 +192,14 @@ export default async function handler(request) {
         return await setupPin(request);
       case "POST pin-change":
         return await changePin(request);
+      case "POST totp-enrol":
+        return await enrolTotp(request);
+      case "POST totp":
+        return await submitTotp(request);
+      case "POST totp-relink":
+        return await relinkTotp(request);
+      case "POST totp-relink-confirm":
+        return await confirmRelinkTotp(request);
       case "POST logout":
         return await logout(request);
       case "GET list":
@@ -177,6 +210,8 @@ export default async function handler(request) {
         return await updateStaff(request);
       case "POST reset-pin":
         return await resetPin(request);
+      case "POST reset-totp":
+        return await resetTotp(request);
       default:
         return json({ error: "Unknown route" }, 404);
     }
@@ -222,7 +257,7 @@ async function startSignIn(request) {
 async function handleCallback(request) {
   const url = new URL(request.url);
   const drop = clearCookie(OAUTH_COOKIE);
-  const fail = (reason) => redirect(`/admin?error=${reason}`, { "Set-Cookie": drop });
+  const fail = (reason) => redirect(`/support?error=${reason}`, { "Set-Cookie": drop });
 
   if (url.searchParams.get("error")) return fail("google_denied");
 
@@ -293,7 +328,7 @@ async function handleCallback(request) {
   const preCookie = await issuePreSession(staff);
   await logEvent({ staff_id: staff.id, actor: email, action: "signin.google" });
 
-  return withCookies(null, [drop, preCookie], 302, { Location: "/admin" });
+  return withCookies(null, [drop, preCookie], 302, { Location: "/support" });
 }
 
 // --- 3. session -------------------------------------------------------------
@@ -312,11 +347,20 @@ async function readSession(request) {
 
   const pre = await readPreSession(request);
   if (pre) {
-    const staff = await selectOne("staff", `select=id,email,display_name,avatar_url,pin_hash,locked_until,active&id=eq.${q(pre.sid)}`);
+    const staff = await selectOne(
+      "staff",
+      `select=id,email,display_name,avatar_url,pin_hash,totp_enrolled_at,locked_until,active&id=eq.${q(pre.sid)}`
+    );
     if (staff && staff.active) {
       const locked = staff.locked_until && new Date(staff.locked_until) > new Date();
+      // Which step the browser should draw. The PIN comes first, and only once
+      // it is behind us does the pre-session carry `pin` and the answer move on
+      // to the authenticator.
+      const state = pre.pin !== 1
+        ? (staff.pin_hash ? "pin_required" : "pin_setup")
+        : (staff.totp_enrolled_at ? "totp_required" : "totp_setup");
       return json({
-        state: staff.pin_hash ? "pin_required" : "pin_setup",
+        state,
         email: staff.email,
         displayName: staff.display_name,
         avatarUrl: staff.avatar_url,
@@ -344,6 +388,7 @@ function publicStaff(staff) {
     signature: staff.signature || null,
     prefs: staff.prefs || {},
     lastLoginAt: staff.last_login_at || null,
+    totpEnrolledAt: staff.totp_enrolled_at || null,
   };
 }
 
@@ -393,12 +438,14 @@ async function submitPin(request) {
     );
   }
 
-  await recordLogin(staff.id, null);
-  await logEvent({ staff_id: staff.id, actor: staff.email, action: "signin.complete" });
+  await update("staff", `id=eq.${q(staff.id)}`, { failed_pin_attempts: 0 }, { returning: false });
+  await logEvent({ staff_id: staff.id, actor: staff.email, action: "signin.pin_ok" });
 
+  // Not a session — the next step is. All this does is remember that the PIN
+  // is behind us, so /api/staff/totp will talk to this browser at all.
   return withCookies(
-    { ok: true, staff: publicStaff(staff), permissions: permissionMap({ rl: staff.role, tr: staff.tier }) },
-    [clearCookie(COOKIES.PRE), await issueSession(staff)]
+    { ok: true, state: staff.totp_enrolled_at ? "totp_required" : "totp_setup" },
+    [await issuePreSession(staff, { pin: true })]
   );
 }
 
@@ -427,12 +474,13 @@ async function setupPin(request) {
     { pin_salt: salt, pin_hash: await hashPin(pin, salt), pin_set_at: new Date().toISOString(), failed_pin_attempts: 0, locked_until: null },
     { returning: false }
   );
-  await recordLogin(staff.id, null);
   await logEvent({ staff_id: staff.id, actor: staff.email, action: "pin.enrolled" });
 
+  // Same as submitPin: setting a PIN is not signing in. The authenticator is
+  // still owed, and on a first run that means enrolling one.
   return withCookies(
-    { ok: true, staff: publicStaff(staff), permissions: permissionMap({ rl: staff.role, tr: staff.tier }) },
-    [clearCookie(COOKIES.PRE), await issueSession(staff)]
+    { ok: true, state: staff.totp_enrolled_at ? "totp_required" : "totp_setup" },
+    [await issuePreSession(staff, { pin: true })]
   );
 }
 
@@ -461,6 +509,203 @@ async function changePin(request) {
   return json({ ok: true });
 }
 
+// --- 5. the authenticator app ----------------------------------------------
+
+/**
+ * First run: mint a secret and hand back something to point a phone at.
+ *
+ * The secret is written to the row straight away but `totp_enrolled_at` is
+ * left null, which is what makes the enrolment *pending*: nothing checks a
+ * code against it yet, so a person who scans the QR and then closes the tab
+ * has not locked themselves out — calling this again simply replaces the
+ * unused secret. It only becomes the real second factor when a code derived
+ * from it comes back correct.
+ *
+ * Deliberately re-callable while pending, and deliberately not callable once
+ * enrolment is finished: after that, replacing an authenticator needs either
+ * the current PIN (totp-relink) or an owner (reset-totp).
+ */
+async function enrolTotp(request) {
+  const pre = await readPinnedPreSession(request);
+  if (!pre) return json({ error: "Enter your PIN first" }, 401);
+
+  const { regenerate = false } = await request.json().catch(() => ({}));
+  const staff = await selectOne("staff", `select=*&id=eq.${q(pre.sid)}`);
+  if (!staff || !staff.active) return json({ error: "Account is not active" }, 403);
+  if (staff.totp_enrolled_at) return json({ error: "An authenticator is already linked" }, 409);
+
+  // A pending secret is reused rather than replaced, so reloading the page
+  // does not quietly invalidate the entry the person just scanned. Starting
+  // over is possible, but it has to be asked for.
+  let secret = staff.totp_secret;
+  if (!secret || regenerate) {
+    secret = generateTotpSecret();
+    await update(
+      "staff",
+      `id=eq.${q(staff.id)}`,
+      { totp_secret: secret, totp_enrolled_at: null, totp_last_step: null },
+      { returning: false }
+    );
+  }
+
+  const uri = otpauthUri({ secret, account: staff.email });
+  return json({
+    ok: true,
+    // The QR is drawn here rather than by an image service: the secret is a
+    // live credential and has no business being posted to a third party, and
+    // the panel's CSP would refuse to load the picture anyway.
+    qr: qrSvg(uri, { size: 208 }),
+    // For the phone that cannot use a camera, and for the password manager
+    // that wants to be pasted into.
+    secret: groupSecret(secret),
+    uri,
+  });
+}
+
+/**
+ * Six digits, and the end of the sign-in.
+ *
+ * Handles both cases with one route because the check is identical: on a first
+ * run the secret is the pending one and success stamps `totp_enrolled_at`; on
+ * every later sign-in the secret is already live. Either way this is the only
+ * place a full session cookie is issued.
+ */
+async function submitTotp(request) {
+  const pre = await readPinnedPreSession(request);
+  if (!pre) return json({ error: "Enter your PIN first" }, 401);
+
+  const { code, turnstileToken } = await request.json().catch(() => ({}));
+  const blocked = await turnstileGuard(request, turnstileToken);
+  if (blocked) return blocked;
+
+  const staff = await selectOne("staff", `select=*&id=eq.${q(pre.sid)}`);
+  if (!staff || !staff.active) return json({ error: "Account is not active" }, 403);
+  if (!staff.totp_secret) return json({ error: "No authenticator linked yet", state: "totp_setup" }, 409);
+
+  if (staff.locked_until && new Date(staff.locked_until) > new Date()) {
+    return json({ error: "Too many attempts. Try again later.", lockedUntil: staff.locked_until }, 429);
+  }
+
+  const enrolling = !staff.totp_enrolled_at;
+  const check = isValidTotpFormat(String(code || ""))
+    ? await verifyTotp(staff.totp_secret, code, { lastStep: staff.totp_last_step })
+    : { ok: false };
+
+  if (!check.ok) {
+    const attempts = (staff.failed_totp_attempts || 0) + 1;
+    const lock = attempts >= MAX_TOTP_ATTEMPTS;
+    await update(
+      "staff",
+      `id=eq.${q(staff.id)}`,
+      {
+        failed_totp_attempts: lock ? 0 : attempts,
+        locked_until: lock ? new Date(Date.now() + PIN_LOCK_MINUTES * 60 * 1000).toISOString() : staff.locked_until,
+      },
+      { returning: false }
+    );
+    await logEvent({
+      staff_id: staff.id,
+      actor: staff.email,
+      action: "signin.totp_failed",
+      detail: { attempts, locked: lock, enrolling },
+    });
+    return json(
+      {
+        error: lock
+          ? `Too many attempts. Locked for ${PIN_LOCK_MINUTES} minutes.`
+          : `That code is not right. ${MAX_TOTP_ATTEMPTS - attempts} attempt(s) left.`,
+      },
+      lock ? 429 : 401
+    );
+  }
+
+  // recordLogin clears the counters and the lock; totp_last_step is what makes
+  // this particular code unusable a second time.
+  const enrolledAt = staff.totp_enrolled_at || new Date().toISOString();
+  await recordLogin(staff.id, null, {
+    totp_last_step: check.step,
+    ...(enrolling ? { totp_enrolled_at: enrolledAt } : {}),
+  });
+  if (enrolling) await logEvent({ staff_id: staff.id, actor: staff.email, action: "totp.enrolled" });
+  await logEvent({ staff_id: staff.id, actor: staff.email, action: "signin.complete" });
+
+  return withCookies(
+    {
+      ok: true,
+      // The row was read before the write above, so the timestamp is carried
+      // across by hand rather than costing a second round trip to re-read it.
+      staff: publicStaff({ ...staff, totp_enrolled_at: enrolledAt }),
+      permissions: permissionMap({ rl: staff.role, tr: staff.tier }),
+    },
+    [clearCookie(COOKIES.PRE), await issueSession(staff)]
+  );
+}
+
+/**
+ * Moving the authenticator to a new phone, without an owner in the loop.
+ *
+ * Needs a live session *and* the current PIN. That is not theatre: the whole
+ * point of the authenticator is to survive a session being taken over, so
+ * letting a session alone unlink it would hand the attacker the thing it was
+ * meant to stop. Anyone who has genuinely lost the phone cannot sign in at all
+ * and needs reset-totp from an owner — which is the correct escalation.
+ */
+async function relinkTotp(request) {
+  const auth = await requireStaff(request);
+  if (auth.error) return json({ error: auth.message }, auth.error);
+
+  const { currentPin } = await request.json().catch(() => ({}));
+  const staff = await selectOne("staff", `select=*&id=eq.${q(auth.staff.id)}`);
+  if (!staff.pin_hash || !(await verifyPin(String(currentPin || ""), staff))) {
+    return json({ error: "The current PIN is wrong" }, 401);
+  }
+
+  const secret = generateTotpSecret();
+  await update(
+    "staff",
+    `id=eq.${q(staff.id)}`,
+    // Cleared, not replaced: until a code off the new secret checks out, the
+    // account has no authenticator, and the next sign-in enrols one. Swapping
+    // the secret silently would leave the old phone still able to sign in.
+    { totp_secret: secret, totp_enrolled_at: null, totp_last_step: null },
+    { returning: false }
+  );
+  await logEvent({ staff_id: staff.id, actor: staff.email, action: "totp.relink_started" });
+
+  const uri = otpauthUri({ secret, account: staff.email });
+  return json({ ok: true, qr: qrSvg(uri, { size: 208 }), secret: groupSecret(secret), uri });
+}
+
+/**
+ * Closes the relink: one code off the new phone and the link is live again.
+ *
+ * Without this the swap would only be confirmed at the next sign-in, which is
+ * the worst possible moment to discover the QR was scanned into the wrong app.
+ */
+async function confirmRelinkTotp(request) {
+  const auth = await requireStaff(request);
+  if (auth.error) return json({ error: auth.message }, auth.error);
+
+  const { code } = await request.json().catch(() => ({}));
+  const staff = await selectOne("staff", `select=*&id=eq.${q(auth.staff.id)}`);
+  if (!staff.totp_secret) return json({ error: "Start the re-link first" }, 409);
+  if (staff.totp_enrolled_at) return json({ error: "Nothing is waiting to be confirmed" }, 409);
+
+  const check = isValidTotpFormat(String(code || ""))
+    ? await verifyTotp(staff.totp_secret, code, { lastStep: staff.totp_last_step })
+    : { ok: false };
+  if (!check.ok) return json({ error: "That code is not right. Check the new entry in the app." }, 401);
+
+  await update(
+    "staff",
+    `id=eq.${q(staff.id)}`,
+    { totp_enrolled_at: new Date().toISOString(), totp_last_step: check.step, failed_totp_attempts: 0 },
+    { returning: false }
+  );
+  await logEvent({ staff_id: staff.id, actor: staff.email, action: "totp.relinked" });
+  return json({ ok: true });
+}
+
 async function logout(request) {
   const auth = await requireStaff(request);
   if (auth.staff) await logEvent({ staff_id: auth.staff.id, actor: auth.staff.email, action: "signout" });
@@ -476,13 +721,17 @@ async function listStaff(request) {
   // need it. Only an owner may change any of it.
   const rows = await select(
     "staff",
-    "select=id,email,display_name,avatar_url,role,tier,active,last_login_at,pin_set_at,created_at&order=role.asc,created_at.asc"
+    "select=id,email,display_name,avatar_url,role,tier,active,last_login_at,pin_set_at,totp_enrolled_at,created_at&order=role.asc,created_at.asc"
   );
   return json({
+    // Whether a factor is set, never when or what: the panel draws "PIN not
+    // set", and the exact timestamps are nobody else's business.
     staff: rows.map((row) => ({
       ...row,
       hasPin: Boolean(row.pin_set_at),
+      hasTotp: Boolean(row.totp_enrolled_at),
       pin_set_at: undefined,
+      totp_enrolled_at: undefined,
     })),
     canManage: can(auth.session, "staff_write"),
   });
@@ -568,5 +817,30 @@ async function resetPin(request) {
     { returning: false }
   );
   await logEvent({ staff_id: auth.staff.id, actor: auth.staff.email, action: "staff.pin_reset", detail: { target: id } });
+  return json({ ok: true });
+}
+
+/**
+ * The lost-phone path. Only an owner, because it removes a factor.
+ *
+ * Clears the secret outright rather than issuing a new one: the agent enrols a
+ * fresh authenticator themselves at the next sign-in, so the replacement
+ * secret is never handed to anyone but the person who will hold it.
+ */
+async function resetTotp(request) {
+  const auth = await requireStaff(request);
+  if (auth.error) return json({ error: auth.message }, auth.error);
+  if (!can(auth.session, "staff_write")) return json({ error: "Only an owner can reset an authenticator" }, 403);
+
+  const { id } = await request.json().catch(() => ({}));
+  if (!id) return json({ error: "Missing id" }, 400);
+
+  await update(
+    "staff",
+    `id=eq.${q(id)}`,
+    { totp_secret: null, totp_enrolled_at: null, totp_last_step: null, failed_totp_attempts: 0, locked_until: null },
+    { returning: false }
+  );
+  await logEvent({ staff_id: auth.staff.id, actor: auth.staff.email, action: "staff.totp_reset", detail: { target: id } });
   return json({ ok: true });
 }

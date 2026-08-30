@@ -67,10 +67,19 @@ Billing is in USD. Plans are changed in account settings. No plan carries advert
 - [Home (Polish)](https://www.plately.eu/): what the product does, the four tabs with
   screenshots, how to start, features, pricing, FAQ.
 - [Home (English)](https://www.plately.eu/en): the same page in English.
+- [Help and contact](https://www.plately.eu/help): the support form. Pick a category,
+  describe the problem, leave an e-mail address; a confirmation with a ticket reference
+  is sent immediately and a person replies, usually within one business day.
 - [Terms of service](https://www.plately.eu/terms)
 - [Privacy policy](https://www.plately.eu/privacy)
 
 Other translations follow the same pattern: /de, /uk, /ru, /fr, /it, /es, /pt, /ja, /zh, /ko.
+
+## Support
+
+The only support channel is e-mail. Write through the form at
+https://www.plately.eu/help, or directly to contact@plately.eu — both reach the same
+desk and both are answered by a person. There is no telephone line and no live chat.
 
 ## Notes
 

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Plately Support — the panel behind /admin.
+   Plately Support — the panel behind /support.
 
    Plain DOM on purpose. The rest of this site is static HTML built by a Node
    script and served with a tight Content-Security-Policy; adding a framework
@@ -23,7 +23,10 @@
   // -------------------------------------------------------------------------
 
   var S = {
-    phase: "loading", // loading | signed_out | pin_setup | pin_required | ready
+    // The sign-in walks these in order and cannot skip one: the server decides
+    // which comes next and the browser only draws it.
+    phase: "loading", // loading | signed_out | pin_setup | pin_required |
+                      // totp_setup | totp_required | ready
     auth: {},
     staff: null,
     perms: {},
@@ -56,6 +59,11 @@
     error: "",
     notice: "",
     turnstile: { siteKey: null, token: null, widget: null },
+    // Filled by /api/staff/totp-enrol on a first run: the QR to scan and the
+    // same secret in a form that can be typed or pasted.
+    enrol: null,
+    enrolBusy: false,
+    showSecret: false,
   };
 
   var VIEWS = [
@@ -183,6 +191,7 @@
     chevron: svg('<path d="m6 9 6 6 6-6"></path>', 16),
     shield: svg('<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path>', 16),
     info: svg('<circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path>', 20),
+    phone: svg('<rect width="14" height="20" x="5" y="2" rx="2"></rect><path d="M12 18h.01"></path><path d="M9 6h6"></path>', 16),
   };
 
   // -------------------------------------------------------------------------
@@ -512,6 +521,7 @@
     }
     if (S.phase === "signed_out") return renderSignIn();
     if (S.phase === "pin_required" || S.phase === "pin_setup") return renderPin();
+    if (S.phase === "totp_required" || S.phase === "totp_setup") return renderTotp();
     renderApp();
   }
 
@@ -565,7 +575,7 @@
           '<div class="auth-note">' + ICON.info +
             "<p><strong style=\"color:var(--m3-on-surface)\">Looking for help with Plately?</strong><br>" +
             "This page is not intended as customer support. If you need assistance, " +
-            "please contact us at plately.eu/help.</p>" +
+            'please write to us at <a class="auth-link" href="/help">plately.eu/help</a>.</p>' +
           "</div>" +
         "</div></div>" +
       "</div>";
@@ -631,6 +641,102 @@
     if (first) first.focus();
   }
 
+  /**
+   * The authenticator step, behind the same glass as the PIN.
+   *
+   * Two shapes, one screen. On a first run it shows a QR code and asks for a
+   * code back, which is the only way to prove the phone actually holds the
+   * secret before it is trusted. Afterwards it is six boxes and nothing else.
+   *
+   * The QR is inline SVG drawn by our own server, not an <img> pointing at an
+   * image service: the string encoded in it *is* the second factor, and it has
+   * no business travelling to anyone else.
+   */
+  function renderTotp() {
+    var setup = S.phase === "totp_setup";
+    var locked = S.auth.lockedUntil && new Date(S.auth.lockedUntil) > new Date();
+
+    var enrolBlock = "";
+    if (setup) {
+      enrolBlock = S.enrol
+        ? '<div class="enrol">' +
+            '<div class="enrol-qr">' + S.enrol.qr + "</div>" +
+            '<div class="enrol-side">' +
+              '<ol class="enrol-steps">' +
+                "<li>Open Google Authenticator, Aegis, 1Password, Bitwarden — any of them.</li>" +
+                "<li>Scan this code.</li>" +
+                "<li>Type the six digits it shows below.</li>" +
+              "</ol>" +
+              (S.showSecret
+                ? '<div class="enrol-secret"><span class="lbl">Or enter this key by hand</span>' +
+                  '<code>' + esc(S.enrol.secret) + "</code></div>"
+                : '<button type="button" class="linkish" data-act="show-secret">Can’t scan? Show the key instead</button>') +
+              '<button type="button" class="linkish" data-act="enrol-again">Start over with a new code</button>' +
+            "</div>" +
+          "</div>"
+        : '<div class="enrol enrol-loading"><span class="spinner"></span></div>';
+    }
+
+    root.innerHTML =
+      '<div class="locked-stage">' +
+        '<div class="locked-shell" aria-hidden="true">' + skeletonConsole() + "</div>" +
+        '<div class="lock-scrim">' +
+          '<div class="lock-card ' + (setup ? "lock-card-wide" : "") + '" role="dialog" aria-modal="true" aria-label="Authenticator required">' +
+            '<div class="lock-badge">' + ICON.phone + "</div>" +
+            "<h2>" + (setup ? "Link your authenticator app" : "Authenticator code") + "</h2>" +
+            '<p class="lock-lede">' + (setup
+              ? "One last step. From now on the console asks for a code from this app every time you sign in — it is what keeps the desk shut if your Google session and your PIN are both taken."
+              : "Google and your PIN both checked out. Enter the current six-digit code from your authenticator app.") + "</p>" +
+            '<div class="identity">' +
+              (S.auth.avatarUrl
+                ? '<img src="' + attr(S.auth.avatarUrl) + '" alt="">'
+                : '<span class="avatar">' + esc(initials(S.auth.displayName, S.auth.email)) + "</span>") +
+              '<span class="who"><b>' + esc(S.auth.displayName || S.auth.email) + "</b>" +
+              "<span>" + esc(S.auth.email) + "</span></span>" +
+            "</div>" +
+            enrolBlock +
+            (setup ? '<p class="lock-sub">The six digits from the app</p>' : "") +
+            '<div class="pin-row pin-row-6" data-pin-group="a">' + codeBoxes("a") + "</div>" +
+            (S.turnstile.siteKey
+              ? '<div class="ts-slot" id="ts-widget"></div>' +
+                '<div class="ts-note" id="ts-note"></div>'
+              : "") +
+            '<button type="button" class="btn btn-primary lock-submit" data-act="totp-submit">' +
+              (setup ? "Confirm and open the console" : "Unlock console") +
+            "</button>" +
+            (locked ? '<div class="auth-error">Locked until ' + esc(clockTime(S.auth.lockedUntil)) + ".</div>" : "") +
+            (S.error ? '<div class="auth-error">' + esc(S.error) + "</div>" : "") +
+            '<div class="lock-foot">' +
+              "<span>" + (setup
+                ? "Codes change every 30 seconds. If one is refused, wait for the next."
+                : "Lost the phone? An owner can unlink it from Settings → Team and roles.") + "</span>" +
+              '<button type="button" data-act="signout">Sign in as someone else</button>' +
+            "</div>" +
+          "</div>" +
+        "</div>" +
+      "</div>";
+
+    mountTurnstile();
+    if (setup && !S.enrol && !S.enrolBusy) return startEnrolment();
+    var first = root.querySelector('[data-pin="a0"]');
+    if (first) first.focus();
+  }
+
+  function startEnrolment() {
+    S.enrolBusy = true;
+    api("/api/staff/totp-enrol", { method: "POST", body: {} })
+      .then(function (data) {
+        S.enrol = data;
+        S.enrolBusy = false;
+        render();
+      })
+      .catch(function (err) {
+        S.enrolBusy = false;
+        S.error = err.message;
+        render();
+      });
+  }
+
   /** Empty scaffolding in the real layout. Deliberately holds no content. */
   function skeletonConsole() {
     var bar = function (w, h) {
@@ -671,25 +777,41 @@
     "</div>";
   }
 
-  function pinBoxes(group) {
+  /**
+   * A row of single-digit boxes.
+   *
+   * No maxlength: a pasted or fast-typed "4821" must arrive intact so the
+   * input handler can spread it across the row. Capping it at one character
+   * here would silently throw the other digits away.
+   *
+   * The PIN is masked because it is a stored secret and shoulder-surfing it is
+   * worth something. An authenticator code is not: it is gone in thirty
+   * seconds, and being able to see what you typed is worth more than hiding a
+   * number the attacker would have to use within the half-minute.
+   */
+  function digitBoxes(group, count, masked) {
     var out = "";
-    for (var i = 0; i < 4; i++) {
-      // No maxlength: a pasted or fast-typed "4821" must arrive intact so the
-      // handler below can spread it across the four boxes. Capping it at one
-      // character here would silently throw the other three away.
-      out += '<input class="pin-box" type="password" inputmode="numeric" autocomplete="off" data-pin="' + group + i + '">';
+    for (var i = 0; i < count; i++) {
+      out += '<input class="pin-box" type="' + (masked ? "password" : "text") +
+        '" inputmode="numeric" autocomplete="' + (masked ? "off" : "one-time-code") +
+        '" aria-label="Digit ' + (i + 1) + ' of ' + count + '" data-pin="' + group + i + '">';
     }
     return out;
   }
 
-  function readPin(group) {
+  function pinBoxes(group) { return digitBoxes(group, 4, true); }
+  function codeBoxes(group) { return digitBoxes(group, 6, false); }
+
+  function readDigits(group, count) {
     var value = "";
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < count; i++) {
       var box = root.querySelector('[data-pin="' + group + i + '"]');
       value += box && box.value ? box.value : "";
     }
     return value;
   }
+
+  function readPin(group) { return readDigits(group, 4); }
 
   function clearPins() {
     Array.prototype.forEach.call(root.querySelectorAll(".pin-box"), function (box) {
@@ -1182,12 +1304,20 @@
         settingRow("E-mail", s.email, "This address is your login") +
         settingRow("Role", roleLabel(s), roleExplainer(s)) +
         settingRow("Last sign-in", s.lastLoginAt ? clockTime(s.lastLoginAt) : "First one", "Every sign-in is logged") +
+      settingRow(
+        "Authenticator",
+        s.totpEnrolledAt ? "Linked" : "Not linked",
+        s.totpEnrolledAt
+          ? "Linked on " + longDate(s.totpEnrolledAt) + " — asked for at every sign-in"
+          : "You will link one the next time you sign in"
+      ) +
       "</div>" +
       '<label class="lbl" style="margin-top:18px">Your signature, appended to every reply you send</label>' +
       '<textarea class="field" id="signature" style="height:90px">' + esc(s.signature || "") + "</textarea>" +
-      '<div style="display:flex;gap:10px;margin-top:12px">' +
+      '<div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">' +
         '<button type="button" class="btn btn-primary btn-sm" data-act="save-signature">Save signature</button>' +
         '<button type="button" class="btn btn-sm" data-act="change-pin">Change PIN</button>' +
+        '<button type="button" class="btn btn-sm" data-act="relink-totp">New phone</button>' +
       "</div>" +
     "</div>");
 
@@ -1238,7 +1368,8 @@
     cards.push('<div class="card" style="display:flex;flex-direction:column;gap:16px">' +
       "<h3 style=\"margin:0\">Session</h3>" +
       '<p style="font-size:13px;line-height:21px;color:var(--m3-on-surface-variant);margin:0">' +
-      "Signed in as " + esc(s.email) + " on this device. The session lasts twelve hours, then Google and the PIN are both asked for again.</p>" +
+      "Signed in as " + esc(s.email) + " on this device. The session lasts twelve hours, then Google, " +
+      "your PIN and a code from your authenticator are all asked for again.</p>" +
       '<button type="button" class="btn btn-danger" style="align-self:flex-start" data-act="signout">Sign out</button>' +
     "</div>");
 
@@ -1281,7 +1412,8 @@
               '<span class="avatar" style="width:36px;height:36px;font-size:13px">' + esc(initials(m.display_name, m.email)) + "</span>" +
               '<div style="min-width:0;flex:1"><div style="font-size:14px;font-weight:600">' + esc(m.display_name || m.email) + "</div>" +
               '<div class="ellipsis" style="font-size:12px;color:var(--m3-on-surface-variant)">' + esc(m.email) +
-              (m.hasPin ? "" : " · PIN not set") + (m.active ? "" : " · deactivated") + "</div></div>" +
+              (m.hasPin ? "" : " · PIN not set") + (m.hasTotp ? "" : " · no authenticator") +
+              (m.active ? "" : " · deactivated") + "</div></div>" +
               '<span class="chip">' + esc(m.role === "agent" ? "agent T" + m.tier : m.role) + "</span>" +
               (canManage && m.id !== S.staff.id
                 ? '<button type="button" class="btn btn-sm" data-act="edit-staff" data-id="' + attr(m.id) + '">Edit</button>'
@@ -1289,7 +1421,8 @@
             "</div>";
           }).join("") + "</div>") +
       '<p style="font-size:12px;line-height:18px;color:var(--m3-on-surface-variant);margin:14px 0 0">' +
-      "Adding someone here is the whole invitation: they sign in with that Google address and choose their own PIN on first run.</p>" +
+      "Adding someone here is the whole invitation: they sign in with that Google address, choose their own PIN " +
+      "and link their own authenticator app on first run. Nothing is e-mailed.</p>" +
     "</div>";
   }
 
@@ -1368,11 +1501,53 @@
     );
   }
 
+  /**
+   * Moving the authenticator to a new phone, in two halves.
+   *
+   * The PIN is asked for first because a live session is not enough: the
+   * authenticator exists precisely to survive a session being taken over, so
+   * letting a session alone move it would undo the point of having it.
+   */
+  function relinkModal() {
+    showModal(
+      '<div class="modal-head"><h2>Move your authenticator</h2>' +
+        '<button type="button" class="btn btn-icon x" data-act="close">✕</button></div>' +
+      '<p style="font-size:13px;line-height:20px;color:var(--m3-on-surface-variant);margin:0">' +
+      "For a new phone, or a new authenticator app. Your PIN confirms it is really you — a signed-in " +
+      "browser on its own is not enough to move a second factor.</p>" +
+      '<label class="lbl">Your current PIN</label>' +
+      '<input class="field" id="relink-pin" inputmode="numeric" maxlength="4" type="password">' +
+      '<div class="foot"><button type="button" class="btn" data-act="close">Cancel</button>' +
+        '<button type="button" class="btn btn-primary" data-act="submit-relink">Show the new code</button></div>'
+    );
+  }
+
+  function relinkConfirmModal(data) {
+    showModal(
+      '<div class="modal-head"><h2>Scan this on the new phone</h2>' +
+        '<button type="button" class="btn btn-icon x" data-act="close">✕</button></div>' +
+      '<p style="font-size:13px;line-height:20px;color:var(--m3-on-surface-variant);margin:0">' +
+      "Your old authenticator has stopped working already. Scan this, then type the code it gives you — " +
+      "until you do, your next sign-in will ask you to link one again.</p>" +
+      '<div class="enrol enrol-modal">' +
+        '<div class="enrol-qr">' + data.qr + "</div>" +
+        '<div class="enrol-side">' +
+          '<div class="enrol-secret"><span class="lbl">Or enter this key by hand</span>' +
+          "<code>" + esc(data.secret) + "</code></div>" +
+        "</div>" +
+      "</div>" +
+      '<label class="lbl">The six digits from the app</label>' +
+      '<input class="field" id="relink-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">' +
+      '<div class="foot"><button type="button" class="btn" data-act="close">Finish later</button>' +
+        '<button type="button" class="btn btn-primary" data-act="submit-relink-confirm">Confirm the new phone</button></div>'
+    );
+  }
+
   function inviteModal() {
     showModal(
       '<div class="modal-head"><h2>Add an agent</h2><button type="button" class="btn btn-icon x" data-act="close">✕</button></div>' +
       '<p style="font-size:13px;line-height:20px;color:var(--m3-on-surface-variant);margin:0">' +
-      "The address must be the Google account they will sign in with. Nothing is e-mailed — they just open /admin and sign in.</p>" +
+      "The address must be the Google account they will sign in with. Nothing is e-mailed — they just open /support and sign in.</p>" +
       '<input class="field" id="i-email" placeholder="agent@gmail.com">' +
       '<input class="field" id="i-name" placeholder="Name (optional)">' +
       '<div style="display:flex;gap:10px">' +
@@ -1400,8 +1575,9 @@
       }).join("") + "</select>" +
       '<div class="setting-row" style="margin-top:8px"><div class="t"><b>Active</b><span>Deactivating ends their access on the next request</span></div>' +
         '<button type="button" class="toggle ' + (member.active ? "on" : "") + '" data-act="toggle-active"><i></i></button></div>' +
-      '<div class="foot">' +
+      '<div class="foot" style="flex-wrap:wrap">' +
         '<button type="button" class="btn btn-danger" data-act="reset-staff-pin" data-id="' + attr(member.id) + '">Reset PIN</button>' +
+        '<button type="button" class="btn btn-danger" data-act="reset-staff-totp" data-id="' + attr(member.id) + '">Unlink authenticator</button>' +
         '<button type="button" class="btn" data-act="close">Cancel</button>' +
         '<button type="button" class="btn btn-primary" data-act="submit-staff" data-id="' + attr(member.id) + '">Save</button>' +
       "</div>"
@@ -1452,11 +1628,16 @@
       S.error = "";
       api(setup ? "/api/staff/pin-setup" : "/api/staff/pin", { method: "POST", body: body })
         .then(function (data) {
-          S.staff = data.staff;
-          S.perms = data.permissions || {};
+          // A correct PIN no longer opens the desk — it advances to the
+          // authenticator. The server names the next step; the browser does
+          // not get to decide it.
           S.error = "";
-          history.replaceState(null, "", "/admin");
-          loadDesk();
+          S.enrol = null;
+          S.showSecret = false;
+          S.turnstile.token = null;
+          S.phase = data.state || "totp_required";
+          history.replaceState(null, "", "/support");
+          render();
         })
         .catch(function (err) {
           S.error = err.message;
@@ -1467,8 +1648,41 @@
         });
     },
 
+    "totp-submit": function () {
+      var code = readDigits("a", 6);
+      if (code.length !== 6) { S.error = "Six digits, please."; return render(); }
+      S.error = "";
+      api("/api/staff/totp", { method: "POST", body: { code: code, turnstileToken: S.turnstile.token } })
+        .then(function (data) {
+          S.staff = data.staff;
+          S.perms = data.permissions || {};
+          S.error = "";
+          S.enrol = null;
+          history.replaceState(null, "", "/support");
+          loadDesk();
+        })
+        .catch(function (err) {
+          S.error = err.message;
+          resetTurnstile();
+          if (err.data && err.data.state === "totp_setup") S.phase = "totp_setup";
+          render();
+          clearPins();
+        });
+    },
+
+    "show-secret": function () { S.showSecret = true; render(); },
+
+    "enrol-again": function () {
+      if (!confirm("Throw away the code on screen and generate a new one? Anything you already scanned stops working.")) return;
+      S.enrolBusy = true;
+      S.showSecret = false;
+      api("/api/staff/totp-enrol", { method: "POST", body: { regenerate: true } })
+        .then(function (data) { S.enrol = data; S.enrolBusy = false; render(); })
+        .catch(function (err) { S.enrolBusy = false; toast(err.message, true); });
+    },
+
     signout: function () {
-      api("/api/staff/logout", { method: "POST" }).then(function () { location.href = "/admin"; });
+      api("/api/staff/logout", { method: "POST" }).then(function () { location.href = "/support"; });
     },
 
     nav: function (el) { closeOverlay(); loadScreen(el.dataset.screen); },
@@ -1721,6 +1935,40 @@
         .catch(function (err) { toast(err.message, true); });
     },
 
+    "reset-staff-totp": function (el) {
+      if (!confirm("Unlink this agent's authenticator? Do this only when they have actually lost the phone — they will link a new one on their next sign-in.")) return;
+      api("/api/staff/reset-totp", { method: "POST", body: { id: el.dataset.id } })
+        .then(function () { closeOverlay(); S.staffList = null; loadScreen("settings"); toast("Authenticator unlinked"); })
+        .catch(function (err) { toast(err.message, true); });
+    },
+
+    "relink-totp": function () { relinkModal(); },
+
+    "submit-relink": function (el) {
+      busy(el, true);
+      api("/api/staff/totp-relink", { method: "POST", body: { currentPin: value("relink-pin") } })
+        .then(function (data) {
+          closeOverlay();
+          relinkConfirmModal(data);
+          // The old phone is already dead at this point, so the profile card
+          // must stop claiming otherwise even if the confirm is abandoned.
+          if (S.staff) S.staff.totpEnrolledAt = null;
+        })
+        .catch(function (err) { busy(el, false); toast(err.message, true); });
+    },
+
+    "submit-relink-confirm": function (el) {
+      busy(el, true);
+      api("/api/staff/totp-relink-confirm", { method: "POST", body: { code: value("relink-code") } })
+        .then(function () {
+          closeOverlay();
+          if (S.staff) S.staff.totpEnrolledAt = new Date().toISOString();
+          render();
+          toast("New authenticator linked");
+        })
+        .catch(function (err) { busy(el, false); toast(err.message, true); });
+    },
+
     "kb-new": function () { articleModal(null); },
 
     "kb-edit": function (el) {
@@ -1840,13 +2088,16 @@
   });
 
   document.addEventListener("keydown", function (event) {
-    // PIN boxes: backspace walks back, Enter submits.
+    // Digit boxes: backspace walks back, Enter submits whichever step is up.
     if (event.target.classList && event.target.classList.contains("pin-box")) {
       if (event.key === "Backspace" && !event.target.value) {
         var prev = event.target.previousElementSibling;
         if (prev && prev.classList.contains("pin-box")) { prev.focus(); prev.value = ""; }
       }
-      if (event.key === "Enter") ACTIONS["pin-submit"]();
+      if (event.key === "Enter") {
+        var totpPhase = S.phase === "totp_required" || S.phase === "totp_setup";
+        ACTIONS[totpPhase ? "totp-submit" : "pin-submit"]();
+      }
       return;
     }
 

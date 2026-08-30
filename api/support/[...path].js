@@ -662,7 +662,7 @@ async function handleInbound(request) {
         subject: `[${ticketRef(result.number)}] ${full.subject || "(no subject)"}`,
         text: `From: ${sender.name ? sender.name + " " : ""}<${sender.email}>
 ` +
-          `Ticket: https://plately.eu/admin
+          `Ticket: https://plately.eu/support
 
 ${text}`,
         replyTo: sender.email,

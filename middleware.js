@@ -1,11 +1,17 @@
 import { getSiteMode } from "./lib/site-mode.js";
 
 export const config = {
-  // Only the admin panel, the API and Vercel's own internals bypass this.
+  // Only the support panel, the API and Vercel's own internals bypass this.
   // Everything else — including robots.txt and sitemap.xml — is decided below,
   // because during maintenance the *status code* matters more than the body and
   // that decision cannot be expressed in a matcher.
-  matcher: ["/((?!api/|admin|_vercel/).*)"],
+  //
+  // `admin` is still listed even though the panel moved to /support: the old
+  // path is a permanent redirect in vercel.json, and whether a redirect or the
+  // middleware sees a request first depends on Vercel's routing order. Leaving
+  // it out would mean the one URL the team has bookmarked answers 503 during a
+  // maintenance window — which is exactly when they need it.
+  matcher: ["/((?!api/|admin|support|_vercel/).*)"],
 };
 
 // Files that must answer 200 in every mode.
@@ -17,6 +23,14 @@ export const config = {
 const ALWAYS_PUBLIC = new Set([
   "/robots.txt",
   "/sitemap.xml",
+  // The help desk. Taking the support channel offline during a maintenance
+  // window closes the one door a confused customer has at exactly the moment
+  // they are most likely to need it — and the form talks to the API and the
+  // database, neither of which is what a maintenance window switches off.
+  // Both spellings, because cleanUrls serves help.html at /help and a direct
+  // link to the file must not fall through to a 503 either.
+  "/help",
+  "/help.html",
   // Same reasoning as robots.txt, for the crawlers that read this instead: a
   // description of the product is not the thing that goes offline during a
   // maintenance window.

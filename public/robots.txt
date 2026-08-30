@@ -7,10 +7,16 @@
 User-agent: *
 Allow: /
 
-# The admin panel is a private login, not content. It is behind auth anyway;
-# this just keeps it out of the crawl budget and out of the index.
+# The support panel is a private login, not content. It is behind auth anyway;
+# this just keeps it out of the crawl budget and out of the index. /admin is
+# still listed because it permanently redirects here and a crawler that follows
+# it should stop rather than queue the destination.
+Disallow: /support
 Disallow: /admin
 Disallow: /api/
+
+# /help is deliberately NOT disallowed: "how do I contact Plately" is a real
+# search, and the page that answers it should be findable.
 
 # No blanket rule for GPTBot, ClaudeBot, PerplexityBot, Google-Extended and the
 # rest: the wildcard above already admits them, and that is deliberate. Blocking

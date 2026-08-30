@@ -1,22 +1,34 @@
 // ============================================================================
-// Who is signed in to /admin, and what are they allowed to do.
+// Who is signed in to /support, and what are they allowed to do.
 //
-// Three gates guard the panel, and they are deliberately of different kinds:
+// Four gates guard the panel, and they are deliberately of different kinds:
 //
 //   1. Cloudflare Turnstile — something a bot cannot cheaply do. Checked on
-//      every PIN attempt. The sign-in page itself is not gated: it only hands
-//      off to Google, which brings its own abuse handling.
+//      every PIN and authenticator attempt. The sign-in page itself is not
+//      gated: it only hands off to Google, which brings its own abuse
+//      handling.
 //   2. Google — something you have: an account we put on the staff list.
 //      Ownership of the address is proved to Google, not to us.
 //   3. A four-digit PIN — something you know, and something a stolen or
 //      still-signed-in Google session does not carry with it.
+//   4. A six-digit code from an authenticator app — something you have, on a
+//      second device. This is the one that survives everything else going
+//      wrong: a laptop left unlocked with a live Google session and a PIN on a
+//      sticky note still does not open the console.
 //
 // A four-digit secret is only worth anything if guessing is expensive, so the
 // PIN is: hashed with PBKDF2 over a per-person salt *and* a pepper that lives
 // in an environment variable rather than the database (a stolen dump alone
 // cannot brute-force 10 000 candidates), rate-limited to five tries before a
 // fifteen-minute lock, and fronted by Turnstile so the tries cannot be
-// automated in the first place.
+// automated in the first place. The authenticator code is rate-limited the
+// same way and each code is accepted exactly once — see totp_last_step in the
+// schema.
+//
+// The three steps after Google share ONE cookie, the pre-session, which
+// records how far the person has got. It carries no permissions whatsoever:
+// no route in this project accepts it as authorisation for anything except
+// the next step of signing in.
 // ============================================================================
 
 import { hmacHex, timingSafeEqual } from "./auth.js";
@@ -26,10 +38,15 @@ const FULL_COOKIE = "plately_staff";
 const PRE_COOKIE = "plately_staff_pre";
 
 const FULL_TTL_MS = 12 * 60 * 60 * 1000; // one shift
-const PRE_TTL_MS = 10 * 60 * 1000; // Google done, PIN still owed
+const PRE_TTL_MS = 10 * 60 * 1000; // Google done, PIN and/or a code still owed
 
 export const MAX_PIN_ATTEMPTS = 5;
 export const PIN_LOCK_MINUTES = 15;
+// The same five, and it buys far more here: a six-digit code has a million
+// candidates and each one lives ninety seconds, so five attempts per lock-out
+// is not a meaningful fraction of the space. Five is chosen for the person
+// mistyping, not for the attacker.
+export const MAX_TOTP_ATTEMPTS = 5;
 
 // PBKDF2 rounds. Edge Functions are billed and capped on CPU time, so this is
 // a compromise rather than the usual "as high as you can bear": the pepper is
@@ -117,8 +134,8 @@ async function unsign(token) {
 }
 
 function cookieHeader(name, value, maxAgeSeconds) {
-  // Strict rather than Lax: nothing on this site ever links into /admin from
-  // the outside, so there is no flow for Strict to break — and it is the
+  // Strict rather than Lax: nothing on this site ever links into /support
+  // from the outside, so there is no flow for Strict to break — and it is the
   // cheapest CSRF defence there is.
   const attrs = [
     `${name}=${value}`,
@@ -137,12 +154,21 @@ export function clearCookie(name) {
 
 export const COOKIES = { FULL: FULL_COOKIE, PRE: PRE_COOKIE };
 
-/** Google is done, the PIN is not. Carries no permissions at all. */
-export async function issuePreSession(staff) {
+/**
+ * Google is done; the PIN and the authenticator may not be. Carries no
+ * permissions at all.
+ *
+ * `pin` records that the PIN step has been cleared, so the cookie is reissued
+ * rather than replaced when the person moves on to the code. Reissuing also
+ * restarts the ten minutes, which is what stops a slow enrolment — find the
+ * app, scan the code, read the digits — from timing out halfway through.
+ */
+export async function issuePreSession(staff, { pin = false } = {}) {
   const token = await sign({
     kind: "pre",
     sid: staff.id,
     em: staff.email,
+    ...(pin ? { pin: 1 } : {}),
     exp: Date.now() + PRE_TTL_MS,
   });
   return cookieHeader(PRE_COOKIE, token, Math.floor(PRE_TTL_MS / 1000));
@@ -153,7 +179,13 @@ export async function readPreSession(request) {
   return payload && payload.kind === "pre" ? payload : null;
 }
 
-/** Both factors cleared. This is the cookie the whole panel runs on. */
+/** The pre-session, but only if the PIN step is already behind it. */
+export async function readPinnedPreSession(request) {
+  const payload = await readPreSession(request);
+  return payload && payload.pin === 1 ? payload : null;
+}
+
+/** Every factor cleared. This is the cookie the whole panel runs on. */
 export async function issueSession(staff) {
   const token = await sign({
     kind: "full",
@@ -235,12 +267,13 @@ const TURNSTILE_REASONS = {
 };
 
 /**
- * Checks a widget token. Returns { ok, reason }. Only the PIN routes call it.
+ * Checks a widget token. Returns { ok, reason }. Only the PIN and
+ * authenticator routes call it.
  *
  * With no TURNSTILE_SECRET_KEY configured this passes: the panel must stay
- * usable while the key is being set up, and Google + the PIN are the factors
- * carrying the weight. Same when Cloudflare itself is unreachable — an outage
- * there must not lock the desk out.
+ * usable while the key is being set up, and Google, the PIN and the
+ * authenticator are the factors carrying the weight. Same when Cloudflare
+ * itself is unreachable — an outage there must not lock the desk out.
  *
  * A *misconfiguration*, though, fails closed and says what is wrong, because
  * the alternative is a sign-in button that refuses forever without a clue.
@@ -356,7 +389,7 @@ export async function requireStaff(request) {
 
   const staff = await selectOne(
     "staff",
-    `select=id,email,display_name,avatar_url,role,tier,active,signature,prefs,last_login_at&id=eq.${q(payload.sid)}`
+    `select=id,email,display_name,avatar_url,role,tier,active,signature,prefs,last_login_at,totp_enrolled_at&id=eq.${q(payload.sid)}`
   );
   if (!staff || !staff.active) return { error: 403, message: "Account is not active" };
 
@@ -372,6 +405,7 @@ export async function recordLogin(staffId, googleSub, patch = {}) {
     {
       last_login_at: new Date().toISOString(),
       failed_pin_attempts: 0,
+      failed_totp_attempts: 0,
       locked_until: null,
       ...(googleSub ? { google_sub: googleSub } : {}),
       ...patch,

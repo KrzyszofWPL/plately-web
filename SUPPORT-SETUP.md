@@ -1,15 +1,22 @@
 # Plately Support — uruchomienie krok po kroku
 
-Panel supportu żyje pod `https://plately.eu/admin`. Logowanie: **Google → 4-cyfrowy PIN**,
-z **Cloudflare Turnstile** przed samym PIN-em. Panel maintenance (włączanie/wyłączanie
-strony) nie zniknął — jest teraz kartą **Site control** w zakładce *Settings*, widoczną
-wyłącznie dla ról `owner` i `admin`.
+Panel supportu żyje pod `https://plately.eu/support` (stary adres `/admin` przekierowuje
+tam na stałe). Logowanie ma teraz **trzy kroki**: **Google → 4-cyfrowy PIN → 6-cyfrowy kod
+z aplikacji uwierzytelniającej**, z **Cloudflare Turnstile** przed dwoma ostatnimi. Panel
+maintenance (włączanie/wyłączanie strony) nie zniknął — jest kartą **Site control**
+w zakładce *Settings*, widoczną wyłącznie dla ról `owner` i `admin`.
+
+Klienci piszą do nas przez **`https://plately.eu/help`** — publiczny formularz, który
+zakłada ticket i od razu wysyła potwierdzenie z `contact@plately.eu`.
 
 Wszystko poniżej mieści się w darmowych planach: Supabase (ten sam projekt co aplikacja),
 Vercel Hobby, Cloudflare Turnstile, Resend (3 000 maili/mies., 100/dzień — wspólna pula dla
-odbioru i wysyłki).
+odbioru i wysyłki). Drugi składnik to standard TOTP (RFC 6238) — nie ma tu żadnej usługi
+zewnętrznej ani opłaty: sekret i kod QR generuje nasza własna funkcja, a po drugiej stronie
+działa dowolna darmowa aplikacja (Google Authenticator, Aegis, 1Password, Bitwarden).
 
-Kolejność ma znaczenie. Kroki 1–6 uruchamiają panel, 7–8 podpinają pocztę.
+Kolejność ma znaczenie. Kroki 1–6 uruchamiają panel, 7–8 podpinają pocztę, 9 włącza
+publiczną stronę pomocy.
 
 ---
 
@@ -21,21 +28,29 @@ Showcase WEB/
   api/_lib/db.js                   ← rozmowa z Supabase (PostgREST, klucz service role)
   api/_lib/mail.js                 ← Resend: wysyłka, odbiór, podpisy webhooków
   api/_lib/staff-session.js        ← ciasteczka sesji, hash PIN-u, Turnstile, uprawnienia
-  api/staff/[...path].js           ← logowanie Google, PIN, zarządzanie zespołem
+  api/_lib/totp.js                 ← TOTP (RFC 6238) + własny generator kodów QR
+  api/staff/[...path].js           ← Google, PIN, aplikacja uwierzytelniająca, zespół
   api/support/[...path].js         ← tickety, wiadomości, raporty, KB, webhook poczty
-  public/admin/index.html          ← panel (był tu stary formularz maintenance)
-  public/admin/app.js
-  public/admin/admin.css
-  public/admin/legacy.html         ← stary panel maintenance, jako wyjście awaryjne
+  api/help/[...path].js            ← publiczny formularz pomocy (bez sesji)
+  public/support/index.html        ← panel, przeniesiony z /admin
+  public/support/app.js
+  public/support/support.css
+  public/support/legacy.html       ← stary panel maintenance, jako wyjście awaryjne
+  public/help.html                 ← strona pomocy dla klientów (PL/EN, jeden plik)
   .env.example                     ← opis każdej zmiennej środowiskowej
-  vercel.json                      ← osobne CSP dla /admin (Turnstile + awatary Google)
+  vercel.json                      ← przekierowanie /admin → /support, CSP dla obu stron
 
 Application APK/
   src/lib/staff.ts                 ← useStaff() / can() — te same role w aplikacji
 ```
 
-Dwa pliki API zamiast kilkunastu, bo **Vercel Hobby dopuszcza 12 funkcji na deployment**.
-Routing siedzi w środku każdego pliku.
+Trzy pliki API zamiast kilkudziesięciu, bo **Vercel Hobby dopuszcza 12 funkcji na
+deployment**. Routing siedzi w środku każdego pliku.
+
+`api/_lib/totp.js` nie ma zależności i nie odpytuje niczego na zewnątrz — również kod QR
+rysuje sam. To nie jest ozdoba: w tym kodzie QR siedzi żywy sekret drugiego składnika,
+a wysyłanie go do cudzego generatora obrazków byłoby oddaniem tego sekretu obcemu
+serwerowi. CSP panelu i tak zabroniłoby wczytania takiego obrazka.
 
 ---
 
@@ -126,12 +141,19 @@ częściowo nieprzetłumaczoną.
    - **Nazwa** *(Name)*: `plately-admin` (widoczna tylko dla Ciebie)
 
 5. **Autoryzowane identyfikatory URI przekierowania** *(Authorised redirect URIs)* →
-   **Dodaj identyfikator URI**, i wpisz **oba**, każdy osobno:
+   **Dodaj identyfikator URI**, i wpisz **wszystkie cztery**, każdy osobno:
 
    ```
    https://www.plately.eu/api/staff/callback
    https://plately.eu/api/staff/callback
+   https://www.plately.eu/api/help/callback
+   https://plately.eu/api/help/callback
    ```
+
+   Dwa pierwsze to logowanie zespołu do panelu. Dwa kolejne obsługują przycisk
+   „Podłącz adres z Google" na stronie `/help`: klient nie zakłada tam żadnego konta —
+   pobieramy wyłącznie jego adres, żeby ticket miał adres potwierdzony przez Google,
+   a nie tylko wpisany z klawiatury.
 
    Muszą zgadzać się co do znaku — bez ukośnika na końcu, `https`, dokładnie ta ścieżka.
    Wejście z hosta, którego tu nie ma, kończy się błędem `redirect_uri_mismatch`.
@@ -157,9 +179,16 @@ częściowo nieprzetłumaczoną.
 3. Widget mode: **Managed** (Cloudflare sam decyduje, czy pokazać wyzwanie).
 4. Zapisz **Site Key** i **Secret Key**.
 
-Turnstile stoi wyłącznie przed PIN-em — przy każdej próbie, bez tokenu request nie
-przechodzi. Sam ekran logowania nie jest bramkowany: oddaje ruch do Google, które ma własną
-ochronę przed botami, a pół-sesja bez PIN-u nie otwiera żadnego endpointu.
+Ten sam widget obsługuje dwa miejsca — to ten sam host, więc jeden wpis wystarcza:
+
+- w panelu stoi przed **PIN-em i przed kodem z aplikacji**; bez tokenu request nie
+  przechodzi. Sam ekran logowania nie jest bramkowany: oddaje ruch do Google, które ma
+  własną ochronę przed botami, a niedokończona sesja nie otwiera żadnego endpointu;
+- na `/help` jest tym, co powstrzymuje zalanie biurka ticketami z jednego skryptu.
+
+Brak kluczy nie psuje żadnej z tych stron — wyzwanie jest wtedy pomijane. W panelu zostają
+Google, PIN i aplikacja uwierzytelniająca, a formularz pomocy ma jeszcze limit 5 zgłoszeń
+na godzinę z jednego adresu, liczony w bazie.
 
 ---
 
@@ -171,7 +200,7 @@ zmiennej o tej samej nazwie („A variable with the name … already exists"), i
 
 - `SESSION_SECRET` — zostaw istniejący. Nowy panel podpisze nim swoje ciasteczka tak samo.
 - `PEPPER` — **zostaw istniejący, nie podmieniaj.** Na nim policzony jest
-  `ADMIN_PASSWORD_HASH` do `/admin/legacy`; nowa wartość zabija to wejście awaryjne.
+  `ADMIN_PASSWORD_HASH` do `/support/legacy`; nowa wartość zabija to wejście awaryjne.
   (Gdybyś kiedyś musiał go zmienić: wygeneruj nowy hash hasła tym samym pepperem —
   polecenie jest w `.env.example` — i zresetuj wszystkie PIN-y.)
 
@@ -225,15 +254,46 @@ curl -s https://plately.eu/api/staff/session
 Oczekiwane: `{"state":"signed_out","turnstileSiteKey":"0x4AAA…","googleConfigured":true}`.
 Jeśli widzisz `googleConfigured: false` — zmienne nie doszły, zrób redeploy.
 
+To samo dla publicznej strony pomocy:
+
+```bash
+curl -s https://plately.eu/api/help/session
+```
+
+Oczekiwane: `{"email":null,…,"googleConfigured":true,"mailConfigured":true}`.
+`mailConfigured: false` oznacza brak `RESEND_API_KEY` — formularz powie o tym wprost
+i nie przyjmie wiadomości, której nie umiałby potwierdzić.
+
+I że stary adres panelu przekierowuje:
+
+```bash
+curl -sI https://plately.eu/admin | head -3
+```
+
+Oczekiwane: `HTTP/2 308` i `location: /support`.
+
 ---
 
 ## 6. Pierwsze logowanie
 
-1. Wejdź na `https://plately.eu/admin`.
+**Przygotuj telefon.** Będzie potrzebna aplikacja uwierzytelniająca — wystarczy dowolna
+darmowa: Google Authenticator, Aegis, 2FAS, albo menedżer haseł, którego już używasz
+(1Password, Bitwarden). Nie zakładasz nigdzie konta i nic nie płacisz.
+
+1. Wejdź na `https://plately.eu/support`.
 2. **Continue with Google** → wybierz adres z kroku 1.
 3. Panel poprosi o **ustawienie PIN-u** (pierwsze uruchomienie): cztery cyfry, dwa razy.
    Odrzuci `0000`, `1234` i kilka innych oczywistych.
-4. Jesteś w środku. Inbox będzie pusty do kroku 8.
+4. Potem pokaże **kod QR**. Zeskanuj go aplikacją z telefonu i przepisz sześć cyfr, które
+   się pojawią. Jeśli kamera nie działa, kliknij *Can't scan? Show the key instead* i
+   wpisz klucz ręcznie — to dokładnie ten sam sekret.
+5. Jesteś w środku. Inbox będzie pusty do kroku 8.
+
+Od tej pory każde logowanie to Google → PIN → kod. Sesja trwa 12 godzin.
+
+Kod jest ważny 30 sekund (plus jedno okno w każdą stronę, na wypadek rozjechanego zegara
+w telefonie) i **działa dokładnie raz** — panel zapamiętuje przyjęty przedział, więc kod
+podejrzany komuś przez ramię nie da się użyć drugi raz.
 
 **Zablokowanie się jest odwracalne** — patrz sekcja „Kiedy coś pójdzie nie tak".
 
@@ -313,18 +373,88 @@ Powinno dokleić się do **tego samego** ticketu, a nie założyć nowy.
 
 ---
 
-## 9. Jak to jest poskładane (żeby dało się to potem debugować)
+## 9. Strona pomocy dla klientów — `/help`
+
+Nie wymaga niczego poza tym, co już ustawiłeś: używa tego samego klucza Resend, tego
+samego widgetu Turnstile i tego samego klienta OAuth. Po deployu po prostu działa.
+Sprawdź, że jest tam wszystko, czego oczekujesz:
+
+1. Wejdź na `https://plately.eu/help`. Strona przełącza się polski/angielski i sama
+   zgaduje język przeglądarki.
+2. Wypełnij formularz swoim prywatnym adresem i wyślij.
+3. Powinno się wydarzyć trzy rzeczy naraz:
+   - na stronie pojawia się numer zgłoszenia (`SUP-…`),
+   - na Twój adres przychodzi potwierdzenie **od `Plately Support <contact@plately.eu>`**,
+   - w panelu `/support` ląduje nowy ticket z kanałem `form` i kategorią, którą wybrałeś.
+4. Odpowiedz na to potwierdzenie ze swojej skrzynki — musi dokleić się do **tego samego**
+   ticketu, a nie założyć nowy. (Numer `[SUP-…]` w temacie jest tym, co je łączy.)
+
+**Kategorie** z formularza to dokładnie te same tagi, których używa panel (`Billing`,
+`Bug`, `Feature request`, `How-to`, `Account`, `Other`), więc zgłoszenie od razu wpada do
+właściwej kolejki na pasku bocznym.
+
+**Przycisk „Podłącz adres z Google"** jest opcjonalny i daje jedną konkretną rzecz: adres
+na tickecie jest wtedy potwierdzony przez Google, a nie wpisany z klawiatury. W zdarzeniu
+`ticket.created_form` zapisuje się `email_verified: true` — przy „nie mogę się dostać do
+swojego konta" to różnica między sprawą do załatwienia a prośbą o uwierzenie obcej osobie
+na słowo.
+
+**Limit:** 5 zgłoszeń na godzinę z jednego adresu e-mail albo z jednego adresu IP.
+IP nie jest zapisywane — trafia do bazy jako skrót HMAC liczony `PEPPER`-em, którego
+w bazie nie ma. Limit liczy sama funkcja `support_ingest_form`, w tej samej transakcji
+co wstawienie ticketu, więc nie da się go wyścigać równoległymi żądaniami.
+
+Strona jest też **dostępna podczas przerwy technicznej**. To celowe: moment, w którym
+strona jest wyłączona, to dokładnie ten moment, w którym ludzie chcą zapytać, co się
+dzieje — zamykanie im wtedy jedynych drzwi nie miałoby sensu.
+
+---
+
+## 10. Jak to jest poskładane (żeby dało się to potem debugować)
 
 **Logowanie.** `POST /api/staff/start` zwraca URL Google, zapisując
 `state` + `nonce` w podpisanym ciasteczku. `GET /api/staff/callback` wymienia kod na
 `id_token`, sprawdza `aud`/`iss`/`nonce`, szuka adresu w `staff` i wydaje **pół-sesję** —
-dowód Google i nic więcej. Dopiero `POST /api/staff/pin` (PIN + Turnstile) wydaje właściwe
-ciasteczko sesji na 12 godzin. Konto Google jest przypinane przy pierwszym logowaniu
-(`google_sub`): ten sam adres z innego konta Google to inna osoba i dostaje odmowę.
+dowód Google i nic więcej. `POST /api/staff/pin` (PIN + Turnstile) **nie wydaje sesji**:
+odnawia pół-sesję ze znacznikiem, że PIN jest już za nami. Dopiero `POST /api/staff/totp`
+(kod + Turnstile) wydaje właściwe ciasteczko sesji na 12 godzin. Konto Google jest
+przypinane przy pierwszym logowaniu (`google_sub`): ten sam adres z innego konta Google
+to inna osoba i dostaje odmowę.
+
+Każdy krok odmawia działania, jeśli poprzedni nie zostawił po sobie śladu w pół-sesji —
+dlatego kolejności nie da się ominąć, wołając endpointy bezpośrednio. To jest jedyny
+powód, dla którego trzystopniowe logowanie jest warte więcej niż jednostopniowe.
 
 **PIN.** PBKDF2-SHA256, sól per osoba w bazie + `PEPPER` ze zmiennej. Pięć błędnych prób
 = 15 minut blokady. PIN-u nie da się „zresetować sobie samemu" — robi to owner
 (*Settings → Team and roles → Edit → Reset PIN*).
+
+**Aplikacja uwierzytelniająca.** Standardowy TOTP: HMAC-SHA1 z 20-bajtowego sekretu i
+licznika 30-sekundowego, sześć cyfr. Sekret jest zapisywany od razu, ale `totp_enrolled_at`
+zostaje puste do chwili, gdy pierwszy kod się zgodzi — dzięki temu zeskanowanie kodu i
+zamknięcie karty nikogo nie zamyka na zewnątrz, a ponowne wejście po prostu pokazuje ten
+sam kod jeszcze raz. Przyjęty przedział czasu ląduje w `totp_last_step`, co sprawia, że
+każdy kod działa **dokładnie raz**. Pięć błędnych prób = te same 15 minut blokady.
+
+Sekret TOTP jest jedyną wartością w tej bazie, która **nie jest** zahaszowana — i nie
+może być, bo weryfikacja kodu wymaga samego sekretu. Traktuj wyciek tej kolumny jak wyciek
+`PEPPER`-a: zresetuj aplikacje wszystkim agentom.
+
+**Zmiana telefonu.** *Settings → New phone*. Wymaga podania aktualnego PIN-u, mimo że
+sesja jest już zalogowana — bo aplikacja uwierzytelniająca istnieje właśnie po to, żeby
+przetrwać przejęcie sesji, więc pozwolenie samej sesji na jej odpięcie znosiłoby cały sens.
+Stary telefon przestaje działać natychmiast, a nowy potwierdza się jednym kodem od razu
+w oknie, a nie dopiero przy następnym logowaniu.
+
+**Zgubiony telefon.** Owner odpina aplikację w *Settings → Team and roles → Edit →
+Unlink authenticator*; agent podłącza nową przy kolejnym logowaniu. Nowy sekret nigdy nie
+przechodzi przez ręce ownera — powstaje dopiero w przeglądarce tej osoby, która go użyje.
+
+**Formularz `/help`.** Osobna funkcja (`api/help/[...path].js`), a nie kolejna gałąź
+`/api/support`, bo granica zaufania jest tam odwrotna: w `/api/support` wszystko wymaga
+sesji zespołu, a tutaj wszystko jest dostępne dla każdego z internetu. Trzymanie obu
+w jednym pliku oznaczałoby, że jedna zapomniana bramka zamienia formularz kontaktowy
+w nieuwierzytelniony odczyt bazy ticketów.
 
 **Poczta przychodząca.** Webhook Resenda niesie tylko metadane, więc treść dociągamy z
 `GET /emails/receiving/{id}`. Dopasowanie do wątku po kolei: `[SUP-1042]` w temacie →
@@ -340,7 +470,7 @@ uprawnień działa natychmiast**, a nie po wygaśnięciu ciasteczka.
 
 ---
 
-## 10. Role i tiery
+## 11. Role i tiery
 
 | | owner | admin | agent T3 | agent T2 | agent T1 | viewer |
 | --- | :-: | :-: | :-: | :-: | :-: | :-: |
@@ -350,11 +480,15 @@ uprawnień działa natychmiast**, a nie po wygaśnięciu ciasteczka.
 | Eskalacja, zwrot, przypisanie komuś innemu | ✅ | ✅ | ✅ | ✅ | — | — |
 | Otwarcie zamkniętego, spam, usunięcie ticketu | ✅ | ✅ | ✅ | — | — | — |
 | Ustawienia biurka, baza wiedzy, **tryb maintenance** | ✅ | ✅ | — | — | — | — |
-| Dodawanie ludzi i zmiana ról | ✅ | — | — | — | — | — |
+| Dodawanie ludzi, zmiana ról, reset PIN-u i aplikacji | ✅ | — | — | — | — | — |
 
 Dodanie agenta: *Settings → Team and roles → Add agent*. Wpisujesz adres Google, rolę i tier —
-i to cała „rejestracja": osoba wchodzi na `/admin`, loguje się tym adresem i ustawia własny PIN.
-Nic nie jest wysyłane mailem.
+i to cała „rejestracja": osoba wchodzi na `/support`, loguje się tym adresem, ustawia własny
+PIN i podpina własną aplikację uwierzytelniającą. Nic nie jest wysyłane mailem, a Ty nigdy
+nie widzisz ani jej PIN-u, ani jej sekretu TOTP.
+
+Na liście zespołu przy każdej osobie widać, czego jeszcze nie ustawiła („PIN not set",
+„no authenticator") — to wystarczy, żeby wiedzieć, kto naprawdę dokończył konfigurację.
 
 W aplikacji te same role czyta `useStaff()` z `Application APK/src/lib/staff.ts`:
 
@@ -370,23 +504,39 @@ aplikacji. Powiedz, gdzie ma się pojawić, to podepnę.
 
 ---
 
-## 11. Kiedy coś pójdzie nie tak
+## 12. Kiedy coś pójdzie nie tak
 
-**Nie mogę się zalogować / zgubiłem PIN.**
-Supabase → SQL Editor:
+**Nie mogę się zalogować / zgubiłem PIN albo telefon.**
+Jeśli jest inny owner — zrobi to z panelu (*Settings → Team and roles → Edit → Reset PIN*
+albo *Unlink authenticator*). Jeśli nie ma, Supabase → SQL Editor:
 
 ```sql
--- kasuje PIN, przy następnym logowaniu ustawisz nowy
+-- kasuje PIN I aplikację uwierzytelniającą; jedno i drugie ustawisz od nowa
+-- przy następnym logowaniu
 update public.staff
    set pin_hash = null, pin_salt = null, pin_set_at = null,
-       failed_pin_attempts = 0, locked_until = null
+       totp_secret = null, totp_enrolled_at = null, totp_last_step = null,
+       failed_pin_attempts = 0, failed_totp_attempts = 0, locked_until = null
  where lower(email) = 'twoj.adres@gmail.com';
 ```
 
+Zostaw w tym `set` tylko te pola, które faktycznie chcesz skasować — jeśli zgubiłeś sam
+telefon, nie ma powodu resetować przy okazji PIN-u.
+
+**Aplikacja mówi, że kod jest zły, a jestem pewien, że przepisuję dobrze.**
+Prawie zawsze to zegar w telefonie. TOTP liczy się z czasu, a nie z niczego innego:
+włącz automatyczną synchronizację czasu w ustawieniach telefonu. Google Authenticator ma
+też własne *Ustawienia → Korekta czasu dla kodów → Zsynchronizuj*. Panel akceptuje jedno
+30-sekundowe okno w każdą stronę, więc rozjazd powyżej minuty jest już nie do przyjęcia.
+
+**„That code is not right" tuż po udanym zalogowaniu.**
+Każdy kod działa raz. Poczekaj, aż aplikacja pokaże następny.
+
 **Google w ogóle nie działa, a muszę wyłączyć stronę.**
-`https://plately.eu/admin/legacy` — stary formularz login/hasło (`ADMIN_USERNAME`,
-`ADMIN_PASSWORD_HASH`), robi dokładnie to, co robił wcześniej. Gdy nowe logowanie się
-sprawdzi, skasuj te zmienne w Vercelu — strona przestanie działać i o to chodzi.
+`https://plately.eu/support/legacy` — stary formularz login/hasło (`ADMIN_USERNAME`,
+`ADMIN_PASSWORD_HASH`), robi dokładnie to, co robił wcześniej, i nie przechodzi ani przez
+PIN, ani przez aplikację uwierzytelniającą. Gdy nowe logowanie się sprawdzi, skasuj te
+zmienne w Vercelu — strona przestanie działać i o to chodzi.
 
 **„That Google account is not on the support team"** — brak wiersza w `staff` dla tego
 adresu, albo `active = false`.
@@ -394,7 +544,23 @@ adresu, albo `active = false`.
 **`redirect_uri_mismatch`** — w Google Cloud (**Platforma Google Auth → Klienci →** Twój
 klient **→ Autoryzowane identyfikatory URI przekierowania**) brakuje dokładnie tego adresu,
 z którego wchodzisz. Najczęściej: dodany jest `www.plately.eu`, a wszedłeś na apex
-`plately.eu` (albo odwrotnie). Mają tam być oba.
+`plately.eu` (albo odwrotnie). Mają tam być wszystkie cztery — dwa dla `/api/staff/callback`
+i dwa dla `/api/help/callback` (krok 2.5). Jeśli błąd wyskakuje tylko przy przycisku na
+`/help`, brakuje właśnie tej drugiej pary.
+
+**Formularz `/help` odsyła „That is several messages in a short time".**
+Limit 5/godzinę zadziałał. Przy testowaniu albo poczekaj, albo skasuj swoje zdarzenia:
+
+```sql
+delete from public.support_events
+ where action = 'ticket.created_form' and actor = 'twoj.adres@gmail.com';
+```
+
+**Formularz przyjmuje wiadomość, ale potwierdzenie nie przychodzi.**
+Ticket i tak powstaje — to celowe: lepiej mieć wiadomość bez potwierdzenia niż powiedzieć
+komuś, że zgłoszenie przepadło, kiedy nie przepadło. Strona mówi wtedy wprost, że
+potwierdzenie nie wyszło. Przyczyny szukaj tam, gdzie zwykle: Vercel → Deployments →
+Functions → logi `api/help/[...path]`.
 
 **Mail nie zakłada ticketu.** Po kolei: MX pokazuje Resenda (`nslookup -type=MX`)?
 W Resend → Webhooks → Attempts widać próby i kod odpowiedzi? 401 = zły albo brakujący
@@ -404,19 +570,22 @@ W Resend → Webhooks → Attempts widać próby i kod odpowiedzi? 401 = zły al
 `api/support/[...path]`. Najczęściej: domena w Resend nie przeszła weryfikacji albo klucz
 API nie ma *Full access*.
 
-**Panel wygląda jak sprzed zmian.** `admin.css` i `app.js` mają godzinny cache — podbij
-`?v=` w `public/admin/index.html`.
+**Panel wygląda jak sprzed zmian.** `support.css` i `app.js` mają godzinny cache — podbij
+`?v=` w `public/support/index.html`.
 
 ---
 
-## 12. Limity, o których warto pamiętać
+## 13. Limity, o których warto pamiętać
 
 - **Resend free: 3 000 maili/miesiąc, 100/dzień**, i **odbiór liczy się do tej samej puli**.
   Jeden ticket to zwykle 1 (przychodzący) + 1 (auto-potwierdzenie) + 1 (odpowiedź) = 3 sztuki.
   W praktyce ~30 ticketów dziennie. Auto-potwierdzenie można wyłączyć w *Settings*.
-- **Vercel Hobby: 12 funkcji na deployment.** Teraz jest 6 (4 stare `api/admin/*` + 2 nowe).
-  Dokładając kolejne endpointy dopisuj trasy do istniejących plików `[...path].js`.
+- **Vercel Hobby: 12 funkcji na deployment.** Teraz jest 7 (4 stare `api/admin/*` +
+  `staff`, `support`, `help`). Dokładając kolejne endpointy dopisuj trasy do istniejących
+  plików `[...path].js` zamiast tworzyć nowe.
 - **Supabase free**: 500 MB bazy. Tickety to tekst — starczy na bardzo długo.
-- Sesja panelu: 12 godzin. Potem znowu Google + PIN.
+- **Formularz `/help`: 5 zgłoszeń na godzinę** z adresu e-mail albo z adresu IP. Każde
+  zgłoszenie to 1 mail (potwierdzenie) z dziennej puli 100.
+- Sesja panelu: 12 godzin. Potem znowu Google + PIN + kod z aplikacji.
 - Odświeżanie listy: co 30 sekund, tylko gdy karta jest widoczna i nie masz otwartego okna
   modalnego. Nigdy nie nadpisuje tego, co masz wpisane w polu odpowiedzi.

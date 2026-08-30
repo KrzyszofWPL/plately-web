@@ -21,7 +21,8 @@
 //          content/seo/<lang>.json       the prose and FAQ added for search
 // Outputs  public/index.html             Polish, at the site root
 //          public/<lang>.html            the other eleven, served at /<lang>
-//          public/sitemap.xml            every URL with its hreflang alternates
+//          public/sitemap.xml            every URL with its hreflang alternates,
+//                                        plus /terms, /privacy and /help
 //
 // Editing public/index.html directly is pointless: the next run overwrites it.
 // Edit the template or the JSON instead.
@@ -521,14 +522,23 @@ ${alternates}
   </url>`
   ).join('\n');
 
-  // Terms and privacy exist in Polish only, so they get no alternates.
-  const legal = ['terms', 'privacy']
+  // Terms, privacy and help are hand-written pages carrying their own Polish
+  // and English inside one URL, so they get no hreflang alternates.
+  //
+  // Help is listed apart from the other two because it is worth more to a
+  // crawler: "how do I contact Plately" is a real query, and the page that
+  // answers it should rank rather than sit at the bottom with the small print.
+  const standalone = [
+    { slug: 'terms', changefreq: 'yearly', priority: '0.3' },
+    { slug: 'privacy', changefreq: 'yearly', priority: '0.3' },
+    { slug: 'help', changefreq: 'monthly', priority: '0.6' },
+  ]
     .map(
-      (slug) => `  <url>
+      ({ slug, changefreq, priority }) => `  <url>
     <loc>${ORIGIN}/${slug}</loc>
     <lastmod>${lastmodOf(`public/${slug}.html`)}</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
   </url>`
     )
     .join('\n');
@@ -537,7 +547,7 @@ ${alternates}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${langEntries}
-${legal}
+${standalone}
 </urlset>
 `;
 }
@@ -561,7 +571,10 @@ function main() {
   }
 
   fs.writeFileSync(path.join(ROOT, 'public', 'sitemap.xml'), buildSitemap(), 'utf8');
-  console.log(`\n  sitemap.xml  ${LANGS.length + 2} URLs`);
+  // Counted from the file rather than from a total kept in step by hand, which
+  // is how it came to be reporting one fewer URL than it had just written.
+  const sitemap = fs.readFileSync(path.join(ROOT, 'public', 'sitemap.xml'), 'utf8');
+  console.log(`\n  sitemap.xml  ${(sitemap.match(/<url>/g) || []).length} URLs`);
 }
 
 main();

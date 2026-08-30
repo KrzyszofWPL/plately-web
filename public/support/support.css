@@ -197,6 +197,8 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
   border-top: 1px solid var(--m3-outline-variant);
 }
 .auth-note p { font-size: 12px; line-height: 18px; color: var(--m3-outline); margin: 0; }
+.auth-link { color: var(--m3-primary); font-weight: 600; text-decoration: none; }
+.auth-link:hover { text-decoration: underline; }
 .auth-error {
   margin-top: 16px; padding: 12px 14px; border-radius: 14px; font-size: 13px; line-height: 19px;
   background: var(--m3-error-container); color: var(--m3-on-error-container);
@@ -313,6 +315,50 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
 .ts-slot { display: flex; justify-content: center; margin-top: 24px; min-height: 65px; }
 .ts-note { margin-top: 8px; font-size: 12px; line-height: 18px; color: var(--m3-error); }
 
+/* --- the authenticator step ----------------------------------------------
+   Six boxes instead of four, on a card that has to hold a QR code as well.
+   The wider card is only for the enrolment run; the everyday "type your code"
+   screen stays the same 440px as the PIN, because it holds the same amount. */
+.lock-card-wide { width: min(560px, 100%); }
+.lock-card .pin-row-6 { gap: 10px; }
+.lock-card .pin-row-6 .pin-box { flex: 0 1 56px; width: 56px; height: 62px; font-size: 24px; }
+
+.enrol {
+  display: flex; gap: 20px; align-items: flex-start; text-align: left;
+  margin: 0 0 20px; padding: 18px; border-radius: 20px;
+  background: var(--m3-surface-container-low); border: 1px solid var(--m3-outline-variant);
+}
+.enrol-loading { justify-content: center; min-height: 208px; align-items: center; }
+/* The QR keeps its own white plate whatever theme the panel is in: a camera
+   reads contrast, and the code is worthless inverted or tinted. */
+.enrol-qr {
+  flex: none; background: #fff; padding: 8px; border-radius: 14px; line-height: 0;
+}
+.enrol-qr svg { display: block; width: 168px; height: 168px; }
+.enrol-side { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.enrol-steps {
+  margin: 0; padding-left: 18px; font-size: 12px; line-height: 18px;
+  color: var(--m3-on-surface-variant);
+}
+.enrol-steps li { margin-bottom: 6px; }
+.enrol-steps li::marker { color: var(--m3-primary); font-weight: 700; }
+.enrol-secret { display: flex; flex-direction: column; gap: 6px; }
+.enrol-secret .lbl { font-size: 11px; color: var(--m3-outline); }
+.enrol-secret code {
+  /* A 39-character grouped key on a phone: wrapping is the only honest
+     option, and word-break keeps it from pushing the card wider. */
+  font-family: "JetBrains Mono", monospace; font-size: 12px; line-height: 18px;
+  letter-spacing: .06em; color: var(--m3-on-surface); word-break: break-all;
+  user-select: all; background: var(--m3-surface); padding: 8px 10px; border-radius: 10px;
+  border: 1px solid var(--m3-outline-variant);
+}
+.linkish {
+  background: none; border: none; padding: 0; cursor: pointer; text-align: left;
+  font-size: 12px; font-weight: 600; color: var(--m3-primary); font-family: inherit;
+}
+.linkish:hover { text-decoration: underline; }
+.enrol-modal { margin-top: 4px; }
+
 @media (max-width: 560px) {
   /* Tighter gutters, because the Turnstile iframe is a hard 300px wide and the
      card has to keep it inside its own padding rather than under it. */
@@ -320,6 +366,13 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
   .lock-card { padding: 28px 20px 24px; border-radius: 24px; }
   .lock-card .pin-row { gap: 10px; }
   .lock-card .pin-box { height: 60px; font-size: 24px; }
+  /* Six boxes will not fit side by side at 4-digit sizing; let them shrink
+     rather than run off the card. */
+  .lock-card .pin-row-6 { gap: 6px; }
+  .lock-card .pin-row-6 .pin-box { flex: 1 1 0; width: auto; height: 54px; font-size: 20px; }
+  /* The QR stops being a sidebar and becomes a header. */
+  .enrol { flex-direction: column; align-items: center; gap: 14px; }
+  .enrol-side { width: 100%; }
 }
 
 /* --------------------------------------------------------------------------
