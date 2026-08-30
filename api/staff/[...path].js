@@ -71,6 +71,7 @@ import {
 } from "../_lib/totp.js";
 import { hmacHex, timingSafeEqual } from "../_lib/auth.js";
 import { explainSetupFailure } from "../_lib/setup-error.js";
+import { identities } from "../_lib/email-templates.js";
 import { selectOne, select, insert, update, q } from "../_lib/db.js";
 
 export const config = { runtime: "edge" };
@@ -443,9 +444,23 @@ async function health() {
   if (database.schema === "out of date") blocking.push("run supabase/support-schema.sql");
   if (database.staffRows === 0) blocking.push("add the first owner row to the staff table");
 
+  // The addresses mail will actually leave from. Worth printing, because each
+  // one has to be a domain verified in Resend and there is no way to tell from
+  // outside which spelling a deployment ended up with — the difference between
+  // contact@plately.eu and contact@help.plately.eu is one unset variable and a
+  // rejected send.
+  const who = identities();
+  const senders = {
+    conversation: who.support.email,
+    confirmations: who.supportNoreply.email,
+    lifecycle: who.info.email,
+    verifyInResend: [...new Set([who.support.domain, who.info.domain])],
+  };
+
   return json({
     signInWorks: blocking.length === 0,
     blocking,
+    senders,
     // Not blocking: the desk opens without these, it just cannot send or
     // receive mail, and the bot check is skipped.
     mailWorks: env.RESEND_API_KEY,
