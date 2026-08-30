@@ -156,25 +156,35 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
 .auth-hero {
   width: 58%; position: relative; overflow: hidden;
   background: var(--m3-primary-container); color: var(--m3-on-primary-container);
-  padding: 72px; display: flex; flex-direction: column; justify-content: space-between;
+  padding: 72px; display: flex; flex-direction: column; justify-content: center;
 }
 .auth-hero > * { position: relative; z-index: 1; }
+/* The disc, and the mark printed into it.
+   public/mark.png is public/logo.png with the green tile lifted off: the RGB
+   is white everywhere and the drawing lives entirely in the alpha channel, so
+   used as a mask it takes the hero's own ink instead of arriving as a
+   fixed-colour picture that would fight the light theme. The disc is ::before
+   and the mark ::after, because two pseudo-elements on one z-index paint in
+   that order and the mark has to land on top of the disc.
+   A pseudo-element is not matched by the .auth-hero > * rule, so both stay at
+   z-index 0 and the sentence keeps its layer above them. */
+.auth-hero::before,
 .auth-hero::after {
-  content: ""; position: absolute; right: -140px; bottom: -160px;
-  width: 620px; height: 620px; border-radius: 50%;
-  background: var(--m3-on-primary-container); opacity: .06; z-index: 0;
+  content: ""; position: absolute; z-index: 0;
+  right: -120px; bottom: -140px; width: 620px; height: 620px;
+  background: var(--m3-on-primary-container);
 }
-/* The real mark from public/logo.png: a green tile with its own rounded
-   corners already baked in, which is why nothing here paints a background
-   behind it. The radius is a touch smaller than the artwork's own so the CSS
-   never crops into the green. */
-.auth-mark { width: 64px; height: 64px; border-radius: 14px; object-fit: cover; display: block; }
+.auth-hero::before { border-radius: 50%; opacity: .06; }
+.auth-hero::after {
+  opacity: .12;
+  -webkit-mask: url(/mark.png) center / 44% no-repeat;
+  mask: url(/mark.png) center / 44% no-repeat;
+}
 .auth-hero h1 {
   font-size: clamp(34px, 3.2vw, 60px); line-height: 1.07; font-weight: 700;
   letter-spacing: -.02em; margin: 0 0 20px; max-width: 780px;
 }
 .auth-hero p { font-size: 18px; line-height: 30px; margin: 0; opacity: .82; max-width: 720px; }
-.auth-facts { display: flex; gap: 40px; flex-wrap: wrap; font-size: 13px; line-height: 18px; opacity: .75; }
 
 .auth-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 32px; }
 .auth-box { width: 100%; max-width: 420px; display: flex; flex-direction: column; }
@@ -715,7 +725,12 @@ html[data-theme="dark"] .kind { background: rgba(255, 255, 255, .1); }
   .auth { flex-direction: column; }
   .auth-hero { width: 100%; padding: 40px 28px; gap: 28px; }
   .auth-hero h1 { font-size: 32px; }
-  .auth-hero p, .auth-facts { display: none; }
+  .auth-hero p { display: none; }
+  /* Stacked, the hero is a short band rather than a column. A 620px disc
+     anchored to its bottom edge would push the mark clean off the top, so
+     both shrink to something the band can actually hold. */
+  .auth-hero::before,
+  .auth-hero::after { right: -64px; bottom: -64px; width: 240px; height: 240px; }
   .screen-inbox { flex-direction: column; overflow-y: auto; }
   .list { width: 100%; max-height: 46dvh; }
   .thread { min-height: 60dvh; }

@@ -515,18 +515,14 @@
     renderApp();
   }
 
+  /** The mark is not an element here — it is printed into the disc by the
+   *  stylesheet, so the column carries nothing but the sentence. */
   function heroSide() {
     return '' +
       '<div class="auth-hero">' +
-        '<img class="auth-mark" src="/logo.png" alt="Plately">' +
         "<div>" +
           "<h1>Every customer e-mail, one shared inbox</h1>" +
           "<p>Ticket list and full conversation side by side, with the customer's history and their actual plan. No tab switching, no lost threads.</p>" +
-        "</div>" +
-        '<div class="auth-facts">' +
-          "<span>Authorised accounts only</span>" +
-          "<span>Two-step verification</span>" +
-          "<span>Full audit trail on every action</span>" +
         "</div>" +
       "</div>";
   }
@@ -557,7 +553,7 @@
       '<div class="auth">' +
         heroSide() +
         '<div class="auth-panel"><div class="auth-box">' +
-          "<h2>Sign in to Plately Support</h2>" +
+          "<h2>Sign in to Plately Help Desk</h2>" +
           '<p class="lede">Please do not log in unless you are a Plately employee. Access is restricted to verified accounts only and is intended solely for providing customer support.</p>' +
           (S.auth.googleConfigured === false
             ? '<div class="auth-error">Google sign-in is not configured yet. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel.</div>'
