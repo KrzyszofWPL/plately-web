@@ -330,9 +330,25 @@ podejrzany komuś przez ramię nie da się użyć drugi raz.
 
 ## 7. Poczta: wysyłka z contact@plately.eu
 
+> **Ten krok wystarcza, żeby formularz `/help` działał od początku do końca.** Klient
+> zgłasza problem → ticket od razu jest w panelu → klient dostaje potwierdzenie
+> z `contact@plately.eu`. Formularz zapisuje zgłoszenie **prosto do bazy**, nie mailem,
+> więc do samego zobaczenia go w help desku poczta przychodząca nie jest potrzebna.
+>
+> Krok 8 dokłada dwie rzeczy, których bez niego nie ma: **odpowiedź klienta wraca na ten
+> sam ticket** (bez tego rozmowa jest jednokierunkowa), oraz **mail wysłany wprost na
+> `contact@plately.eu`, z pominięciem formularza, też zakłada ticket**.
+>
+> Krok 7 niczego nie psuje. Krok 8 przekierowuje całą pocztę `@plately.eu` — przeczytaj
+> ostrzeżenie na jego początku, zanim go zrobisz.
+
 DNS plately.eu jest na **Spaceship** (`launch1/launch2.spaceship.net`) i tam zostaje.
 Rekordy do wysyłki lądują na subdomenie `send.` — **apex zostaje nietknięty**, więc ten krok
 niczego jeszcze nie psuje.
+
+Stan wyjściowy Twojej domeny (sprawdzone): MX na apeksie to `mx1/mx2.efwd.spaceship.net`
+(darmowe forwardowanie Spaceship), a SPF to `v=spf1 include:spf.efwd.spaceship.net ~all`.
+Na `send.plately.eu` nie ma jeszcze nic. Po kroku 7 apex zostaje dokładnie taki, jaki jest.
 
 1. Załóż darmowe konto na [resend.com](https://resend.com).
 2. **Domains → Add Domain** → `plately.eu`. Region wybierz europejski, jeśli jest dostępny.
@@ -357,18 +373,33 @@ niczego jeszcze nie psuje.
    przychodzące). Skopiuj — pokazuje się raz.
 6. Vercel → dodaj `RESEND_API_KEY` → **Redeploy**.
 
-Test: w panelu **New ticket** → wpisz swój prywatny adres, temat i treść → *Create and send*.
-Mail powinien dojść z `Plately Support <contact@plately.eu>`, a w panelu pojawia się ticket
-`SUP-1000`.
+Test 1 — panel wysyła: **New ticket** → wpisz swój prywatny adres, temat i treść →
+*Create and send*. Mail powinien dojść z `Plately Support <contact@plately.eu>`, a w panelu
+pojawia się ticket `SUP-1000`.
+
+Test 2 — formularz działa: wejdź na `https://plately.eu/help`, wyślij zgłoszenie na swój
+adres. Ma się wydarzyć jedno i drugie naraz: numer `SUP-…` na stronie i potwierdzenie
+w skrzynce, a w panelu nowy ticket z kanałem `form`.
+
+Szybkie sprawdzenie, że klucz doszedł:
+
+```bash
+curl -s https://plately.eu/api/staff/health
+```
+
+`"mailWorks": true` oznacza, że `RESEND_API_KEY` jest na miejscu.
 
 ---
 
 ## 8. Poczta: odbiór na contact@plately.eu
 
-> ⚠️ **Ten krok wyłącza dotychczasowe przekierowanie ze Spaceship.** Dziś apex ma
-> `MX → mx1/mx2.efwd.spaceship.net`, czyli darmowe forwardowanie. Po podmianie na MX Resenda
-> **każdy** adres `@plately.eu` (contact@, hello@, cokolwiek) trafia do Resenda, a nie na
-> Gmaila. To jest właśnie cel — panel staje się skrzynką — ale warto wiedzieć zawczasu.
+> ⚠️ **Ten krok wyłącza dotychczasowe przekierowanie ze Spaceship.** Sprawdziłem: apex ma
+> teraz `MX → mx1.efwd.spaceship.net` i `mx2.efwd.spaceship.net` (priorytet 0), czyli
+> darmowe forwardowanie Spaceship — to jest to, co dziś przenosi pocztę z `contact@` na
+> Twojego Gmaila. Po podmianie na MX Resenda **każdy** adres `@plately.eu` (contact@,
+> hello@, cokolwiek) trafia do Resenda, a nie na Gmaila. To jest właśnie cel — panel staje
+> się skrzynką — ale warto wiedzieć zawczasu, i warto zrobić to wtedy, gdy masz chwilę
+> sprawdzić efekt, a nie w piątek wieczorem.
 >
 > Jeśli chcesz na jakiś czas dostawać też kopię na Gmaila: ustaw w Vercelu
 > `SUPPORT_FORWARD_COPY_TO="twoj@gmail.com"`. Webhook prześle wtedy kopię każdej
@@ -393,9 +424,22 @@ Mail powinien dojść z `Plately Support <contact@plately.eu>`, a w panelu pojaw
    Bez tej zmiennej endpoint **odrzuca wszystko** (401) — celowo: to jedyna trasa bez sesji,
    która potrafi założyć ticket i wysłać maila.
 
+Sprawdzenie, że oba sekrety doszły:
+
+```bash
+curl -s https://plately.eu/api/staff/health
+```
+
+Szukasz `"inboundMailWorks": true`.
+
 Test: z prywatnej skrzynki napisz na `contact@plately.eu`. W ciągu kilkunastu sekund
 w Inboxie pojawia się nowy ticket, a nadawca dostaje automatyczne potwierdzenie
 (z numerem `SUP-…`, treść edytujesz w *Settings → E-mail channel*).
+
+Jeśli nic nie przychodzi, kolejność sprawdzania jest zawsze ta sama: czy `nslookup` pokazuje
+już MX Resenda (propagacja bywa godzinna), potem Resend → **Webhooks → Attempts** — tam widać
+każdą próbę i kod odpowiedzi. `401` to zły albo brakujący `RESEND_WEBHOOK_SECRET`; cisza
+oznacza, że mail w ogóle nie doszedł do Resenda, czyli MX jeszcze nie zadziałał.
 
 Test wątkowania: odpowiedz z panelu, potem odpisz ze swojej skrzynki na tę odpowiedź.
 Powinno dokleić się do **tego samego** ticketu, a nie założyć nowy.
