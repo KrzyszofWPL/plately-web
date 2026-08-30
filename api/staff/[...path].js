@@ -136,7 +136,15 @@ async function turnstileGuard(request, token) {
 
 export default async function handler(request) {
   const url = new URL(request.url);
-  const route = url.pathname.replace(/^\/api\/staff\/?/, "").replace(/\/+$/, "");
+  // Slashes are folded into hyphens because a [...path] catch-all in a project
+  // with no framework preset only ever matches ONE segment on Vercel:
+  // /api/staff/pin answers, /api/staff/pin/setup is a platform 404 that never
+  // reaches this file. The routes are named with hyphens for that reason, and
+  // the fold means a nested spelling keeps working if that ever changes.
+  const route = url.pathname
+    .replace(/^\/api\/staff\/?/, "")
+    .replace(/\/+$/, "")
+    .replace(/\//g, "-");
 
   try {
     switch (`${request.method} ${route}`) {
@@ -148,9 +156,9 @@ export default async function handler(request) {
         return await readSession(request);
       case "POST pin":
         return await submitPin(request);
-      case "POST pin/setup":
+      case "POST pin-setup":
         return await setupPin(request);
-      case "POST pin/change":
+      case "POST pin-change":
         return await changePin(request);
       case "POST logout":
         return await logout(request);

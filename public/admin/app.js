@@ -1365,7 +1365,7 @@
       var body = { pin: pin, turnstileToken: S.turnstile.token };
       if (setup) body.confirm = readPin("b");
       S.error = "";
-      api(setup ? "/api/staff/pin/setup" : "/api/staff/pin", { method: "POST", body: body })
+      api(setup ? "/api/staff/pin-setup" : "/api/staff/pin", { method: "POST", body: body })
         .then(function (data) {
           S.staff = data.staff;
           S.perms = data.permissions || {};
@@ -1487,7 +1487,7 @@
     "delete-ticket": function (el) {
       closeOverlay();
       if (!confirm("Delete this ticket and its whole history? This cannot be undone.")) return;
-      api("/api/support/ticket/delete", { method: "POST", body: { ticketId: el.dataset.value } })
+      api("/api/support/ticket-delete", { method: "POST", body: { ticketId: el.dataset.value } })
         .then(function () {
           S.selectedId = null;
           S.detail = null;
@@ -1535,7 +1535,7 @@
 
     "save-notes": function (el) {
       var notes = value("customer-notes");
-      api("/api/support/customer/notes", { method: "POST", body: { customerId: el.dataset.id, notes: notes } })
+      api("/api/support/customer-notes", { method: "POST", body: { customerId: el.dataset.id, notes: notes } })
         .then(function () { toast("Saved"); })
         .catch(function (err) { toast(err.message, true); });
     },
@@ -1587,7 +1587,7 @@
 
     "submit-pin-change": function (el) {
       busy(el, true);
-      api("/api/staff/pin/change", {
+      api("/api/staff/pin-change", {
         method: "POST",
         body: { currentPin: value("pin-old"), pin: value("pin-new"), confirm: value("pin-confirm") },
       }).then(function () { closeOverlay(); toast("PIN changed"); })
@@ -1645,7 +1645,7 @@
 
     "kb-save": function (el) {
       busy(el, true);
-      api("/api/support/kb/save", {
+      api("/api/support/kb-save", {
         method: "POST",
         body: {
           id: el.dataset.id || undefined,
@@ -1664,7 +1664,7 @@
 
     "kb-delete": function (el) {
       if (!confirm("Delete this article?")) return;
-      api("/api/support/kb/delete", { method: "POST", body: { id: el.dataset.id } })
+      api("/api/support/kb-delete", { method: "POST", body: { id: el.dataset.id } })
         .then(function () { closeOverlay(); S.articles = null; loadScreen("kb"); toast("Deleted"); })
         .catch(function (err) { toast(err.message, true); });
     },
@@ -1712,7 +1712,7 @@
   function patchTicket(patch) {
     if (!S.selectedId) return;
     var body = Object.assign({ ticketId: S.selectedId }, patch);
-    api("/api/support/ticket/update", { method: "POST", body: body })
+    api("/api/support/ticket-update", { method: "POST", body: body })
       .then(function (data) {
         S.detail = data.detail;
         render();

@@ -54,7 +54,13 @@ function fromPanel(request) {
 
 export default async function handler(request) {
   const url = new URL(request.url);
-  const route = url.pathname.replace(/^\/api\/support\/?/, "").replace(/\/+$/, "");
+  // See the note in api/staff: a [...path] catch-all matches a single segment
+  // here, so every route is one hyphenated word and nested spellings are
+  // folded onto it rather than 404ing at the platform.
+  const route = url.pathname
+    .replace(/^\/api\/support\/?/, "")
+    .replace(/\/+$/, "")
+    .replace(/\//g, "-");
 
   try {
     // The webhook is the one route with no session: Resend is not a browser.
@@ -90,15 +96,15 @@ export default async function handler(request) {
         return await postMessage(request, session, staff);
       case "POST ticket":
         return await createTicket(request, session, staff);
-      case "POST ticket/update":
+      case "POST ticket-update":
         return await updateTicket(request, session, staff);
-      case "POST ticket/delete":
+      case "POST ticket-delete":
         return await deleteTicket(request, session, staff);
-      case "POST customer/notes":
+      case "POST customer-notes":
         return await saveCustomerNotes(request, session);
-      case "POST kb/save":
+      case "POST kb-save":
         return await saveArticle(request, session, staff);
-      case "POST kb/delete":
+      case "POST kb-delete":
         return await deleteArticle(request, session, staff);
       case "POST settings":
         return await saveSettings(request, session, staff);
