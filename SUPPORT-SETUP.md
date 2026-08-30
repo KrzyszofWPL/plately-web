@@ -1,8 +1,13 @@
 # Plately Support — uruchomienie krok po kroku
 
 Panel supportu żyje pod `https://plately.eu/support` (stary adres `/admin` przekierowuje
-tam na stałe). Logowanie ma teraz **trzy kroki**: **Google → 4-cyfrowy PIN → 6-cyfrowy kod
-z aplikacji uwierzytelniającej**, z **Cloudflare Turnstile** przed dwoma ostatnimi. Panel
+tam na stałe). Logowanie ma teraz **trzy kroki**: **Google → 6-cyfrowy kod z aplikacji
+uwierzytelniającej → 4-cyfrowy PIN**, z **Cloudflare Turnstile** przed dwoma ostatnimi.
+
+Dwa pierwsze kroki dzieją się na tej samej stronie logowania — po Google przycisk zamienia
+się w pole na kod, a u góry pojawia się, kim jesteś i że jesteś w połowie zalogowany. PIN
+jest ostatni i pytamy o niego już nad samym biurkiem, bo to moment, w którym drzwi
+faktycznie się otwierają. Panel
 maintenance (włączanie/wyłączanie strony) nie zniknął — jest kartą **Site control**
 w zakładce *Settings*, widoczną wyłącznie dla ról `owner` i `admin`.
 
@@ -181,8 +186,8 @@ częściowo nieprzetłumaczoną.
 
 Ten sam widget obsługuje dwa miejsca — to ten sam host, więc jeden wpis wystarcza:
 
-- w panelu stoi przed **PIN-em i przed kodem z aplikacji**; bez tokenu request nie
-  przechodzi. Sam ekran logowania nie jest bramkowany: oddaje ruch do Google, które ma
+- w panelu stoi przed **kodem z aplikacji i przed PIN-em**; bez tokenu request nie
+  przechodzi. Sam przycisk Google nie jest bramkowany: oddaje ruch do Google, które ma
   własną ochronę przed botami, a niedokończona sesja nie otwiera żadnego endpointu;
 - na `/help` jest tym, co powstrzymuje zalanie biurka ticketami z jednego skryptu.
 
@@ -282,14 +287,15 @@ darmowa: Google Authenticator, Aegis, 2FAS, albo menedżer haseł, którego już
 
 1. Wejdź na `https://plately.eu/support`.
 2. **Continue with Google** → wybierz adres z kroku 1.
-3. Panel poprosi o **ustawienie PIN-u** (pierwsze uruchomienie): cztery cyfry, dwa razy.
-   Odrzuci `0000`, `1234` i kilka innych oczywistych.
-4. Potem pokaże **kod QR**. Zeskanuj go aplikacją z telefonu i przepisz sześć cyfr, które
-   się pojawią. Jeśli kamera nie działa, kliknij *Can't scan? Show the key instead* i
-   wpisz klucz ręcznie — to dokładnie ten sam sekret.
+3. Wracasz na tę samą stronę, ale zamiast przycisku Google jest teraz **kod QR**, a u góry
+   widać Twój awatar, adres i plakietkę *Half signed in*. Zeskanuj kod aplikacją z telefonu
+   i przepisz sześć cyfr, które się pojawią. Jeśli kamera nie działa, kliknij
+   *Can't scan? Show the key instead* i wpisz klucz ręcznie — to dokładnie ten sam sekret.
+4. Pokazuje się biurko za szybą i napis **One last step**: ustaw **PIN**, cztery cyfry,
+   dwa razy. Odrzuci `0000`, `1234` i kilka innych oczywistych.
 5. Jesteś w środku. Inbox będzie pusty do kroku 8.
 
-Od tej pory każde logowanie to Google → PIN → kod. Sesja trwa 12 godzin.
+Od tej pory każde logowanie to Google → kod z aplikacji → PIN. Sesja trwa 12 godzin.
 
 Kod jest ważny 30 sekund (plus jedno okno w każdą stronę, na wypadek rozjechanego zegara
 w telefonie) i **działa dokładnie raz** — panel zapamiętuje przyjęty przedział, więc kod
@@ -415,11 +421,16 @@ dzieje — zamykanie im wtedy jedynych drzwi nie miałoby sensu.
 **Logowanie.** `POST /api/staff/start` zwraca URL Google, zapisując
 `state` + `nonce` w podpisanym ciasteczku. `GET /api/staff/callback` wymienia kod na
 `id_token`, sprawdza `aud`/`iss`/`nonce`, szuka adresu w `staff` i wydaje **pół-sesję** —
-dowód Google i nic więcej. `POST /api/staff/pin` (PIN + Turnstile) **nie wydaje sesji**:
-odnawia pół-sesję ze znacznikiem, że PIN jest już za nami. Dopiero `POST /api/staff/totp`
-(kod + Turnstile) wydaje właściwe ciasteczko sesji na 12 godzin. Konto Google jest
-przypinane przy pierwszym logowaniu (`google_sub`): ten sam adres z innego konta Google
-to inna osoba i dostaje odmowę.
+dowód Google i nic więcej. `POST /api/staff/totp` (kod + Turnstile) **nie wydaje sesji**:
+odnawia pół-sesję ze znacznikiem `tp`, że kod jest już za nami. Dopiero
+`POST /api/staff/pin` (PIN + Turnstile) wydaje właściwe ciasteczko sesji na 12 godzin.
+Konto Google jest przypinane przy pierwszym logowaniu (`google_sub`): ten sam adres
+z innego konta Google to inna osoba i dostaje odmowę.
+
+Kolejność jest taka, a nie odwrotna, z dwóch powodów. Kod z aplikacji jest tym, co
+najtrudniej podrobić, więc odsiewa najwcześniej — nikt nie dochodzi do pytania o PIN,
+nie mając telefonu. A PIN, jako jedyna rzecz trzymana wyłącznie w głowie, wypada jako
+ostatnie kliknięcie przed otwarciem biurka.
 
 Każdy krok odmawia działania, jeśli poprzedni nie zostawił po sobie śladu w pół-sesji —
 dlatego kolejności nie da się ominąć, wołając endpointy bezpośrednio. To jest jedyny
@@ -429,8 +440,8 @@ powód, dla którego trzystopniowe logowanie jest warte więcej niż jednostopni
 = 15 minut blokady. PIN-u nie da się „zresetować sobie samemu" — robi to owner
 (*Settings → Team and roles → Edit → Reset PIN*).
 
-**Aplikacja uwierzytelniająca.** Standardowy TOTP: HMAC-SHA1 z 20-bajtowego sekretu i
-licznika 30-sekundowego, sześć cyfr. Sekret jest zapisywany od razu, ale `totp_enrolled_at`
+**Aplikacja uwierzytelniająca.** Drugi krok, zaraz po Google. Standardowy TOTP:
+HMAC-SHA1 z 20-bajtowego sekretu i licznika 30-sekundowego, sześć cyfr. Sekret jest zapisywany od razu, ale `totp_enrolled_at`
 zostaje puste do chwili, gdy pierwszy kod się zgodzi — dzięki temu zeskanowanie kodu i
 zamknięcie karty nikogo nie zamyka na zewnątrz, a ponowne wejście po prostu pokazuje ten
 sam kod jeszcze raz. Przyjęty przedział czasu ląduje w `totp_last_step`, co sprawia, że

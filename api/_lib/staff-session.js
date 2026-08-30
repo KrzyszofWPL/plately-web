@@ -9,12 +9,14 @@
 //      handling.
 //   2. Google — something you have: an account we put on the staff list.
 //      Ownership of the address is proved to Google, not to us.
-//   3. A four-digit PIN — something you know, and something a stolen or
-//      still-signed-in Google session does not carry with it.
-//   4. A six-digit code from an authenticator app — something you have, on a
+//   3. A six-digit code from an authenticator app — something you have, on a
 //      second device. This is the one that survives everything else going
 //      wrong: a laptop left unlocked with a live Google session and a PIN on a
 //      sticky note still does not open the console.
+//   4. A four-digit PIN — something you know, and something a stolen or
+//      still-signed-in Google session does not carry with it. It is asked for
+//      last, on the console screen itself, so the final keystroke of signing in
+//      is the one thing that never leaves the person's own head.
 //
 // A four-digit secret is only worth anything if guessing is expensive, so the
 // PIN is: hashed with PBKDF2 over a per-person salt *and* a pepper that lives
@@ -25,10 +27,10 @@
 // same way and each code is accepted exactly once — see totp_last_step in the
 // schema.
 //
-// The three steps after Google share ONE cookie, the pre-session, which
-// records how far the person has got. It carries no permissions whatsoever:
-// no route in this project accepts it as authorisation for anything except
-// the next step of signing in.
+// The two steps after Google share ONE cookie, the pre-session, which records
+// how far the person has got. It carries no permissions whatsoever: no route
+// in this project accepts it as authorisation for anything except the next
+// step of signing in.
 // ============================================================================
 
 import { hmacHex, timingSafeEqual } from "./auth.js";
@@ -38,7 +40,7 @@ const FULL_COOKIE = "plately_staff";
 const PRE_COOKIE = "plately_staff_pre";
 
 const FULL_TTL_MS = 12 * 60 * 60 * 1000; // one shift
-const PRE_TTL_MS = 10 * 60 * 1000; // Google done, PIN and/or a code still owed
+const PRE_TTL_MS = 10 * 60 * 1000; // Google done, a code and/or the PIN still owed
 
 export const MAX_PIN_ATTEMPTS = 5;
 export const PIN_LOCK_MINUTES = 15;
@@ -155,20 +157,20 @@ export function clearCookie(name) {
 export const COOKIES = { FULL: FULL_COOKIE, PRE: PRE_COOKIE };
 
 /**
- * Google is done; the PIN and the authenticator may not be. Carries no
+ * Google is done; the authenticator and the PIN may not be. Carries no
  * permissions at all.
  *
- * `pin` records that the PIN step has been cleared, so the cookie is reissued
- * rather than replaced when the person moves on to the code. Reissuing also
- * restarts the ten minutes, which is what stops a slow enrolment — find the
- * app, scan the code, read the digits — from timing out halfway through.
+ * `tp` records that the authenticator step has been cleared, so the cookie is
+ * reissued rather than replaced when the person moves on to the PIN. Reissuing
+ * also restarts the ten minutes, which is what stops a slow enrolment — find
+ * the app, scan the code, read the digits — from timing out halfway through.
  */
-export async function issuePreSession(staff, { pin = false } = {}) {
+export async function issuePreSession(staff, { totp = false } = {}) {
   const token = await sign({
     kind: "pre",
     sid: staff.id,
     em: staff.email,
-    ...(pin ? { pin: 1 } : {}),
+    ...(totp ? { tp: 1 } : {}),
     exp: Date.now() + PRE_TTL_MS,
   });
   return cookieHeader(PRE_COOKIE, token, Math.floor(PRE_TTL_MS / 1000));
@@ -179,10 +181,10 @@ export async function readPreSession(request) {
   return payload && payload.kind === "pre" ? payload : null;
 }
 
-/** The pre-session, but only if the PIN step is already behind it. */
-export async function readPinnedPreSession(request) {
+/** The pre-session, but only if the authenticator step is already behind it. */
+export async function readVerifiedPreSession(request) {
   const payload = await readPreSession(request);
-  return payload && payload.pin === 1 ? payload : null;
+  return payload && payload.tp === 1 ? payload : null;
 }
 
 /** Every factor cleared. This is the cookie the whole panel runs on. */

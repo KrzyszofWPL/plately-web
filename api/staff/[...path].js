@@ -16,14 +16,15 @@
 //                                an id_token, match the address against
 //                                `staff`, and issue a *pre-session* — proof of
 //                                Google, nothing more
-//   POST /api/staff/pin          PIN + Turnstile. On success the pre-session is
-//                                reissued marked `pin`, NOT upgraded to a real
-//                                session: there is still one step to go
 //   POST /api/staff/totp-enrol   first run only — mints a secret and hands back
 //                                the QR code to point a phone at
-//   POST /api/staff/totp         six digits from the authenticator app. This is
-//                                the step that finally issues the session
-//                                cookie the panel runs on
+//   POST /api/staff/totp         six digits from the authenticator app, plus
+//                                Turnstile. On success the pre-session is
+//                                reissued marked `tp`, NOT upgraded to a real
+//                                session: there is still one step to go
+//   POST /api/staff/pin          the PIN, plus Turnstile. This is the step that
+//                                finally issues the session cookie the panel
+//                                runs on
 //   GET  /api/staff/session      what the panel calls on load to decide what to
 //                                draw
 //
@@ -42,7 +43,7 @@ import {
   issuePreSession,
   issueSession,
   readPreSession,
-  readPinnedPreSession,
+  readVerifiedPreSession,
   requireStaff,
   can,
   permissionMap,
@@ -353,12 +354,12 @@ async function readSession(request) {
     );
     if (staff && staff.active) {
       const locked = staff.locked_until && new Date(staff.locked_until) > new Date();
-      // Which step the browser should draw. The PIN comes first, and only once
-      // it is behind us does the pre-session carry `pin` and the answer move on
-      // to the authenticator.
-      const state = pre.pin !== 1
-        ? (staff.pin_hash ? "pin_required" : "pin_setup")
-        : (staff.totp_enrolled_at ? "totp_required" : "totp_setup");
+      // Which step the browser should draw. The authenticator comes first, and
+      // only once it is behind us does the pre-session carry `tp` and the
+      // answer move on to the PIN.
+      const state = pre.tp !== 1
+        ? (staff.totp_enrolled_at ? "totp_required" : "totp_setup")
+        : (staff.pin_hash ? "pin_required" : "pin_setup");
       return json({
         state,
         email: staff.email,
@@ -395,8 +396,8 @@ function publicStaff(staff) {
 // --- 4. the PIN -------------------------------------------------------------
 
 async function submitPin(request) {
-  const pre = await readPreSession(request);
-  if (!pre) return json({ error: "Sign in with Google first" }, 401);
+  const pre = await readVerifiedPreSession(request);
+  if (!pre) return json({ error: "Enter your authenticator code first" }, 401);
 
   const { pin, turnstileToken } = await request.json().catch(() => ({}));
   const blocked = await turnstileGuard(request, turnstileToken);
@@ -438,20 +439,19 @@ async function submitPin(request) {
     );
   }
 
-  await update("staff", `id=eq.${q(staff.id)}`, { failed_pin_attempts: 0 }, { returning: false });
-  await logEvent({ staff_id: staff.id, actor: staff.email, action: "signin.pin_ok" });
+  // The last gate. recordLogin clears the counters and stamps the sign-in.
+  await recordLogin(staff.id, null);
+  await logEvent({ staff_id: staff.id, actor: staff.email, action: "signin.complete" });
 
-  // Not a session — the next step is. All this does is remember that the PIN
-  // is behind us, so /api/staff/totp will talk to this browser at all.
   return withCookies(
-    { ok: true, state: staff.totp_enrolled_at ? "totp_required" : "totp_setup" },
-    [await issuePreSession(staff, { pin: true })]
+    { ok: true, staff: publicStaff(staff), permissions: permissionMap({ rl: staff.role, tr: staff.tier }) },
+    [clearCookie(COOKIES.PRE), await issueSession(staff)]
   );
 }
 
 async function setupPin(request) {
-  const pre = await readPreSession(request);
-  if (!pre) return json({ error: "Sign in with Google first" }, 401);
+  const pre = await readVerifiedPreSession(request);
+  if (!pre) return json({ error: "Enter your authenticator code first" }, 401);
 
   const { pin, confirm, turnstileToken } = await request.json().catch(() => ({}));
   const blocked = await turnstileGuard(request, turnstileToken);
@@ -474,13 +474,13 @@ async function setupPin(request) {
     { pin_salt: salt, pin_hash: await hashPin(pin, salt), pin_set_at: new Date().toISOString(), failed_pin_attempts: 0, locked_until: null },
     { returning: false }
   );
+  await recordLogin(staff.id, null);
   await logEvent({ staff_id: staff.id, actor: staff.email, action: "pin.enrolled" });
+  await logEvent({ staff_id: staff.id, actor: staff.email, action: "signin.complete" });
 
-  // Same as submitPin: setting a PIN is not signing in. The authenticator is
-  // still owed, and on a first run that means enrolling one.
   return withCookies(
-    { ok: true, state: staff.totp_enrolled_at ? "totp_required" : "totp_setup" },
-    [await issuePreSession(staff, { pin: true })]
+    { ok: true, staff: publicStaff(staff), permissions: permissionMap({ rl: staff.role, tr: staff.tier }) },
+    [clearCookie(COOKIES.PRE), await issueSession(staff)]
   );
 }
 
@@ -526,8 +526,8 @@ async function changePin(request) {
  * the current PIN (totp-relink) or an owner (reset-totp).
  */
 async function enrolTotp(request) {
-  const pre = await readPinnedPreSession(request);
-  if (!pre) return json({ error: "Enter your PIN first" }, 401);
+  const pre = await readPreSession(request);
+  if (!pre) return json({ error: "Sign in with Google first" }, 401);
 
   const { regenerate = false } = await request.json().catch(() => ({}));
   const staff = await selectOne("staff", `select=*&id=eq.${q(pre.sid)}`);
@@ -563,16 +563,16 @@ async function enrolTotp(request) {
 }
 
 /**
- * Six digits, and the end of the sign-in.
+ * Six digits, and the second of the three gates.
  *
  * Handles both cases with one route because the check is identical: on a first
  * run the secret is the pending one and success stamps `totp_enrolled_at`; on
- * every later sign-in the secret is already live. Either way this is the only
- * place a full session cookie is issued.
+ * every later sign-in the secret is already live. Either way this issues no
+ * session — it marks the pre-session and sends the person on to the PIN.
  */
 async function submitTotp(request) {
-  const pre = await readPinnedPreSession(request);
-  if (!pre) return json({ error: "Enter your PIN first" }, 401);
+  const pre = await readPreSession(request);
+  if (!pre) return json({ error: "Sign in with Google first" }, 401);
 
   const { code, turnstileToken } = await request.json().catch(() => ({}));
   const blocked = await turnstileGuard(request, turnstileToken);
@@ -619,25 +619,29 @@ async function submitTotp(request) {
     );
   }
 
-  // recordLogin clears the counters and the lock; totp_last_step is what makes
-  // this particular code unusable a second time.
+  // totp_last_step is what makes this particular code unusable a second time.
+  // The lock is cleared here rather than in recordLogin, which now belongs to
+  // the PIN step at the end.
   const enrolledAt = staff.totp_enrolled_at || new Date().toISOString();
-  await recordLogin(staff.id, null, {
-    totp_last_step: check.step,
-    ...(enrolling ? { totp_enrolled_at: enrolledAt } : {}),
-  });
-  if (enrolling) await logEvent({ staff_id: staff.id, actor: staff.email, action: "totp.enrolled" });
-  await logEvent({ staff_id: staff.id, actor: staff.email, action: "signin.complete" });
-
-  return withCookies(
+  await update(
+    "staff",
+    `id=eq.${q(staff.id)}`,
     {
-      ok: true,
-      // The row was read before the write above, so the timestamp is carried
-      // across by hand rather than costing a second round trip to re-read it.
-      staff: publicStaff({ ...staff, totp_enrolled_at: enrolledAt }),
-      permissions: permissionMap({ rl: staff.role, tr: staff.tier }),
+      totp_last_step: check.step,
+      failed_totp_attempts: 0,
+      locked_until: null,
+      ...(enrolling ? { totp_enrolled_at: enrolledAt } : {}),
     },
-    [clearCookie(COOKIES.PRE), await issueSession(staff)]
+    { returning: false }
+  );
+  if (enrolling) await logEvent({ staff_id: staff.id, actor: staff.email, action: "totp.enrolled" });
+  await logEvent({ staff_id: staff.id, actor: staff.email, action: "signin.totp_ok" });
+
+  // Not a session — the PIN is. All this does is remember that the code is
+  // behind us, so /api/staff/pin will talk to this browser at all.
+  return withCookies(
+    { ok: true, state: staff.pin_hash ? "pin_required" : "pin_setup" },
+    [await issuePreSession(staff, { totp: true })]
   );
 }
 

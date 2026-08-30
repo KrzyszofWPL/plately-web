@@ -57,9 +57,10 @@ create table if not exists public.staff (
   pin_hash text,
   pin_salt text,
   pin_set_at timestamptz,
-  -- Authenticator app (RFC 6238). Enrolled after the PIN, on first sign-in.
-  -- The secret is written when enrolment starts and only *counts* once
-  -- totp_enrolled_at is set, which happens when the first code checks out.
+  -- Authenticator app (RFC 6238). Enrolled straight after Google, on first
+  -- sign-in, and asked for before the PIN on every later one. The secret is
+  -- written when enrolment starts and only *counts* once totp_enrolled_at is
+  -- set, which happens when the first code checks out.
   totp_secret text,
   totp_enrolled_at timestamptz,
   totp_last_step bigint,

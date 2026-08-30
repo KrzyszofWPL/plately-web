@@ -582,14 +582,19 @@
   }
 
   /**
-   * The PIN step: the console behind glass, with the prompt on top of it.
+   * The PIN: the last gate, and the first sight of the console.
+   *
+   * This step is deliberately staged differently from the two before it. Google
+   * and the authenticator happen on the sign-in page; the PIN happens *here*,
+   * over the desk itself, because it is the moment the door actually opens and
+   * the screen should say so.
    *
    * What sits behind the modal is a SKELETON — grey bars in the real layout,
    * carrying no text, no names, no numbers. That is the point. Blur is a
    * decoration anyone can delete from the styles panel in two seconds, so it is
    * never what keeps anything private here: there is simply nothing underneath
-   * to reveal. The server agrees — a pre-session (Google done, PIN owed)
-   * authorises no endpoint at all, so even a crafted request returns 401.
+   * to reveal. The server agrees — a pre-session authorises no endpoint at all,
+   * so even a crafted request returns 401.
    */
   function renderPin() {
     var setup = S.phase === "pin_setup";
@@ -599,12 +604,13 @@
       '<div class="locked-stage">' +
         '<div class="locked-shell" aria-hidden="true">' + skeletonConsole() + "</div>" +
         '<div class="lock-scrim">' +
-          '<div class="lock-card" role="dialog" aria-modal="true" aria-label="Verification required">' +
+          '<div class="lock-card" role="dialog" aria-modal="true" aria-label="Final step">' +
             '<div class="lock-badge">' + ICON.shield + "</div>" +
-            "<h2>" + (setup ? "Set your access PIN" : "Verification required") + "</h2>" +
+            '<p class="lock-kicker">One last step</p>' +
+            "<h2>" + (setup ? "Choose your access PIN" : "Enter your PIN") + "</h2>" +
             '<p class="lock-lede">' + (setup
-              ? "Choose four digits. You will be asked for them every time you sign in — they are what protects this console if a Google session is left open on a shared or unattended device."
-              : "Your Google account has been recognised. Enter your PIN to unlock the console.") + "</p>" +
+              ? "Four digits, asked for every time you sign in. This is the one thing that never leaves your head — it is what protects the console if a device is left open and unattended."
+              : "Google and your authenticator both checked out. Your PIN opens the desk.") + "</p>" +
             '<div class="identity">' +
               (S.auth.avatarUrl
                 ? '<img src="' + attr(S.auth.avatarUrl) + '" alt="">'
@@ -623,7 +629,7 @@
                 '<div class="ts-note" id="ts-note"></div>'
               : "") +
             '<button type="button" class="btn btn-primary lock-submit" data-act="pin-submit">' +
-              (setup ? "Set PIN and open the console" : "Unlock console") +
+              (setup ? "Set PIN and open the console" : "Open the console") +
             "</button>" +
             (locked ? '<div class="auth-error">Locked until ' + esc(clockTime(S.auth.lockedUntil)) + ".</div>" : "") +
             (S.error ? '<div class="auth-error">' + esc(S.error) + "</div>" : "") +
@@ -642,15 +648,56 @@
   }
 
   /**
-   * The authenticator step, behind the same glass as the PIN.
+   * How far through the three gates the person is.
+   *
+   * Google is behind them by the time this is drawn at all, so it always shows
+   * as done. The point is the middle state: "you are recognised, but you are
+   * not in yet", which is otherwise the confusing part of a sign-in that asks
+   * for three things.
+   */
+  function authSteps(current) {
+    var steps = [
+      { key: "google", label: "Google" },
+      { key: "totp", label: "Authenticator" },
+      { key: "pin", label: "PIN" },
+    ];
+    var at = steps.findIndex(function (s) { return s.key === current; });
+    return '<ol class="auth-steps">' + steps.map(function (s, i) {
+      var state = i < at ? "done" : i === at ? "now" : "";
+      return '<li class="' + state + '"><i>' + (i < at ? "✓" : i + 1) + "</i>" + esc(s.label) + "</li>";
+    }).join("") + "</ol>";
+  }
+
+  /** Avatar, name and address — the proof that Google is already behind us. */
+  function halfSignedIn() {
+    return '<div class="half-in">' +
+      '<div class="identity">' +
+        (S.auth.avatarUrl
+          ? '<img src="' + attr(S.auth.avatarUrl) + '" alt="">'
+          : '<span class="avatar">' + esc(initials(S.auth.displayName, S.auth.email)) + "</span>") +
+        '<span class="who"><b>' + esc(S.auth.displayName || S.auth.email) + "</b>" +
+        "<span>" + esc(S.auth.email) + "</span></span>" +
+        '<span class="half-badge">Half signed in</span>' +
+      "</div>" +
+      '<p class="half-note">Google has confirmed who you are. Two short steps left before the console opens.</p>' +
+    "</div>";
+  }
+
+  /**
+   * The authenticator step — still the sign-in page, not the console.
+   *
+   * Deliberately the same layout as the Google button it replaces: the person
+   * has not gone anywhere, they have simply been handed the next thing to do.
+   * The console only ever appears behind the final step, so "am I in yet?"
+   * always has an obvious answer.
    *
    * Two shapes, one screen. On a first run it shows a QR code and asks for a
    * code back, which is the only way to prove the phone actually holds the
    * secret before it is trusted. Afterwards it is six boxes and nothing else.
    *
    * The QR is inline SVG drawn by our own server, not an <img> pointing at an
-   * image service: the string encoded in it *is* the second factor, and it has
-   * no business travelling to anyone else.
+   * image service: the string encoded in it *is* a live second factor, and it
+   * has no business travelling to anyone else.
    */
   function renderTotp() {
     var setup = S.phase === "totp_setup";
@@ -678,42 +725,33 @@
     }
 
     root.innerHTML =
-      '<div class="locked-stage">' +
-        '<div class="locked-shell" aria-hidden="true">' + skeletonConsole() + "</div>" +
-        '<div class="lock-scrim">' +
-          '<div class="lock-card ' + (setup ? "lock-card-wide" : "") + '" role="dialog" aria-modal="true" aria-label="Authenticator required">' +
-            '<div class="lock-badge">' + ICON.phone + "</div>" +
-            "<h2>" + (setup ? "Link your authenticator app" : "Authenticator code") + "</h2>" +
-            '<p class="lock-lede">' + (setup
-              ? "One last step. From now on the console asks for a code from this app every time you sign in — it is what keeps the desk shut if your Google session and your PIN are both taken."
-              : "Google and your PIN both checked out. Enter the current six-digit code from your authenticator app.") + "</p>" +
-            '<div class="identity">' +
-              (S.auth.avatarUrl
-                ? '<img src="' + attr(S.auth.avatarUrl) + '" alt="">'
-                : '<span class="avatar">' + esc(initials(S.auth.displayName, S.auth.email)) + "</span>") +
-              '<span class="who"><b>' + esc(S.auth.displayName || S.auth.email) + "</b>" +
-              "<span>" + esc(S.auth.email) + "</span></span>" +
-            "</div>" +
-            enrolBlock +
-            (setup ? '<p class="lock-sub">The six digits from the app</p>' : "") +
-            '<div class="pin-row pin-row-6" data-pin-group="a">' + codeBoxes("a") + "</div>" +
-            (S.turnstile.siteKey
-              ? '<div class="ts-slot" id="ts-widget"></div>' +
-                '<div class="ts-note" id="ts-note"></div>'
-              : "") +
-            '<button type="button" class="btn btn-primary lock-submit" data-act="totp-submit">' +
-              (setup ? "Confirm and open the console" : "Unlock console") +
-            "</button>" +
-            (locked ? '<div class="auth-error">Locked until ' + esc(clockTime(S.auth.lockedUntil)) + ".</div>" : "") +
-            (S.error ? '<div class="auth-error">' + esc(S.error) + "</div>" : "") +
-            '<div class="lock-foot">' +
-              "<span>" + (setup
-                ? "Codes change every 30 seconds. If one is refused, wait for the next."
-                : "Lost the phone? An owner can unlink it from Settings → Team and roles.") + "</span>" +
-              '<button type="button" data-act="signout">Sign in as someone else</button>' +
-            "</div>" +
+      '<div class="auth">' +
+        heroSide() +
+        '<div class="auth-panel"><div class="auth-box ' + (setup ? "auth-box-wide" : "") + '">' +
+          halfSignedIn() +
+          authSteps("totp") +
+          "<h2>" + (setup ? "Link your authenticator app" : "Authenticator code") + "</h2>" +
+          '<p class="lede">' + (setup
+            ? "From now on the console asks for a code from this app every time you sign in — it is what keeps the desk shut if your Google session is ever taken."
+            : "Enter the code your authenticator app is showing right now.") + "</p>" +
+          enrolBlock +
+          '<label class="field-label" for="code-a0">' +
+            (setup ? "The six digits from the app" : "Six-digit code") + "</label>" +
+          '<div class="pin-row pin-row-6" data-pin-group="a">' + codeBoxes("a") + "</div>" +
+          (S.turnstile.siteKey
+            ? '<div class="ts-slot" id="ts-widget"></div>' +
+              '<div class="ts-note" id="ts-note"></div>'
+            : "") +
+          '<button type="button" class="btn btn-primary auth-submit" data-act="totp-submit">Continue</button>' +
+          (locked ? '<div class="auth-error">Locked until ' + esc(clockTime(S.auth.lockedUntil)) + ".</div>" : "") +
+          (S.error ? '<div class="auth-error">' + esc(S.error) + "</div>" : "") +
+          '<div class="auth-foot">' +
+            "<span>" + (setup
+              ? "Codes change every 30 seconds. If one is refused, wait for the next."
+              : "Lost the phone? An owner can unlink it from Settings → Team and roles.") + "</span>" +
+            '<button type="button" data-act="signout">Sign in as someone else</button>' +
           "</div>" +
-        "</div>" +
+        "</div></div>" +
       "</div>";
 
     mountTurnstile();
@@ -1628,16 +1666,12 @@
       S.error = "";
       api(setup ? "/api/staff/pin-setup" : "/api/staff/pin", { method: "POST", body: body })
         .then(function (data) {
-          // A correct PIN no longer opens the desk — it advances to the
-          // authenticator. The server names the next step; the browser does
-          // not get to decide it.
+          // The last gate. This is where the desk actually opens.
+          S.staff = data.staff;
+          S.perms = data.permissions || {};
           S.error = "";
-          S.enrol = null;
-          S.showSecret = false;
-          S.turnstile.token = null;
-          S.phase = data.state || "totp_required";
           history.replaceState(null, "", "/support");
-          render();
+          loadDesk();
         })
         .catch(function (err) {
           S.error = err.message;
@@ -1654,12 +1688,15 @@
       S.error = "";
       api("/api/staff/totp", { method: "POST", body: { code: code, turnstileToken: S.turnstile.token } })
         .then(function (data) {
-          S.staff = data.staff;
-          S.perms = data.permissions || {};
+          // A correct code does not open the desk — it advances to the PIN.
+          // The server names the next step; the browser does not get to decide.
           S.error = "";
           S.enrol = null;
+          S.showSecret = false;
+          S.turnstile.token = null;
+          S.phase = data.state || "pin_required";
           history.replaceState(null, "", "/support");
-          loadDesk();
+          render();
         })
         .catch(function (err) {
           S.error = err.message;

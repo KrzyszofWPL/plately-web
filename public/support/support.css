@@ -192,6 +192,73 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
 }
 .google-btn:disabled { opacity: .55; cursor: progress; }
 
+/* The authenticator step reuses this panel, and it has a QR code in it on a
+   first run. 420px is right for a Google button and wrong for a 168px image
+   with instructions beside it. */
+.auth-box-wide { max-width: 520px; }
+
+/* --- half signed in ------------------------------------------------------
+   Google is done, the console is not open. The whole job of this block is to
+   answer "did that work?" before the person starts hunting for their phone. */
+.half-in {
+  margin-bottom: 22px; padding: 14px; border-radius: 20px;
+  background: var(--m3-surface-container-low); border: 1px solid var(--m3-outline-variant);
+}
+.half-in .identity { margin: 0; border: 0; background: none; padding: 0; gap: 12px; }
+.half-badge {
+  margin-left: auto; flex: none; padding: 5px 10px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  background: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container);
+}
+.half-note {
+  margin: 12px 0 0; font-size: 12px; line-height: 18px; color: var(--m3-on-surface-variant);
+}
+
+/* --- the three gates, as a progress line --------------------------------- */
+.auth-steps {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  list-style: none; margin: 0 0 26px; padding: 0;
+}
+.auth-steps li {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600; color: var(--m3-on-surface-variant);
+}
+/* The connector between pills. Not on the first one, or the row starts with a
+   dash hanging off the left edge. */
+.auth-steps li + li::before {
+  content: ""; width: 14px; height: 1px; background: var(--m3-outline-variant); margin-right: 1px;
+}
+.auth-steps i {
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%; font-style: normal;
+  font-size: 11px; font-weight: 700;
+  background: var(--m3-surface-container-highest); color: var(--m3-outline);
+}
+.auth-steps li.done i { background: var(--m3-primary); color: var(--m3-on-primary); }
+.auth-steps li.now { color: var(--m3-on-surface); }
+.auth-steps li.now i { background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
+
+.field-label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--m3-on-surface-variant); margin: 22px 0 10px;
+}
+/* The sign-in panel is left-aligned, unlike the centred lock card, so the code
+   row starts at the margin rather than in the middle. */
+.auth-box .pin-row { gap: 10px; }
+.auth-box .pin-row-6 .pin-box { flex: 0 1 56px; width: 56px; min-width: 0; height: 62px; font-size: 24px; }
+.auth-box .ts-slot { justify-content: flex-start; margin-top: 22px; }
+.auth-submit { width: 100%; min-height: 52px; margin-top: 24px; }
+.auth-foot {
+  margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--m3-outline-variant);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  font-size: 12px; line-height: 18px; color: var(--m3-on-surface-variant);
+}
+.auth-foot button {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-size: 12px; font-weight: 600; color: var(--m3-primary); font-family: inherit;
+}
+.auth-foot button:hover { text-decoration: underline; }
+
 .auth-note {
   display: flex; gap: 8px; align-items: flex-start; margin-top: 28px; padding-top: 24px;
   border-top: 1px solid var(--m3-outline-variant);
@@ -213,6 +280,10 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
   width: 64px; height: 72px; text-align: center; border-radius: 18px;
   border: 1px solid var(--m3-outline-variant); background: var(--m3-surface-container-low);
   font-size: 28px; font-weight: 700; font-family: "JetBrains Mono", monospace; outline: none;
+  /* A flex item keeps min-width:auto, and for an input that automatic minimum
+     is its intrinsic ~394px. Without this the row cannot shrink and six boxes
+     run straight off the side of a phone. */
+  min-width: 0;
 }
 .pin-box:focus { border-color: var(--m3-primary); }
 .pin-box.filled { border-color: var(--m3-primary); }
@@ -282,6 +353,10 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
   display: flex; align-items: center; justify-content: center;
   background: var(--m3-primary-container); color: var(--m3-on-primary-container);
 }
+.lock-kicker {
+  margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--m3-primary);
+}
 .lock-card h2 { font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 8px; }
 .lock-lede {
   font-size: 13px; line-height: 20px; color: var(--m3-on-surface-variant);
@@ -316,16 +391,11 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
 .ts-note { margin-top: 8px; font-size: 12px; line-height: 18px; color: var(--m3-error); }
 
 /* --- the authenticator step ----------------------------------------------
-   Six boxes instead of four, on a card that has to hold a QR code as well.
-   The wider card is only for the enrolment run; the everyday "type your code"
-   screen stays the same 440px as the PIN, because it holds the same amount. */
-.lock-card-wide { width: min(560px, 100%); }
-.lock-card .pin-row-6 { gap: 10px; }
-.lock-card .pin-row-6 .pin-box { flex: 0 1 56px; width: 56px; height: 62px; font-size: 24px; }
-
+   Lives on the sign-in page now, so these are shared by .auth-box rather than
+   scoped to the lock card. */
 .enrol {
   display: flex; gap: 20px; align-items: flex-start; text-align: left;
-  margin: 0 0 20px; padding: 18px; border-radius: 20px;
+  margin: 4px 0 0; padding: 18px; border-radius: 20px;
   background: var(--m3-surface-container-low); border: 1px solid var(--m3-outline-variant);
 }
 .enrol-loading { justify-content: center; min-height: 208px; align-items: center; }
@@ -367,9 +437,9 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
   .lock-card .pin-row { gap: 10px; }
   .lock-card .pin-box { height: 60px; font-size: 24px; }
   /* Six boxes will not fit side by side at 4-digit sizing; let them shrink
-     rather than run off the card. */
-  .lock-card .pin-row-6 { gap: 6px; }
-  .lock-card .pin-row-6 .pin-box { flex: 1 1 0; width: auto; height: 54px; font-size: 20px; }
+     rather than run off the panel. */
+  .auth-box .pin-row-6 { gap: 6px; }
+  .auth-box .pin-row-6 .pin-box { flex: 1 1 0; width: auto; height: 54px; font-size: 20px; }
   /* The QR stops being a sidebar and becomes a header. */
   .enrol { flex-direction: column; align-items: center; gap: 14px; }
   .enrol-side { width: 100%; }
