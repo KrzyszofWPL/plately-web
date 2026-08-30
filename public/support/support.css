@@ -180,7 +180,11 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
 }
 .auth-hero p { font-size: 18px; line-height: 30px; margin: 0; opacity: .82; max-width: 720px; }
 
-.auth-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 32px; }
+/* align-items:center would clip the top of an over-tall child instead of
+   letting it scroll — the classic flex-centring overflow. Auto margins centre
+   the same way and degrade to "start" when there is not enough room. */
+.auth-panel { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 48px 32px; }
+.auth-box { margin: auto 0; }
 .auth-box { width: 100%; max-width: 420px; display: flex; flex-direction: column; }
 .auth-box h2 { font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 8px; }
 .auth-box .lede { font-size: 14px; line-height: 22px; color: var(--m3-on-surface-variant); margin: 0 0 28px; }
@@ -838,6 +842,15 @@ html[data-theme="dark"] .kind { background: rgba(255, 255, 255, .1); }
   .split, .grid2, .grid3 { grid-template-columns: minmax(0, 1fr); }
 }
 
+@media (min-width: 901px) {
+  /* Pin the whole thing to the window and let the FORM scroll, not the page.
+     The enrolment step is genuinely tall — a QR code, three instructions and
+     six boxes — and on a short window something has to give. Scrolling one
+     column reads as intentional; scrolling the brand off the top does not. */
+  .auth { height: 100dvh; }
+  .auth-panel { overflow-y: auto; }
+}
+
 @media (max-width: 900px) {
   .auth { flex-direction: column; }
   .auth-hero { width: 100%; padding: 40px 28px; gap: 28px; }
@@ -852,4 +865,112 @@ html[data-theme="dark"] .kind { background: rgba(255, 255, 255, .1); }
   .topbar .titles { min-width: 0; }
   .screen { padding: 20px 18px 32px; }
   .table .tr { min-width: 720px; }
+}
+
+/* ==========================================================================
+   Short windows
+   ==========================================================================
+
+   Everything above this point is sized by WIDTH, which is how the mock-up was
+   drawn: a 1920x1080 artboard with nothing else on screen. A real browser is
+   not that. On a 1366x768 laptop, Windows takes ~48px for the taskbar and
+   Chrome another ~120px for tabs and the address bar, so the page actually
+   gets about 600px of height — and at 600px the sign-in card ran 96px past the
+   bottom, the enrolment screen 286px, and the sidebar hid its own profile
+   button 423px below the fold.
+
+   None of that is a width problem, so no width query was ever going to catch
+   it. These rules trim the vertical padding, the decorative chrome and the
+   type scale once height gets tight. Nothing is removed that carries
+   information; what goes is whitespace, one subtitle and one summary card
+   whose numbers are repeated elsewhere.
+   ========================================================================== */
+
+/* The sidebar is 1043px of content. It has always scrolled, but `margin-top:
+   auto` sent the profile button — the only way into Settings — to the bottom
+   of that scroll rather than the bottom of the screen. Sticky pins it where a
+   person expects it, at every height. */
+.nav-foot {
+  position: sticky; bottom: 0;
+  background: var(--m3-surface-container-lowest);
+  padding-bottom: 4px;
+}
+
+/* The reply box was 259px against a 140px conversation: nearly twice as much
+   room to write as to read. Tying it to the viewport keeps the ratio sane. */
+.composer textarea { height: clamp(72px, 11vh, 132px); }
+
+@media (max-height: 800px) {
+  /* --- sign in ----------------------------------------------------------- */
+  .auth-hero { padding: 44px 48px; }
+  .auth-hero h1 { font-size: clamp(28px, 2.6vw, 42px); margin-bottom: 14px; }
+  .auth-hero p { font-size: 15px; line-height: 24px; }
+  .auth-mark { width: 52px; height: 52px; }
+  .auth-panel { padding: 28px 32px; }
+  .auth-box h2 { font-size: 23px; line-height: 30px; }
+  .auth-box .lede { margin-bottom: 20px; }
+  .auth-note { margin-top: 20px; padding-top: 18px; }
+
+  .half-in { margin-bottom: 16px; padding: 12px; }
+  .half-note { margin-top: 9px; }
+  .auth-steps { margin-bottom: 18px; }
+  .enrol { padding: 14px; gap: 16px; }
+  .enrol-qr svg { width: 136px; height: 136px; }
+  .enrol-steps li { margin-bottom: 4px; }
+  .field-label { margin: 16px 0 8px; }
+  .auth-box .pin-row-6 .pin-box { height: 54px; font-size: 21px; }
+  .auth-submit { min-height: 46px; margin-top: 18px; }
+  .auth-foot { margin-top: 16px; padding-top: 14px; }
+
+  /* --- the PIN card ------------------------------------------------------ */
+  .lock-scrim { padding: 16px; }
+  .lock-card { padding: 26px 28px 22px; }
+  .lock-badge { width: 44px; height: 44px; margin-bottom: 12px; }
+  .lock-card h2 { font-size: 20px; line-height: 26px; }
+  .lock-lede { margin-bottom: 16px; }
+  .lock-card .identity { margin-bottom: 16px; padding: 10px 12px; }
+  .lock-card .identity img, .lock-card .identity .avatar { width: 34px; height: 34px; }
+  .lock-sub { margin: 14px 0 8px; }
+  .lock-card .pin-box { flex-basis: 62px; width: 62px; height: 56px; font-size: 24px; }
+  .lock-submit { min-height: 46px; margin-top: 18px; }
+  .lock-foot { margin-top: 16px; padding-top: 14px; }
+
+  /* --- the console ------------------------------------------------------- */
+  .topbar { min-height: 62px; padding: 8px 24px; }
+  /* The strapline under the screen title is decoration; the title says it. */
+  .topbar .titles p { display: none; }
+  .nav { padding: 14px 12px; }
+  .nav-brand { padding: 2px 8px 12px; }
+  .nav-new { min-height: 46px; margin-bottom: 10px; }
+  .nav-item { min-height: 42px; }
+  .nav-sub button { min-height: 30px; }
+  /* Every number on this card is already in the sidebar counts above it. */
+  .nav-queue { display: none; }
+  .composer { padding: 12px 22px 14px; gap: 9px; }
+  .screen { padding: 20px 22px 26px; }
+}
+
+/* Tighter still: a 1366x768 laptop with the taskbar and two browser bars, or
+   a half-height window on any screen. */
+@media (max-height: 660px) {
+  .auth-hero { padding: 32px 40px; }
+  .auth-hero h1 { font-size: clamp(24px, 2.2vw, 34px); }
+  /* The sentence under the headline is the first thing that can go: the
+     headline already says what the desk is, and the form is the point. */
+  .auth-hero p { display: none; }
+  .auth-panel { padding: 20px 28px; }
+  .auth-box h2 { font-size: 21px; line-height: 27px; margin-bottom: 6px; }
+  .auth-box .lede { margin-bottom: 16px; font-size: 13px; line-height: 20px; }
+  .enrol-qr svg { width: 118px; height: 118px; }
+  .enrol-steps { font-size: 11px; line-height: 16px; }
+
+  .lock-card { padding: 20px 24px 18px; }
+  .lock-badge { width: 38px; height: 38px; margin-bottom: 10px; }
+  .lock-lede { margin-bottom: 12px; font-size: 12px; line-height: 18px; }
+  .lock-card .identity { margin-bottom: 12px; }
+  .lock-card .pin-box { flex-basis: 56px; width: 56px; height: 50px; font-size: 21px; }
+  .lock-sub { margin: 10px 0 6px; }
+
+  .topbar { min-height: 56px; }
+  .nav-brand span { display: none; }
 }
