@@ -529,12 +529,12 @@
         '<img class="auth-mark" src="/logo.png" alt="Plately">' +
         "<div>" +
           "<h1>Every customer e-mail, one shared inbox</h1>" +
-          "<p>Ticket list and full conversation side by side, with customer history, macros and the plan they actually pay for. No tab switching, no lost threads.</p>" +
+          "<p>Ticket list and full conversation side by side, with the customer's history and their actual plan. No tab switching, no lost threads.</p>" +
         "</div>" +
         '<div class="auth-facts">' +
-          "<span>Shared views per team</span>" +
-          "<span>Full audit trail on every reply</span>" +
-          "<span>Keyboard-first triage</span>" +
+          "<span>Authorised accounts only</span>" +
+          "<span>Two-step verification</span>" +
+          "<span>Full audit trail on every action</span>" +
         "</div>" +
       "</div>";
   }
@@ -566,7 +566,7 @@
         heroSide() +
         '<div class="auth-panel"><div class="auth-box">' +
           "<h2>Sign in to Plately Support</h2>" +
-          '<p class="lede">Agent accounts are managed by the workspace owner. Use the Google account tied to your work address, then your four-digit PIN.</p>' +
+          '<p class="lede">This console is used by the Plately support team to handle customer correspondence. Access is limited to accounts authorised by the workspace owner, and is granted in two steps: your Google account, then your personal PIN.</p>' +
           (S.auth.googleConfigured === false
             ? '<div class="auth-error">Google sign-in is not configured yet. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel.</div>'
             : "") +
@@ -581,7 +581,14 @@
             : "") +
           (message ? '<div class="auth-error">' + esc(message) + "</div>" : "") +
           '<div class="auth-note">' + ICON.shield +
-            "<p>Agents only see what their role allows. Every reply, note and status change is written to the audit log, with the address that made it.</p>" +
+            "<p>Every sign-in, reply, note and status change is recorded against the account that made it. " +
+            "Each account sees only what its role permits.</p>" +
+          "</div>" +
+          '<div class="auth-note" style="padding-top:16px">' + ICON.info +
+            "<p><strong style=\"color:var(--m3-on-surface)\">Looking for help with Plately?</strong><br>" +
+            "This page is not a customer account. Write to " +
+            '<a href="mailto:contact@plately.eu">contact@plately.eu</a> and a member of the team will reply to you directly — ' +
+            "no account is needed.</p>" +
           "</div>" +
         "</div></div>" +
       "</div>";
@@ -589,46 +596,103 @@
     mountTurnstile();
   }
 
+  /**
+   * The PIN step: the console behind glass, with the prompt on top of it.
+   *
+   * What sits behind the modal is a SKELETON — grey bars in the real layout,
+   * carrying no text, no names, no numbers. That is the point. Blur is a
+   * decoration anyone can delete from the styles panel in two seconds, so it is
+   * never what keeps anything private here: there is simply nothing underneath
+   * to reveal. The server agrees — a pre-session (Google done, PIN owed)
+   * authorises no endpoint at all, so even a crafted request returns 401.
+   */
   function renderPin() {
     var setup = S.phase === "pin_setup";
     var locked = S.auth.lockedUntil && new Date(S.auth.lockedUntil) > new Date();
 
     root.innerHTML =
-      '<div class="auth">' +
-        heroSide() +
-        '<div class="auth-panel"><div class="auth-box">' +
-          "<h2>" + (setup ? "Choose your PIN" : "Enter your PIN") + "</h2>" +
-          '<p class="lede">' + (setup
-            ? "Four digits, set once and asked for on every sign-in. It is what stops a Google session left open on a laptop from being enough."
-            : "Second factor. Five wrong tries lock the account for fifteen minutes.") + "</p>" +
-          '<div class="identity">' +
-            (S.auth.avatarUrl
-              ? '<img src="' + attr(S.auth.avatarUrl) + '" alt="">'
-              : '<span class="avatar">' + esc(initials(S.auth.displayName, S.auth.email)) + "</span>") +
-            '<span class="who"><b>' + esc(S.auth.displayName || S.auth.email) + "</b>" +
-            "<span>" + esc(S.auth.email) + "</span></span>" +
+      '<div class="locked-stage">' +
+        '<div class="locked-shell" aria-hidden="true">' + skeletonConsole() + "</div>" +
+        '<div class="lock-scrim">' +
+          '<div class="lock-card" role="dialog" aria-modal="true" aria-label="Verification required">' +
+            '<div class="lock-badge">' + ICON.shield + "</div>" +
+            "<h2>" + (setup ? "Set your access PIN" : "Verification required") + "</h2>" +
+            '<p class="lock-lede">' + (setup
+              ? "Choose four digits. You will be asked for them every time you sign in — they are what protects this console if a Google session is left open on a shared or unattended device."
+              : "Your Google account has been recognised. Enter your PIN to unlock the console.") + "</p>" +
+            '<div class="identity">' +
+              (S.auth.avatarUrl
+                ? '<img src="' + attr(S.auth.avatarUrl) + '" alt="">'
+                : '<span class="avatar">' + esc(initials(S.auth.displayName, S.auth.email)) + "</span>") +
+              '<span class="who"><b>' + esc(S.auth.displayName || S.auth.email) + "</b>" +
+              "<span>" + esc(S.auth.email) + "</span></span>" +
+            "</div>" +
+            '<div class="pin-row" data-pin-group="a">' + pinBoxes("a") + "</div>" +
+            (setup
+              ? '<p class="lock-sub">Confirm the same four digits</p>' +
+                '<div class="pin-row" data-pin-group="b">' + pinBoxes("b") + "</div>"
+              : "") +
+            (S.turnstile.siteKey
+              ? '<div id="ts-widget" style="margin-top:18px"></div>' +
+                '<div id="ts-note" style="margin-top:8px;font-size:12px;line-height:18px;color:var(--m3-error)"></div>'
+              : "") +
+            '<button type="button" class="btn btn-primary" style="margin-top:20px;min-height:48px;width:100%" data-act="pin-submit">' +
+              (setup ? "Set PIN and open the console" : "Unlock console") +
+            "</button>" +
+            (locked ? '<div class="auth-error">Locked until ' + esc(clockTime(S.auth.lockedUntil)) + ".</div>" : "") +
+            (S.error ? '<div class="auth-error">' + esc(S.error) + "</div>" : "") +
+            (S.notice ? '<div class="auth-ok">' + esc(S.notice) + "</div>" : "") +
+            '<div class="lock-foot">' +
+              (setup ? "" : "<span>Five incorrect attempts lock the account for fifteen minutes.</span>") +
+              '<button type="button" data-act="signout">Sign in as someone else</button>' +
+            "</div>" +
           "</div>" +
-          '<div class="pin-row" data-pin-group="a">' + pinBoxes("a") + "</div>" +
-          (setup
-            ? '<p class="lede" style="margin:18px 0 6px">Repeat it</p><div class="pin-row" data-pin-group="b">' + pinBoxes("b") + "</div>"
-            : "") +
-          (S.turnstile.siteKey
-            ? '<div id="ts-widget" style="margin-top:18px"></div>' +
-              '<div id="ts-note" style="margin-top:8px;font-size:12px;line-height:18px;color:var(--m3-error)"></div>'
-            : "") +
-          '<button type="button" class="btn btn-primary" style="margin-top:22px;min-height:48px" data-act="pin-submit">' +
-            (setup ? "Set PIN and open the desk" : "Unlock") +
-          "</button>" +
-          '<button type="button" class="btn" style="margin-top:10px" data-act="signout">Use a different account</button>' +
-          (locked ? '<div class="auth-error">Locked until ' + esc(clockTime(S.auth.lockedUntil)) + ".</div>" : "") +
-          (S.error ? '<div class="auth-error">' + esc(S.error) + "</div>" : "") +
-          (S.notice ? '<div class="auth-ok">' + esc(S.notice) + "</div>" : "") +
-        "</div></div>" +
+        "</div>" +
       "</div>";
 
     mountTurnstile();
     var first = root.querySelector('[data-pin="a0"]');
     if (first) first.focus();
+  }
+
+  /** Empty scaffolding in the real layout. Deliberately holds no content. */
+  function skeletonConsole() {
+    var bar = function (w, h) {
+      return '<span class="sk" style="width:' + w + ';height:' + (h || 10) + 'px"></span>';
+    };
+    var row = "";
+    for (var i = 0; i < 7; i++) {
+      row += '<div class="sk-row">' +
+        '<span class="sk sk-dot"></span>' +
+        '<div class="sk-lines">' + bar("42%") + bar("78%") + bar("30%", 8) + "</div>" +
+      "</div>";
+    }
+    var card = function (lines) {
+      var body = "";
+      for (var j = 0; j < lines; j++) body += bar(60 + ((j * 13) % 35) + "%");
+      return '<div class="sk-card">' + bar("40%", 8) + '<div class="sk-lines">' + body + "</div></div>";
+    };
+
+    return '<div class="shell">' +
+      '<nav class="nav">' +
+        '<div class="nav-brand"><img class="mark" src="/logo.png" alt=""><div>' +
+          "<b>Plately</b><span>SUPPORT</span></div></div>" +
+        '<div class="sk sk-pill"></div>' +
+        '<div class="sk-lines" style="gap:14px;margin-top:16px">' +
+          bar("80%", 14) + bar("65%", 14) + bar("72%", 14) + bar("58%", 14) + bar("68%", 14) +
+        "</div>" +
+      "</nav>" +
+      '<div class="main">' +
+        '<header class="topbar">' + bar("180px", 16) + '<div class="sk sk-search"></div>' + "</header>" +
+        '<div class="screen screen-inbox">' +
+          '<section class="list"><div class="list-head">' + bar("120px", 14) + "</div>" +
+            '<div class="list-scroll">' + row + "</div></section>" +
+          '<section class="thread"><div class="thread-head">' + bar("60%", 18) + bar("35%", 10) + "</div>" +
+            '<div class="thread-body">' + card(4) + card(3) + card(5) + "</div></section>" +
+          '<aside class="aside">' + card(4) + card(3) + "</aside>" +
+        "</div>" +
+      "</div>" +
+    "</div>";
   }
 
   function pinBoxes(group) {

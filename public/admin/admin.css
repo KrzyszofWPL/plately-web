@@ -227,6 +227,72 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
 }
 
 /* --------------------------------------------------------------------------
+   the locked console — what the PIN step sits on top of
+
+   The blur is scenery, not a control. Everything underneath is empty
+   scaffolding, so removing the filter from the styles panel reveals grey bars
+   and nothing else; the API refuses every request until the PIN clears anyway.
+   -------------------------------------------------------------------------- */
+
+.locked-stage { position: fixed; inset: 0; overflow: hidden; }
+.locked-shell {
+  position: absolute; inset: 0;
+  filter: blur(6px) saturate(.65);
+  /* Legible enough to read as "the console is behind this", faint enough that
+     nobody mistakes the placeholder bars for content. */
+  opacity: .7;
+  pointer-events: none; user-select: none;
+  transform: scale(1.02); /* hides the soft edge the blur leaves at the border */
+}
+.sk { display: block; border-radius: 8px; background: var(--m3-surface-container-highest); }
+.sk-lines { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+.sk-dot { width: 34px; height: 34px; flex: none; border-radius: 50%; }
+.sk-pill { width: 100%; height: 52px; border-radius: 16px; background: var(--m3-primary); opacity: .5; }
+.sk-search { width: min(420px, 40%); height: 40px; border-radius: 999px; background: var(--m3-surface-container-high); margin: 0 auto; }
+.sk-row { display: flex; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--m3-outline-variant); }
+.sk-card { border-radius: 20px; padding: 18px 20px; background: var(--m3-surface-container); display: flex; flex-direction: column; gap: 12px; }
+
+.lock-scrim {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  background: var(--scrim);
+  overflow-y: auto;
+}
+.lock-card {
+  width: min(440px, 100%);
+  border-radius: 28px; padding: 32px;
+  background: var(--m3-surface-container-low);
+  border: 1px solid var(--m3-outline-variant);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, .45);
+  animation: rise .2s ease both;
+}
+.lock-badge {
+  width: 48px; height: 48px; border-radius: 14px; margin-bottom: 18px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--m3-primary-container); color: var(--m3-on-primary-container);
+}
+.lock-card h2 { font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 8px; }
+.lock-lede { font-size: 13px; line-height: 20px; color: var(--m3-on-surface-variant); margin: 0 0 20px; }
+.lock-sub { font-size: 12px; color: var(--m3-on-surface-variant); margin: 16px 0 6px; }
+.lock-card .pin-row { justify-content: space-between; }
+.lock-card .pin-box { width: 22%; height: 64px; }
+.lock-foot {
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--m3-outline-variant);
+  display: flex; flex-direction: column; gap: 10px;
+  font-size: 12px; line-height: 18px; color: var(--m3-outline);
+}
+.lock-foot button {
+  align-self: flex-start; background: none; border: none; padding: 0; cursor: pointer;
+  font-size: 12px; font-weight: 600; color: var(--m3-primary);
+}
+.lock-foot button:hover { text-decoration: underline; }
+
+@media (max-width: 560px) {
+  .lock-card { padding: 24px; border-radius: 24px; }
+  .lock-card .pin-box { height: 56px; font-size: 24px; }
+}
+
+/* --------------------------------------------------------------------------
    app shell
    -------------------------------------------------------------------------- */
 
