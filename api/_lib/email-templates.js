@@ -123,8 +123,40 @@ export function confirmRequestEmail({ reference, subject, category, body, confir
 // 2. an agent's reply  —  contact@help
 // ---------------------------------------------------------------------------
 
-export function agentReplyEmail({ reference, subject, body, agentName, signature, locale }) {
+/**
+ * What the agent is called in front of a customer.
+ *
+ * Not the internal ladder. "Agent T2" means something to the desk and nothing
+ * to the person reading it, and tiers are our business, not theirs.
+ */
+export function publicRole(role, tier, pl) {
+  if (role === "owner" || role === "admin") return pl ? "Zespół Plately" : "The Plately team";
+  if (role === "agent" && Number(tier) >= 3) {
+    return pl ? "Starszy konsultant wsparcia" : "Senior support specialist";
+  }
+  return pl ? "Wsparcie Plately" : "Plately Support";
+}
+
+function initialsOf(name) {
+  const parts = String(name || "?").trim().split(/[\s@._-]+/).filter(Boolean);
+  if (!parts.length) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+export function agentReplyEmail({ reference, subject, body, agentName, agentRole, agentTier, signature, locale }) {
   const pl = locale !== "en";
+  // A signature the agent wrote themselves wins: it is the one place they get
+  // to sound like themselves rather than like the template.
+  const signOff = signature
+    ? block.text(signature)
+    : block.signoff({
+        greeting: pl ? "Pozdrawiam," : "Best regards,",
+        name: agentName,
+        role: publicRole(agentRole, agentTier, pl),
+        initials: initialsOf(agentName),
+      });
+
   return {
     subject,
     ...renderEmail({
@@ -133,18 +165,59 @@ export function agentReplyEmail({ reference, subject, body, agentName, signature
       preheader: String(body || "").slice(0, 110),
       blocks: [
         block.text(body),
-        block.divider(),
+        signOff,
         block.facts([
           [pl ? "Zgłoszenie" : "Ticket", reference],
           [pl ? "Temat" : "Subject", subject.replace(/\s*\[[A-Z]+-\d+\]\s*$/, "")],
-          [pl ? "Odpowiada" : "Answered by", agentName],
         ]),
-        ...(signature ? [block.text(signature)] : []),
       ],
       footer: [
         pl
           ? "Możesz po prostu odpowiedzieć na tę wiadomość — dopisze się do tej samej rozmowy."
           : "You can simply reply to this message — it joins the same conversation.",
+      ],
+    }),
+  };
+}
+
+/**
+ * The receipt for a request whose address is already proved.
+ *
+ * When the form requires a Google sign-in there is nothing left to confirm —
+ * Google has done it, better than a click-through ever could. So this says
+ * "we have it, here is the number" and asks for nothing. One message instead
+ * of two, which on a hundred-a-day allowance is the difference between fifty
+ * conversations and a hundred.
+ */
+export function requestReceivedEmail({ reference, subject, category, body, locale }) {
+  const pl = locale !== "en";
+  return {
+    subject: pl
+      ? `Mamy Twoje zgłoszenie [${reference}]`
+      : `We have your request [${reference}]`,
+    ...renderEmail({
+      title: pl ? "Mamy Twoje zgłoszenie" : "We have your request",
+      accentLabel: "Support",
+      preheader: pl
+        ? `${reference} — odpowie człowiek, zwykle w jeden dzień roboczy.`
+        : `${reference} — a person will answer, usually within one business day.`,
+      blocks: [
+        block.text(
+          pl
+            ? `Trafiło prosto do zespołu i ma numer ${reference}. Nie musisz nic więcej robić — czyta je człowiek, a odpowiedź przyjdzie na ten adres, zwykle w ciągu jednego dnia roboczego.`
+            : `It went straight to the team and is ticket ${reference}. There is nothing else to do — a person reads it, and the answer comes back to this address, usually within one business day.`
+        ),
+        block.facts([
+          [pl ? "Numer" : "Reference", reference],
+          [pl ? "Kategoria" : "Category", category],
+          [pl ? "Temat" : "Subject", subject],
+        ]),
+        block.quote(pl ? "Twoja wiadomość" : "Your message", body),
+      ],
+      footer: [
+        pl
+          ? "Chcesz coś dodać? Odpowiedz na tę wiadomość — dopisze się do tego samego zgłoszenia."
+          : "Want to add something? Reply to this message — it joins the same ticket.",
       ],
     }),
   };

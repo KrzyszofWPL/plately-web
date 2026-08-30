@@ -98,7 +98,8 @@
     padding: 15px 28px; border-radius: 999px; border: 0; cursor: pointer;
     background: #34d399; color: #04140d; font-family: inherit; font-size: 15px; font-weight: 700;
   }
-  .submit:disabled { opacity: .55; cursor: progress; }
+  .submit:disabled { opacity: .45; cursor: not-allowed; }
+  .gate-note { margin: 0 0 14px; font-size: 13px; line-height: 1.6; color: #8a8a92; }
   .foot-note { margin: 14px 0 0; font-size: 12px; line-height: 1.6; color: #6b6b73; }
 
   .msg { margin: 20px 0 0; padding: 14px 16px; border-radius: 14px; font-size: 14px; line-height: 1.6; }
@@ -200,18 +201,22 @@
           <button type="button" class="linkbtn" id="signout" style="margin-top:10px" data-t="useAnother">Użyj innego adresu</button>
         </div>
 
-        <!-- Not signed in: offer the button, but never require it. -->
+        <!-- Not signed in. With requireGoogle on, this is a gate rather than
+             an alternative: #typed-fallback below is removed entirely, so the
+             only way to give us an address is one Google can vouch for. -->
         <div id="signed-out">
           <button type="button" class="gbtn" id="google">
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" style="flex:none;display:block"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"></path><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C39.9 37.4 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"></path></svg>
             <span data-t="googleBtn">Podłącz adres z Google</span>
           </button>
           <p class="hint" style="margin:12px 0 0" data-t="googleHint">Nie zakładamy przy tym żadnego konta i nie prosimy o hasło — pobieramy wyłącznie Twój adres, żebyś nie musiał/a go przepisywać.</p>
-          <p class="or" data-t="or">albo wpisz ręcznie</p>
-          <label class="lbl sr-only" for="email" data-t="emailLabel">Adres e-mail</label>
-          <input type="email" id="email" name="email" autocomplete="email" placeholder="ty@example.com">
-          <label class="lbl" for="name" style="margin-top:14px" data-t="nameLabel">Imię <span class="opt">(opcjonalnie)</span></label>
-          <input type="text" id="name" name="name" maxlength="80" autocomplete="name" data-ph="namePh" placeholder="Jak się do Ciebie zwracać">
+          <div id="typed-fallback">
+            <p class="or" data-t="or">albo wpisz ręcznie</p>
+            <label class="lbl sr-only" for="email" data-t="emailLabel">Adres e-mail</label>
+            <input type="email" id="email" name="email" autocomplete="email" placeholder="ty@example.com">
+            <label class="lbl" for="name" style="margin-top:14px" data-t="nameLabel">Imię <span class="opt">(opcjonalnie)</span></label>
+            <input type="text" id="name" name="name" maxlength="80" autocomplete="name" data-ph="namePh" placeholder="Jak się do Ciebie zwracać">
+          </div>
         </div>
       </div>
     </fieldset>
@@ -222,6 +227,7 @@
     <div id="form-msg"></div>
 
     <div style="margin-top:24px">
+      <p class="gate-note" id="gate-note" data-t="gateNote" hidden>Najpierw podłącz adres z Google powyżej — bez tego nie wiemy, gdzie odesłać odpowiedź.</p>
       <button type="submit" class="submit" id="send" data-t="send">Wyślij do pomocy</button>
       <p class="foot-note" data-t="footNote">Wysyłając, przekazujesz nam swój adres e-mail i treść wiadomości, żebyśmy mogli odpowiedzieć. Szczegóły w <a href="/privacy">Polityce Prywatności</a>.</p>
     </div>
@@ -229,10 +235,11 @@
 
   <!-- Replaces the form once the request is parked and the link is on its way. -->
   <section class="done" id="done" hidden>
-    <h2 data-t="doneTitle">Sprawdź skrzynkę</h2>
+    <h2 id="done-title">Sprawdź skrzynkę</h2>
+    <div class="ref" id="done-ref" hidden></div>
     <p id="done-body"></p>
-    <p data-t="doneWhy">Jedno kliknięcie potwierdza, że adres należy do Ciebie. Dopiero wtedy zgłoszenie trafia do zespołu — dzięki temu nikt nie może wpisać w ten formularz cudzego adresu i zafundować komuś maila, o który nie prosił.</p>
-    <p class="small" data-t="doneSpam">Nie widzisz wiadomości po kilku minutach? Zajrzyj do spamu — przychodzi od <strong>noreply@help.plately.eu</strong>.</p>
+    <p id="done-why" data-t="doneWhy">Jedno kliknięcie potwierdza, że adres należy do Ciebie. Dopiero wtedy zgłoszenie trafia do zespołu — dzięki temu nikt nie może wpisać w ten formularz cudzego adresu i zafundować komuś maila, o który nie prosił.</p>
+    <p class="small" id="done-spam" data-t="doneSpam">Nie widzisz wiadomości po kilku minutach? Zajrzyj do spamu — przychodzi od <strong>noreply@help.plately.eu</strong>.</p>
     <button type="button" class="linkbtn" id="again" data-t="again">Napisz w innej sprawie</button>
   </section>
 
@@ -307,12 +314,14 @@
       msgHint: 'Im konkretniej, tym szybciej pomożemy: co robiłeś/aś, czego się spodziewałeś/aś i co się stało zamiast tego. Jeśli widzisz komunikat błędu, przepisz go dokładnie.',
       subjectLabel: 'Temat', subjectPh: 'Jednym zdaniem, o co chodzi',
       bodyLabel: 'Wiadomość', bodyPh: 'Opisz sprawę tutaj…',
-      mailLegend: 'Twój adres e-mail', mailHint: 'Tam wyślemy potwierdzenie i tam odpiszemy.',
+      mailLegend: 'Twój adres e-mail', mailHint: 'Tam odpiszemy. Podłącz go przez Google — dzięki temu odpowiedź na pewno trafi do Ciebie, a nie pod adres z literówką.',
+      gateNote: 'Najpierw podłącz adres z Google powyżej — bez tego nie wiemy, gdzie odesłać odpowiedź.',
+      filedTitle: 'Mamy Twoje zgłoszenie',
       verified: 'Potwierdzony',
       verifiedHint: 'Adres potwierdzony przez Google. Dzięki temu wiemy, że konto należy do Ciebie — przy sprawach dotyczących konta czy płatności to oszczędza całą wymianę pytań.',
       useAnother: 'Użyj innego adresu',
       googleBtn: 'Podłącz adres z Google',
-      googleHint: 'Nie zakładamy przy tym żadnego konta i nie prosimy o hasło — pobieramy wyłącznie Twój adres, żebyś nie musiał/a go przepisywać.',
+      googleHint: 'Nie zakładamy przy tym żadnego konta i nie prosimy o hasło — pobieramy wyłącznie Twój adres. Dzięki temu nie da się pomylić literki i zgłoszenie od razu idzie do zespołu, bez dodatkowego klikania w mailu.',
       or: 'albo wpisz ręcznie', emailLabel: 'Adres e-mail',
       nameLabel: 'Imię <span class="opt">(opcjonalnie)</span>', namePh: 'Jak się do Ciebie zwracać',
       send: 'Wyślij do pomocy', sending: 'Wysyłam…',
@@ -347,6 +356,7 @@
       errEmail: 'Ten adres e-mail wygląda na niepoprawny.',
       errNet: 'Nie udało się wysłać. Sprawdź połączenie i spróbuj ponownie.',
       doneBody: function (mail) { return 'Wysłaliśmy link potwierdzający na ' + mail + '. Kliknij go, a zgłoszenie trafi do zespołu.'; },
+      filedBody: function (mail) { return 'Trafiło prosto do zespołu — nie musisz nic potwierdzać, bo adres jest już zweryfikowany przez Google. Potwierdzenie z numerem poszło na ' + mail + ', a odpowiedź przyjdzie tam samo.'; },
       signinOk: 'Adres podłączony.',
       signinCancelled: 'Logowanie przez Google zostało przerwane. Możesz wpisać adres ręcznie.',
       signinExpired: 'Link wygasł. Spróbuj jeszcze raz albo wpisz adres ręcznie.',
@@ -364,12 +374,14 @@
       msgHint: 'The more specific the better: what you were doing, what you expected, and what happened instead. If you saw an error message, copy it out exactly.',
       subjectLabel: 'Subject', subjectPh: 'One line on what this is about',
       bodyLabel: 'Message', bodyPh: 'Tell us what happened…',
-      mailLegend: 'Your e-mail address', mailHint: 'That is where the confirmation goes, and where we reply.',
+      mailLegend: 'Your e-mail address', mailHint: 'That is where we reply. Attach it with Google so the answer is certain to reach you rather than a mistyped address.',
+      gateNote: 'Attach your address with Google above — without it we have nowhere to send the answer.',
+      filedTitle: 'We have your request',
       verified: 'Verified',
       verifiedHint: 'Verified by Google. That tells us the account is really yours — for anything about accounts or payments it saves a whole round of questions.',
       useAnother: 'Use a different address',
       googleBtn: 'Attach my address with Google',
-      googleHint: 'No account is created and no password is asked for — we take your address only, so you do not have to type it.',
+      googleHint: 'No account is created and no password is asked for — we take your address only. That makes a typo impossible and sends the request straight to the team, with no extra click in your inbox.',
       or: 'or type it in', emailLabel: 'E-mail address',
       nameLabel: 'Name <span class="opt">(optional)</span>', namePh: 'What to call you',
       send: 'Send to support', sending: 'Sending…',
@@ -404,6 +416,7 @@
       errEmail: 'That e-mail address does not look right.',
       errNet: 'That did not send. Check your connection and try again.',
       doneBody: function (mail) { return 'We sent a confirmation link to ' + mail + '. Click it and the request reaches the team.'; },
+      filedBody: function (mail) { return 'It went straight to the team — nothing to confirm, because Google has already verified the address. A receipt with the number is on its way to ' + mail + ', and the answer comes back there too.'; },
       signinOk: 'Address attached.',
       signinCancelled: 'Google sign-in was cancelled. You can type your address instead.',
       signinExpired: 'That link expired. Try again, or type your address instead.',
@@ -450,9 +463,7 @@
     });
     drawCategories();
     paintMessage();
-    if (!$('done').hidden && state.receipt) {
-      $('done-body').textContent = t.doneBody(state.receipt.email);
-    }
+    if (!$('done').hidden && state.receipt) paintReceipt();
     if (state.confirm) paintConfirmation();
     $('send').textContent = state.sending ? t.sending : t.send;
   }
@@ -536,12 +547,51 @@
     $('form-msg').innerHTML = '<div class="msg ' + (m.bad ? 'bad' : 'good') + '">' + esc(text) + '</div>';
   }
 
+  /**
+   * The card after sending. Two shapes, because there are two routes:
+   *
+   *   filed    Google proved the address, so the ticket exists already and the
+   *            number is real. Nothing to click.
+   *   pending  the typed-address route — the ticket does not exist yet and the
+   *            person has to confirm from their inbox first.
+   */
+  function paintReceipt() {
+    var r = state.receipt;
+    if (!r) return;
+    var refBox = $('done-ref');
+    if (r.pending) {
+      $('done-title').textContent = t.doneTitle;
+      $('done-body').textContent = t.doneBody(r.email);
+      $('done-why').hidden = false;
+      $('done-spam').hidden = false;
+      if (refBox) refBox.hidden = true;
+    } else {
+      $('done-title').textContent = t.filedTitle;
+      $('done-body').textContent = t.filedBody(r.email);
+      $('done-why').hidden = true;
+      $('done-spam').hidden = true;
+      if (refBox) { refBox.hidden = false; refBox.textContent = r.reference; }
+    }
+  }
+
   function showIdentity() {
     var signedIn = Boolean(state.email);
     $('signed-in').hidden = !signedIn;
     $('signed-out').hidden = signedIn;
     $('idbox').classList.toggle('verified', signedIn);
     if (signedIn) $('id-email').textContent = state.email;
+
+    // With Google required there is no second way in, so the typed fields are
+    // not merely hidden — they are taken out of the document, which is what
+    // stops a browser autofilling them and the submit handler reading them.
+    var fallback = $('typed-fallback');
+    if (state.requireGoogle && fallback) fallback.remove();
+
+    // The send button is not offered before the address exists. Learning the
+    // rule from an error after writing three paragraphs is the worse way.
+    var blocked = state.requireGoogle && !signedIn;
+    $('send').disabled = blocked || state.sending;
+    $('gate-note').hidden = !blocked;
   }
 
   // --- server ---------------------------------------------------------------
@@ -602,7 +652,9 @@
     var category = state.category;
     var subject = $('subject').value.trim();
     var body = $('body').value.trim();
-    var typedEmail = $('email').value.trim();
+    // #typed-fallback is removed when Google is required, so these read as
+    // empty and the signed-in address is the only one there is.
+    var typedEmail = $('email') ? $('email').value.trim() : '';
     var email = state.email || typedEmail;
 
     // Checked here as a courtesy so nobody waits on a round trip to be told
@@ -611,6 +663,7 @@
     if (!category) return say('errCat', true);
     if (subject.length < 3) return say('errSubject', true);
     if (body.length < 20) return say('errBody', true);
+    if (state.requireGoogle && !state.email) return say('gateNote', true);
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return say('errEmail', true);
 
     state.sending = true;
@@ -625,15 +678,15 @@
         subject: subject,
         body: body,
         email: typedEmail,
-        name: $('name').value.trim(),
+        name: $('name') ? $('name').value.trim() : '',
         locale: lang,
         turnstileToken: state.token
       }
     }).then(function (data) {
       $('form').hidden = true;
       $('done').hidden = false;
-      state.receipt = { email: data.email };
-      $('done-body').textContent = t.doneBody(data.email);
+      state.receipt = { email: data.email, reference: data.reference, pending: data.pending !== false };
+      paintReceipt();
       $('done').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }).catch(function (err) {
       // Straight from the server, already in a language it chose — shown as-is.
@@ -695,6 +748,7 @@
   api('/api/help/session').then(function (data) {
     state.siteKey = data.turnstileSiteKey || null;
     state.email = data.email || null;
+    state.requireGoogle = data.requireGoogle !== false;
     if (data.googleConfigured === false) $('google').hidden = true;
     if (data.mailConfigured === false) {
       say('mailDown', true);

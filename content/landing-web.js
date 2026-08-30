@@ -58,7 +58,7 @@
             ctaLead: 'Plately działa w przeglądarce — na telefonie, tablecie i komputerze. Bez instalowania, w 12 językach.',
       footer: 'Plately — asystent diety, nawodnienia i kontroli wagi.',
       ftProduct: 'Produkt',
-      ftLegalHead: 'Dokumenty', ftTerms: 'Regulamin', ftPrivacy: 'Polityka prywatności',
+      ftLegalHead: 'Dokumenty', ftTerms: 'Regulamin', ftPrivacy: 'Polityka prywatności', ftSupport: 'Wsparcie',
       ftRights: 'Wszelkie prawa zastrzeżone.',
       metaTitle: 'Plately — asystent diety, nawodnienia i kontroli wagi',
       metaDesc: 'Plately zamienia zdjęcie posiłku w pełny rozkład makroskładników, pilnuje nawodnienia i prowadzi Cię do docelowej wagi. 12 języków, działa w przeglądarce na Androidzie, iOS, Windows i macOS.'
@@ -94,7 +94,7 @@
             ctaLead: 'Plately runs in your browser — on your phone, tablet and desktop. No install, in 12 languages.',
       footer: 'Plately — assistant for diet, hydration and weight.',
       ftProduct: 'Product',
-      ftLegalHead: 'Legal', ftTerms: 'Terms of Service', ftPrivacy: 'Privacy Policy',
+      ftLegalHead: 'Legal', ftTerms: 'Terms of Service', ftPrivacy: 'Privacy Policy', ftSupport: 'Support',
       ftRights: 'All rights reserved.',
       metaTitle: 'Plately — diet, hydration and weight assistant',
       metaDesc: 'Plately turns a photo of your meal into a full macro breakdown, keeps an eye on your hydration and guides you to your target weight. 12 languages, runs in the browser on Android, iOS, Windows and macOS.'
@@ -130,7 +130,7 @@
             ctaLead: 'Plately läuft im Browser — auf Handy, Tablet und Desktop. Ohne Installation, in 12 Sprachen.',
       footer: 'Plately — Assistent für Ernährung, Flüssigkeit und Gewicht.',
       ftProduct: 'Produkt',
-      ftLegalHead: 'Rechtliches', ftTerms: 'AGB', ftPrivacy: 'Datenschutz',
+      ftLegalHead: 'Rechtliches', ftTerms: 'AGB', ftPrivacy: 'Datenschutz', ftSupport: 'Support',
       ftRights: 'Alle Rechte vorbehalten.',
       metaTitle: 'Plately — Assistent für Ernährung, Flüssigkeit und Gewicht',
       metaDesc: 'Plately verwandelt ein Foto deiner Mahlzeit in eine vollständige Makro-Aufschlüsselung, achtet auf deine Flüssigkeitszufuhr und führt dich zum Zielgewicht. 12 Sprachen, im Browser auf Android, iOS, Windows und macOS.'
@@ -166,7 +166,7 @@
             ctaLead: 'Plately працює у браузері — на телефоні, планшеті й компʼютері. Без встановлення, 12 мовами.',
       footer: 'Plately — асистент харчування, води та ваги.',
       ftProduct: 'Продукт',
-      ftLegalHead: 'Документи', ftTerms: 'Умови користування', ftPrivacy: 'Політика конфіденційності',
+      ftLegalHead: 'Документи', ftTerms: 'Умови користування', ftPrivacy: 'Політика конфіденційності', ftSupport: 'Підтримка',
       ftRights: 'Усі права захищено.',
       metaTitle: 'Plately — асистент харчування, води та ваги',
       metaDesc: 'Plately перетворює фото страви на повний розподіл макроелементів, стежить за водним балансом і веде вас до цільової ваги. 12 мов, у браузері на Android, iOS, Windows і macOS.'
@@ -202,7 +202,7 @@
             ctaLead: 'Plately работает в браузере — на телефоне, планшете и компьютере. Без установки, на 12 языках.',
       footer: 'Plately — ассистент питания, воды и веса.',
       ftProduct: 'Продукт',
-      ftLegalHead: 'Документы', ftTerms: 'Условия использования', ftPrivacy: 'Политика конфиденциальности',
+      ftLegalHead: 'Документы', ftTerms: 'Условия использования', ftPrivacy: 'Политика конфиденциальности', ftSupport: 'Поддержка',
       ftRights: 'Все права защищены.',
       metaTitle: 'Plately — ассистент питания, воды и веса',
       metaDesc: 'Plately превращает фото блюда в полный разбор макронутриентов, следит за водным балансом и ведёт вас к целевому весу. 12 языков, в браузере на Android, iOS, Windows и macOS.'
@@ -238,7 +238,7 @@
             ctaLead: 'Plately fonctionne dans le navigateur — sur téléphone, tablette et ordinateur. Sans installation, en 12 langues.',
       footer: 'Plately — assistant d’alimentation, d’hydratation et de poids.',
       ftProduct: 'Produit',
-      ftLegalHead: 'Documents', ftTerms: 'Conditions d’utilisation', ftPrivacy: 'Politique de confidentialité',
+      ftLegalHead: 'Documents', ftTerms: 'Conditions d’utilisation', ftPrivacy: 'Politique de confidentialité', ftSupport: 'Assistance',
       ftRights: 'Tous droits réservés.',
       metaTitle: 'Plately — assistant d’alimentation, d’hydratation et de poids',
       metaDesc: 'Plately transforme la photo d’un repas en répartition complète des macros, surveille votre hydratation et vous guide vers votre poids cible. 12 langues, dans le navigateur sur Android, iOS, Windows et macOS.'
@@ -274,7 +274,7 @@
             ctaLead: 'Plately funziona nel browser — su telefono, tablet e computer. Senza installazione, in 12 lingue.',
       footer: 'Plately — assistente per dieta, idratazione e peso.',
       ftProduct: 'Prodotto',
-      ftLegalHead: 'Documenti', ftTerms: 'Termini di servizio', ftPrivacy: 'Informativa sulla privacy',
+      ftLegalHead: 'Documenti', ftTerms: 'Termini di servizio', ftPrivacy: 'Informativa sulla privacy', ftSupport: 'Assistenza',
       ftRights: 'Tutti i diritti riservati.',
       metaTitle: 'Plately — assistente per dieta, idratazione e peso',
       metaDesc: 'Plately trasforma la foto di un pasto in una ripartizione completa dei macronutrienti, tiene d’occhio l’idratazione e ti guida al peso desiderato. 12 lingue, nel browser su Android, iOS, Windows e macOS.'
@@ -310,7 +310,7 @@
             ctaLead: 'Plately funciona en el navegador — en el móvil, la tablet y el ordenador. Sin instalación, en 12 idiomas.',
       footer: 'Plately — asistente de dieta, hidratación y peso.',
       ftProduct: 'Producto',
-      ftLegalHead: 'Documentos', ftTerms: 'Términos del servicio', ftPrivacy: 'Política de privacidad',
+      ftLegalHead: 'Documentos', ftTerms: 'Términos del servicio', ftPrivacy: 'Política de privacidad', ftSupport: 'Soporte',
       ftRights: 'Todos los derechos reservados.',
       metaTitle: 'Plately — asistente de dieta, hidratación y peso',
       metaDesc: 'Plately convierte la foto de una comida en un desglose completo de macronutrientes, vigila tu hidratación y te guía hasta tu peso objetivo. 12 idiomas, en el navegador en Android, iOS, Windows y macOS.'
@@ -346,7 +346,7 @@
             ctaLead: 'O Plately funciona no navegador — no telemóvel, tablet e computador. Sem instalação, em 12 idiomas.',
       footer: 'Plately — assistente de dieta, hidratação e peso.',
       ftProduct: 'Produto',
-      ftLegalHead: 'Documentos', ftTerms: 'Termos de utilização', ftPrivacy: 'Política de privacidade',
+      ftLegalHead: 'Documentos', ftTerms: 'Termos de utilização', ftPrivacy: 'Política de privacidade', ftSupport: 'Suporte',
       ftRights: 'Todos os direitos reservados.',
       metaTitle: 'Plately — assistente de dieta, hidratação e peso',
       metaDesc: 'O Plately transforma a foto de uma refeição num desdobramento completo de macronutrientes, cuida da tua hidratação e guia-te até ao peso desejado. 12 idiomas, no navegador em Android, iOS, Windows e macOS.'
@@ -382,7 +382,7 @@
             ctaLead: 'Plately はブラウザで動きます — スマホ、タブレット、パソコンで。インストール不要、12言語対応。',
       footer: 'Plately — 食事・水分・体重のアシスタント。',
       ftProduct: 'プロダクト',
-      ftLegalHead: '規約', ftTerms: '利用規約', ftPrivacy: 'プライバシーポリシー',
+      ftLegalHead: '規約', ftTerms: '利用規約', ftPrivacy: 'プライバシーポリシー', ftSupport: 'サポート',
       ftRights: '無断転載を禁じます。',
       metaTitle: 'Plately — 食事・水分・体重を管理するアシスタント',
       metaDesc: 'Plately は食事の写真からマクロ栄養素を算出し、水分補給を見守り、目標体重まで導きます。12言語対応、Android・iOS・Windows・macOS のブラウザで動作します。'
@@ -418,7 +418,7 @@
             ctaLead: 'Plately 在浏览器中运行 — 手机、平板和电脑都可以。无需安装，支持 12 种语言。',
       footer: 'Plately — 饮食、饮水与体重助手。',
       ftProduct: '产品',
-      ftLegalHead: '条款', ftTerms: '服务条款', ftPrivacy: '隐私政策',
+      ftLegalHead: '条款', ftTerms: '服务条款', ftPrivacy: '隐私政策', ftSupport: '支持',
       ftRights: '保留所有权利。',
       metaTitle: 'Plately — 饮食、饮水与体重助手',
       metaDesc: 'Plately 把一张餐食照片变成完整的宏量营养素分析，帮你关注饮水，并引导你达到目标体重。支持 12 种语言，可在 Android、iOS、Windows 与 macOS 的浏览器中使用。'
@@ -454,7 +454,7 @@
             ctaLead: 'Plately는 브라우저에서 실행됩니다 — 휴대폰, 태블릿, 데스크톱에서. 설치 없이, 12개 언어로.',
       footer: 'Plately — 식단, 수분, 체중 어시스턴트.',
       ftProduct: '제품',
-      ftLegalHead: '약관', ftTerms: '이용약관', ftPrivacy: '개인정보 처리방침',
+      ftLegalHead: '약관', ftTerms: '이용약관', ftPrivacy: '개인정보 처리방침', ftSupport: '지원',
       ftRights: '모든 권리 보유.',
       metaTitle: 'Plately — 식단, 수분, 체중 어시스턴트',
       metaDesc: 'Plately는 식사 사진을 완전한 매크로 영양소 분석으로 바꾸고, 수분 섭취를 챙기며, 목표 체중까지 이끌어 줍니다. 12개 언어, Android·iOS·Windows·macOS 브라우저에서 작동합니다.'

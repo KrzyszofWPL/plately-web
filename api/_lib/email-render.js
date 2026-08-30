@@ -134,6 +134,35 @@ export const block = {
     text: `${label}:\n${href}`,
   }),
 
+  /**
+   * The sign-off. A person's name and what they do, in a block that reads as
+   * written by a human rather than appended by a system.
+   *
+   * The initials disc is a table cell, not a flex item: same reason as
+   * everything else here — Outlook renders through Word.
+   */
+  signoff: ({ greeting, name, role, initials }) => ({
+    html:
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 20px;">` +
+      `<tr><td height="1" bgcolor="${C.line}" style="background:${C.line};font-size:0;line-height:0;">&nbsp;</td></tr>` +
+      `<tr><td style="padding-top:18px;">` +
+      `<p style="margin:0 0 12px;font-family:${FONT};font-size:15px;line-height:23px;color:${C.muted};">${escapeHtml(greeting)}</p>` +
+      `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>` +
+      `<td width="40" style="padding-right:12px;vertical-align:top;">` +
+      `<table role="presentation" width="40" height="40" cellpadding="0" cellspacing="0" border="0" style="width:40px;height:40px;">` +
+      `<tr><td align="center" valign="middle" bgcolor="${C.brand}" style="background:${C.brand};border-radius:50%;` +
+      `font-family:${FONT};font-size:14px;font-weight:700;color:${C.onBrand};height:40px;">${escapeHtml(initials)}</td></tr>` +
+      `</table></td>` +
+      `<td style="vertical-align:middle;">` +
+      `<div style="font-family:${FONT};font-size:15px;font-weight:600;line-height:21px;color:${C.text};">${escapeHtml(name)}</div>` +
+      `<div style="font-family:${FONT};font-size:13px;line-height:19px;color:${C.faint};">${escapeHtml(role)}</div>` +
+      `</td></tr></table>` +
+      `</td></tr></table>`,
+    text: `${greeting}
+${name}
+${role}`,
+  }),
+
   divider: () => ({
     html: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;"><tr><td height="1" bgcolor="${C.line}" style="background:${C.line};font-size:0;line-height:0;">&nbsp;</td></tr></table>`,
     text: "\n---\n",

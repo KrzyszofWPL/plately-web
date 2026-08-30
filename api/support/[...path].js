@@ -342,6 +342,8 @@ async function postMessage(request, session, staff) {
       subject: subjectLine,
       body: text,
       agentName: staff.display_name || staff.email,
+      agentRole: staff.role,
+      agentTier: staff.tier,
       signature,
       locale: ticket.locale,
     });
@@ -460,6 +462,8 @@ async function createTicket(request, session, staff) {
     subject: outboundSubject,
     body: String(body).trim(),
     agentName: staff.display_name || staff.email,
+    agentRole: staff.role,
+    agentTier: staff.tier,
     signature,
     locale: null,
   });

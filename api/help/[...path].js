@@ -40,7 +40,7 @@ import { hmacHex, timingSafeEqual } from "../_lib/auth.js";
 import { explainSetupFailure } from "../_lib/setup-error.js";
 import { rpc } from "../_lib/db.js";
 import { sendMail, isMailConfigured, ticketRef } from "../_lib/mail.js";
-import { confirmRequestEmail, identities } from "../_lib/email-templates.js";
+import { confirmRequestEmail, requestReceivedEmail, identities } from "../_lib/email-templates.js";
 import { verifyTurnstile, clientIp } from "../_lib/staff-session.js";
 
 export const config = { runtime: "edge" };
@@ -60,6 +60,23 @@ const MAX_BODY = 5000;
 const MAX_SUBJECT = 160;
 const MAX_NAME = 80;
 const MAX_PER_HOUR = 5;
+
+/**
+ * Whether the form insists on a Google sign-in.
+ *
+ * On (the default) it buys two things at once. The address on every ticket is
+ * one Google vouched for, so a typo cannot send our answer to a stranger who
+ * never asked for it. And because the address is already proved, the
+ * confirm-by-e-mail step has nothing left to establish — Google did that job,
+ * and did it better — so the request goes straight to the desk and the send it
+ * would have cost is saved. On a hundred-a-day allowance that halves what a
+ * conversation costs before anybody has answered anything.
+ *
+ * Off, the typed-address path and its confirmation click come back exactly as
+ * they were. Both routes stay live; this only decides which one the page
+ * offers, and the server enforces the choice rather than trusting the page to.
+ */
+const REQUIRE_GOOGLE = process.env.HELP_REQUIRE_GOOGLE !== "false";
 
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -220,6 +237,8 @@ async function readSession(request) {
     name: identity ? identity.nm || null : null,
     turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
     googleConfigured: Boolean(process.env.GOOGLE_CLIENT_ID),
+    // The page hides the typed-address field and gates the send on this.
+    requireGoogle: REQUIRE_GOOGLE,
     // The page says so plainly rather than accepting a message it cannot
     // deliver and leaving the person waiting for a reply that never comes.
     mailConfigured: isMailConfigured(),
@@ -327,6 +346,12 @@ async function submit(request) {
   // button would be decorative: anyone could sign in as themselves and then
   // put somebody else's address in the field.
   const identity = await readIdentity(request);
+  if (REQUIRE_GOOGLE && !identity) {
+    return json(
+      { error: "Sign in with Google first — that is how we know the address is yours.", needsGoogle: true },
+      401
+    );
+  }
   const typed = String(payload.email || "").trim().toLowerCase();
   const email = identity ? identity.em : typed;
 
@@ -347,6 +372,63 @@ async function submit(request) {
   }
 
   const locale = String(payload.locale || "").slice(0, 8) || null;
+  const senderName = identity ? identity.nm : String(name || "").trim().slice(0, MAX_NAME) || null;
+  const from = identities().supportNoreply;
+
+  // Google has already proved this address, so there is nothing left for a
+  // confirmation click to establish. File it now and send a receipt instead of
+  // a challenge: one message rather than two, and nobody is asked to prove the
+  // same thing twice.
+  if (identity) {
+    const filed = await rpc("support_ingest_form", {
+      p_payload: {
+        email,
+        name: senderName,
+        subject: cleanSubject,
+        text: cleanBody,
+        tag: category,
+        locale,
+        ip_hash: await ipHash(request),
+        email_verified: true,
+      },
+      p_max_per_hour: MAX_PER_HOUR,
+    });
+
+    if (!filed?.ok) {
+      if (filed?.error === "rate_limited") {
+        return json(
+          { error: "That is several messages in a short time. Reply to the e-mail you already have, or try again in an hour." },
+          429
+        );
+      }
+      return json({ error: "We could not file that message. Please try again." }, 500);
+    }
+
+    const reference = ticketRef(filed.number);
+    const receipt = requestReceivedEmail({
+      reference, subject: cleanSubject, category, body: cleanBody, locale,
+    });
+
+    // The ticket exists either way. A receipt that fails to send is worth
+    // saying so about, but it must not leave somebody thinking their report
+    // was lost when the desk is already holding it.
+    let receipted = true;
+    try {
+      await sendMail({
+        to: email,
+        subject: receipt.subject,
+        text: receipt.text,
+        html: receipt.html,
+        from: from.email,
+        fromName: from.name,
+      });
+    } catch (err) {
+      console.error("help receipt failed", err);
+      receipted = false;
+    }
+
+    return json({ ok: true, pending: false, reference, number: filed.number, receipted, email });
+  }
 
   // The token goes out in the link; only its HMAC is stored. This table is the
   // one place somebody could read a pending confirmation out of, and a hash is
@@ -356,7 +438,7 @@ async function submit(request) {
     p_payload: {
       token_hash: await tokenHash(token),
       email,
-      name: identity ? identity.nm : String(name || "").trim().slice(0, MAX_NAME) || null,
+      name: senderName,
       subject: cleanSubject,
       text: cleanBody,
       tag: category,
@@ -389,8 +471,7 @@ async function submit(request) {
 
   // Sent from the no-reply address, not the desk's: nobody should answer a
   // confirmation, and a reply to it would arrive at an address with no ticket
-  // behind it yet.
-  const from = identities().supportNoreply;
+  // behind it yet. (`from` is the same no-reply identity resolved above.)
   try {
     await sendMail({
       to: email,
