@@ -179,50 +179,6 @@ export function agentReplyEmail({ reference, subject, body, agentName, agentRole
     }),
   };
 }
-
-/**
- * The receipt for a request whose address is already proved.
- *
- * When the form requires a Google sign-in there is nothing left to confirm —
- * Google has done it, better than a click-through ever could. So this says
- * "we have it, here is the number" and asks for nothing. One message instead
- * of two, which on a hundred-a-day allowance is the difference between fifty
- * conversations and a hundred.
- */
-export function requestReceivedEmail({ reference, subject, category, body, locale }) {
-  const pl = locale !== "en";
-  return {
-    subject: pl
-      ? `Mamy Twoje zgłoszenie [${reference}]`
-      : `We have your request [${reference}]`,
-    ...renderEmail({
-      title: pl ? "Mamy Twoje zgłoszenie" : "We have your request",
-      accentLabel: "Support",
-      preheader: pl
-        ? `${reference} — odpowie człowiek, zwykle w jeden dzień roboczy.`
-        : `${reference} — a person will answer, usually within one business day.`,
-      blocks: [
-        block.text(
-          pl
-            ? `Trafiło prosto do zespołu i ma numer ${reference}. Nie musisz nic więcej robić — czyta je człowiek, a odpowiedź przyjdzie na ten adres, zwykle w ciągu jednego dnia roboczego.`
-            : `It went straight to the team and is ticket ${reference}. There is nothing else to do — a person reads it, and the answer comes back to this address, usually within one business day.`
-        ),
-        block.facts([
-          [pl ? "Numer" : "Reference", reference],
-          [pl ? "Kategoria" : "Category", category],
-          [pl ? "Temat" : "Subject", subject],
-        ]),
-        block.quote(pl ? "Twoja wiadomość" : "Your message", body),
-      ],
-      footer: [
-        pl
-          ? "Chcesz coś dodać? Odpowiedz na tę wiadomość — dopisze się do tego samego zgłoszenia."
-          : "Want to add something? Reply to this message — it joins the same ticket.",
-      ],
-    }),
-  };
-}
-
 // ---------------------------------------------------------------------------
 // 3. inbound acknowledgement  —  noreply@help
 // ---------------------------------------------------------------------------

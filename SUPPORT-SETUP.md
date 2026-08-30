@@ -146,19 +146,16 @@ częściowo nieprzetłumaczoną.
    - **Nazwa** *(Name)*: `plately-admin` (widoczna tylko dla Ciebie)
 
 5. **Autoryzowane identyfikatory URI przekierowania** *(Authorised redirect URIs)* →
-   **Dodaj identyfikator URI**, i wpisz **wszystkie cztery**, każdy osobno:
+   **Dodaj identyfikator URI**, i wpisz **oba**, każdy osobno:
 
    ```
    https://www.plately.eu/api/staff/callback
    https://plately.eu/api/staff/callback
-   https://www.plately.eu/api/help/callback
-   https://plately.eu/api/help/callback
    ```
 
-   Dwa pierwsze to logowanie zespołu do panelu. Dwa kolejne obsługują przycisk
-   „Podłącz adres z Google" na stronie `/help`: klient nie zakłada tam żadnego konta —
-   pobieramy wyłącznie jego adres, żeby ticket miał adres potwierdzony przez Google,
-   a nie tylko wpisany z klawiatury.
+   To jest logowanie **zespołu do panelu** i tylko ono. Publiczny formularz `/help`
+   nie używa Google w ogóle — bierze wpisany adres i potwierdza go linkiem
+   wysłanym na ten adres.
 
    Muszą zgadzać się co do znaku — bez ukośnika na końcu, `https`, dokładnie ta ścieżka.
    Wejście z hosta, którego tu nie ma, kończy się błędem `redirect_uri_mismatch`.
@@ -512,16 +509,17 @@ Sprawdź, że jest tam wszystko, czego oczekujesz:
 `Bug`, `Feature request`, `How-to`, `Account`, `Other`), więc zgłoszenie od razu wpada do
 właściwej kolejki na pasku bocznym.
 
-**Przycisk „Podłącz adres z Google"** jest opcjonalny i daje jedną konkretną rzecz: adres
-na tickecie jest wtedy potwierdzony przez Google, a nie wpisany z klawiatury. W zdarzeniu
-`ticket.created_form` zapisuje się `email_verified: true` — przy „nie mogę się dostać do
-swojego konta" to różnica między sprawą do załatwienia a prośbą o uwierzenie obcej osobie
-na słowo.
+**Bez logowania.** Klient wpisuje adres, my wysyłamy na niego link, on klika — i to
+kliknięcie jest dowodem, że skrzynka jest jego. Kosztuje jedno tapnięcie zamiast konta,
+a chroni dokładnie przed tym, przed czym miałoby chronić logowanie: przed wpisaniem
+cudzego adresu i zafundowaniem komuś maila, o który nie prosił.
 
 **Limit:** 5 zgłoszeń na godzinę z jednego adresu e-mail albo z jednego adresu IP.
 IP nie jest zapisywane — trafia do bazy jako skrót HMAC liczony `PEPPER`-em, którego
-w bazie nie ma. Limit liczy sama funkcja `support_ingest_form`, w tej samej transakcji
-co wstawienie ticketu, więc nie da się go wyścigać równoległymi żądaniami.
+w bazie nie ma. Limit liczy sama funkcja `support_stage_form`, w tej samej transakcji
+co zaparkowanie zgłoszenia, więc nie da się go wyścigać równoległymi żądaniami — i liczy
+również zgłoszenia niepotwierdzone, inaczej dałoby się go obejść, po prostu nigdy nie
+klikając w link.
 
 Strona jest też **dostępna podczas przerwy technicznej**. To celowe: moment, w którym
 strona jest wyłączona, to dokładnie ten moment, w którym ludzie chcą zapytać, co się
@@ -718,9 +716,8 @@ adresu, albo `active = false`.
 **`redirect_uri_mismatch`** — w Google Cloud (**Platforma Google Auth → Klienci →** Twój
 klient **→ Autoryzowane identyfikatory URI przekierowania**) brakuje dokładnie tego adresu,
 z którego wchodzisz. Najczęściej: dodany jest `www.plately.eu`, a wszedłeś na apex
-`plately.eu` (albo odwrotnie). Mają tam być wszystkie cztery — dwa dla `/api/staff/callback`
-i dwa dla `/api/help/callback` (krok 2.5). Jeśli błąd wyskakuje tylko przy przycisku na
-`/help`, brakuje właśnie tej drugiej pary.
+`plately.eu` (albo odwrotnie). Mają tam być oba (krok 2.5). Dotyczy wyłącznie panelu —
+strona `/help` nie loguje przez Google.
 
 **Formularz `/help` odsyła „That is several messages in a short time".**
 Limit 5/godzinę zadziałał. Przy testowaniu albo poczekaj, albo skasuj swoje zdarzenia:

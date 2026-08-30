@@ -541,99 +541,17 @@ revoke all on function public.support_ingest_email(jsonb) from public;
 
 
 -- ============================================================================
--- support_ingest_form — the /help form becomes a ticket, atomically
+-- support_ingest_form — REMOVED
 --
--- The public form at https://plately.eu/help is the other way a conversation
--- starts. It differs from inbound mail in three ways, which is why it gets its
--- own function rather than a flag on the one above:
+-- It filed a /help submission straight as a ticket. That was the design before
+-- the form gained a confirmation step; support_stage_form and
+-- support_confirm_request replaced it, and nothing calls it any more.
 --
---   * The category is chosen from a list, so the ticket is tagged properly
---     from the first second instead of waiting for an agent to read it.
---   * There is no Message-ID and no quoted history, so none of the thread
---     matching applies: a form submission is always a new ticket. Two people
---     who happen to pick the same subject must not land in one thread.
---   * It is unauthenticated, so it needs a rate limit. p_max_per_hour is
---     counted here rather than in the Edge Function because a count and an
---     insert in two round trips is a race, and this is the endpoint a bored
---     person will point a script at.
---
--- Returns { ok, number, ticket_id } or { ok:false, error:'rate_limited' }.
+-- Dropped rather than left lying around: a SECURITY DEFINER function that
+-- creates tickets and bypasses RLS is not the kind of thing to leave behind
+-- 'just in case', and an installed database keeps it until told otherwise.
 -- ============================================================================
-create or replace function public.support_ingest_form(p_payload jsonb, p_max_per_hour integer default 5)
-returns jsonb
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_email       text := lower(trim(p_payload ->> 'email'));
-  v_name        text := nullif(trim(coalesce(p_payload ->> 'name', '')), '');
-  v_subject     text := coalesce(nullif(trim(p_payload ->> 'subject'), ''), '(no subject)');
-  v_body        text := coalesce(p_payload ->> 'text', '');
-  v_tag         text := nullif(trim(coalesce(p_payload ->> 'tag', '')), '');
-  v_locale      text := nullif(trim(coalesce(p_payload ->> 'locale', '')), '');
-  v_ip_hash     text := nullif(trim(coalesce(p_payload ->> 'ip_hash', '')), '');
-  v_verified    boolean := coalesce((p_payload ->> 'email_verified')::boolean, false);
-  v_customer_id uuid;
-  v_ticket_id   uuid;
-  v_number      integer;
-  v_recent      integer;
-  v_app_user    uuid;
-begin
-  if v_email is null or v_email = '' then
-    return jsonb_build_object('ok', false, 'error', 'missing email');
-  end if;
-
-  -- Two buckets, either of which can trip: one address hammering the form, and
-  -- one machine cycling through addresses.
-  select count(*) into v_recent
-  from public.support_events e
-  where e.action = 'ticket.created_form'
-    and e.created_at > now() - interval '1 hour'
-    and (e.actor = v_email or (v_ip_hash is not null and e.ip_hash = v_ip_hash));
-
-  if v_recent >= p_max_per_hour then
-    return jsonb_build_object('ok', false, 'error', 'rate_limited');
-  end if;
-
-  select id into v_app_user from auth.users where lower(email) = v_email limit 1;
-
-  insert into public.support_customers (email, name, app_user_id, locale, last_seen_at)
-  values (v_email, v_name, v_app_user, v_locale, now())
-  on conflict (lower(email)) do update
-    set name         = coalesce(support_customers.name, excluded.name),
-        app_user_id  = coalesce(support_customers.app_user_id, excluded.app_user_id),
-        locale       = coalesce(excluded.locale, support_customers.locale),
-        last_seen_at = now()
-  returning id into v_customer_id;
-
-  insert into public.support_tickets
-    (customer_id, subject, channel, tag, locale, last_message_at, last_customer_message_at)
-  values
-    (v_customer_id, v_subject, 'form', v_tag, v_locale, now(), now())
-  returning id, number into v_ticket_id, v_number;
-
-  insert into public.support_messages (ticket_id, kind, author_name, author_email, body)
-  values (v_ticket_id, 'customer', v_name, v_email, v_body);
-
-  update public.support_tickets
-     set message_count = 1
-   where id = v_ticket_id;
-
-  -- `email_verified` records whether the address came from a Google sign-in on
-  -- the form or was simply typed in. An agent should know which, because one
-  -- of the two is worth acting on without further checks.
-  insert into public.support_events (ticket_id, actor, action, detail, ip_hash)
-  values (v_ticket_id, v_email, 'ticket.created_form',
-          jsonb_build_object('subject', v_subject, 'tag', v_tag, 'email_verified', v_verified),
-          v_ip_hash);
-
-  return jsonb_build_object('ok', true, 'ticket_id', v_ticket_id, 'number', v_number,
-                            'customer_id', v_customer_id);
-end;
-$$;
-
-revoke all on function public.support_ingest_form(jsonb, integer) from public;
+drop function if exists public.support_ingest_form(jsonb, integer);
 
 
 -- ============================================================================
@@ -683,9 +601,10 @@ alter table public.support_pending_requests enable row level security;
 -- ============================================================================
 -- support_stage_form — a form submission, parked until it is confirmed
 --
--- Replaces support_ingest_form on the /help path. Same validation and the same
--- rate limit; the difference is that it produces a pending row and a token
--- instead of a ticket.
+-- The only way a /help submission enters the system. Same validation and rate
+-- limit the old support_ingest_form had; the difference is that it produces a
+-- pending row and a token instead of a ticket, so nothing is visible to the
+-- desk until the address has been proved by a click.
 --
 -- Returns { ok, request_id } or { ok:false, error:'rate_limited' }.
 -- ============================================================================
