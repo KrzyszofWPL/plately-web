@@ -219,34 +219,65 @@ export async function verifyPin(pin, staff) {
 // Turnstile
 // ---------------------------------------------------------------------------
 
+// What Cloudflare's error codes actually mean, in words a person can act on.
+// A bot gate that only ever says "verification failed" is a dead end: every
+// one of these has a different fix, and none of them is "try again".
+const TURNSTILE_REASONS = {
+  "missing-input-secret": "TURNSTILE_SECRET_KEY is not set on this deployment",
+  "invalid-input-secret":
+    "TURNSTILE_SECRET_KEY is wrong — it is probably the site key pasted twice, or a key from a different widget",
+  "missing-input-response": "the browser sent no Turnstile token",
+  "invalid-input-response":
+    "the token does not match this widget — usually the site key and the secret key come from two different widgets",
+  "timeout-or-duplicate": "that token was already used or has expired — reload the page",
+  "bad-request": "Cloudflare rejected the shape of the request",
+  "internal-error": "Cloudflare had an internal error",
+};
+
 /**
- * Returns true when the widget token checks out. With no TURNSTILE_SECRET_KEY
- * configured this returns true as well: the panel must stay usable while the
- * key is being set up, and the other two factors are the ones carrying the
- * weight. The setup guide calls this out.
+ * Checks a widget token. Returns { ok, reason }.
+ *
+ * With no TURNSTILE_SECRET_KEY configured this passes: the panel must stay
+ * usable while the key is being set up, and Google + the PIN are the factors
+ * carrying the weight. Same when Cloudflare itself is unreachable — an outage
+ * there must not lock the desk out.
+ *
+ * A *misconfiguration*, though, fails closed and says what is wrong, because
+ * the alternative is a sign-in button that refuses forever without a clue.
  */
 export async function verifyTurnstile(token, ip) {
   const secretKey = process.env.TURNSTILE_SECRET_KEY;
-  if (!secretKey) return true;
-  if (!token || typeof token !== "string") return false;
+  if (!secretKey) return { ok: true };
+  if (!token || typeof token !== "string") {
+    return {
+      ok: false,
+      reason: process.env.TURNSTILE_SITE_KEY
+        ? "the bot check did not finish in the browser"
+        : "TURNSTILE_SITE_KEY is missing, so the widget never rendered and no token could be produced",
+    };
+  }
 
   const form = new FormData();
   form.append("secret", secretKey);
   form.append("response", token);
   if (ip) form.append("remoteip", ip);
 
+  let data;
   try {
     const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       body: form,
     });
-    const data = await res.json();
-    return data.success === true;
+    data = await res.json();
   } catch {
-    // Cloudflare being unreachable must not lock the desk out; Google + PIN
-    // still stand between a stranger and the inbox.
-    return true;
+    return { ok: true };
   }
+
+  if (data.success === true) return { ok: true };
+
+  const codes = Array.isArray(data["error-codes"]) ? data["error-codes"] : [];
+  const explained = codes.map((code) => TURNSTILE_REASONS[code] || code);
+  return { ok: false, reason: explained.join("; ") || "Cloudflare rejected the token" };
 }
 
 export function clientIp(request) {

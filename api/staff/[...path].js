@@ -117,6 +117,19 @@ function decodeJwtPayload(token) {
   }
 }
 
+/**
+ * Turnstile, with the reason attached.
+ *
+ * The reason is safe to show: it names *our* misconfiguration, never anything
+ * about the visitor. Hiding it turned a five-second fix ("the secret key is
+ * the site key pasted twice") into an unsolvable sign-in button.
+ */
+async function turnstileGuard(request, token) {
+  const check = await verifyTurnstile(token, clientIp(request));
+  if (check.ok) return null;
+  return json({ error: `Verification failed: ${check.reason}. Reload the page and try again.` }, 400);
+}
+
 // ---------------------------------------------------------------------------
 // routes
 // ---------------------------------------------------------------------------
@@ -167,9 +180,8 @@ async function startSignIn(request) {
   if (!clientId) return json({ error: "Google sign-in is not configured" }, 500);
 
   const { turnstileToken } = await request.json().catch(() => ({}));
-  if (!(await verifyTurnstile(turnstileToken, clientIp(request)))) {
-    return json({ error: "Verification failed. Reload the page and try again." }, 400);
-  }
+  const blocked = await turnstileGuard(request, turnstileToken);
+  if (blocked) return blocked;
 
   const state = randomHex(16);
   const nonce = randomHex(16);
@@ -331,9 +343,8 @@ async function submitPin(request) {
   if (!pre) return json({ error: "Sign in with Google first" }, 401);
 
   const { pin, turnstileToken } = await request.json().catch(() => ({}));
-  if (!(await verifyTurnstile(turnstileToken, clientIp(request)))) {
-    return json({ error: "Verification failed. Reload the page and try again." }, 400);
-  }
+  const blocked = await turnstileGuard(request, turnstileToken);
+  if (blocked) return blocked;
 
   const staff = await selectOne("staff", `select=*&id=eq.${q(pre.sid)}`);
   if (!staff || !staff.active) return json({ error: "Account is not active" }, 403);
@@ -385,9 +396,8 @@ async function setupPin(request) {
   if (!pre) return json({ error: "Sign in with Google first" }, 401);
 
   const { pin, confirm, turnstileToken } = await request.json().catch(() => ({}));
-  if (!(await verifyTurnstile(turnstileToken, clientIp(request)))) {
-    return json({ error: "Verification failed. Reload the page and try again." }, 400);
-  }
+  const blocked = await turnstileGuard(request, turnstileToken);
+  if (blocked) return blocked;
   if (!isValidPinFormat(pin)) return json({ error: "The PIN must be exactly four digits" }, 400);
   if (pin !== confirm) return json({ error: "The two PINs do not match" }, 400);
   if (isWeakPin(pin)) return json({ error: "That PIN is too easy to guess. Pick another." }, 400);
