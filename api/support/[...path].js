@@ -15,6 +15,8 @@
 
 import { requireStaff, can, logEvent } from "../_lib/staff-session.js";
 import { explainSetupFailure } from "../_lib/setup-error.js";
+import { agentReplyEmail, inboundAckEmail, identities } from "../_lib/email-templates.js";
+import { complete, buildDraftPrompt, lastCustomerMessage, isAiConfigured } from "../_lib/ai.js";
 import { select, selectOne, insert, update, remove, rpc, q } from "../_lib/db.js";
 import { getSiteMode, setSiteMode } from "../../lib/site-mode.js";
 import {
@@ -95,6 +97,10 @@ export default async function handler(request) {
 
       case "POST message":
         return await postMessage(request, session, staff);
+      case "POST ai-draft":
+        return await aiDraft(request, session, staff);
+      case "POST ai-feedback":
+        return await aiFeedback(request, session, staff);
       case "POST ticket":
         return await createTicket(request, session, staff);
       case "POST ticket-update":
@@ -146,7 +152,111 @@ async function bootstrap(session, staff) {
     statuses: STATUSES,
     priorities: PRIORITIES,
     mailConfigured: isMailConfigured(),
+    aiConfigured: isAiConfigured(),
   });
+}
+
+// ---------------------------------------------------------------------------
+// the AI draft
+// ---------------------------------------------------------------------------
+
+/**
+ * Writes a suggested reply. Never sends one.
+ *
+ * The separation is the point: this route returns text to a textarea an agent
+ * has to read, and the send path is the one it always was. Nothing here can put
+ * words in front of a customer on its own, which is the only arrangement worth
+ * having when the model can be confidently wrong.
+ */
+async function aiDraft(request, session, staff) {
+  if (!can(session, "reply")) return json({ error: "Your role cannot send replies" }, 403);
+  if (!isAiConfigured()) {
+    return json({ error: "No AI key is configured on this deployment (GEMINI_API_KEY)." }, 503);
+  }
+
+  const { ticketId } = await request.json().catch(() => ({}));
+  if (!ticketId) return json({ error: "Missing ticketId" }, 400);
+
+  const detail = await rpc("support_ticket_detail", { p_ticket_id: ticketId });
+  if (!detail?.ticket) return json({ error: "No such ticket" }, 404);
+
+  const question = lastCustomerMessage(detail.messages);
+  if (!question) {
+    return json({ error: "There is nothing from the customer to answer yet." }, 400);
+  }
+
+  // Only published articles: a draft is one edit away from being sent, so it
+  // must never quote something still being written.
+  const [articles, examples] = await Promise.all([
+    select("support_articles", "select=id,title,category,body&state=eq.published&order=updated_at.desc&limit=25"),
+    rpc("support_ai_examples", { p_limit: 6 }),
+  ]);
+
+  const prompt = buildDraftPrompt({
+    ticket: detail.ticket,
+    messages: detail.messages,
+    articles,
+    examples,
+    customer: detail.context,
+  });
+
+  let answer;
+  try {
+    answer = await complete(prompt);
+  } catch (err) {
+    return json({ error: String(err.message || err) }, 502);
+  }
+
+  const row = await insert("support_ai_drafts", {
+    ticket_id: ticketId,
+    staff_id: staff.id,
+    model: answer.model,
+    question,
+    draft: answer.text,
+    article_ids: (articles || []).map((a) => a.id),
+  });
+
+  await logEvent({
+    ticket_id: ticketId, staff_id: staff.id, actor: staff.email,
+    action: "ai.drafted", detail: { model: answer.model, articles: (articles || []).length },
+  });
+
+  return json({
+    ok: true,
+    draftId: row.id,
+    draft: answer.text,
+    model: answer.model,
+    // Shown in the panel so an agent can tell "answered from three articles"
+    // apart from "made it up because there were none".
+    articlesUsed: (articles || []).length,
+  });
+}
+
+/**
+ * The thumb.
+ *
+ * Worth having only because support_ai_examples() reads it back into the next
+ * prompt — a rating that changes nothing is a button that wastes an agent's
+ * time. See the note on support_ai_drafts in the schema for what this does and
+ * does not amount to.
+ */
+async function aiFeedback(request, session, staff) {
+  if (!can(session, "reply")) return json({ error: "Your role cannot do that" }, 403);
+  const { draftId, rating } = await request.json().catch(() => ({}));
+  if (!draftId) return json({ error: "Missing draftId" }, 400);
+  if (![1, -1].includes(Number(rating))) return json({ error: "Rating must be 1 or -1" }, 400);
+
+  await update(
+    "support_ai_drafts",
+    `id=eq.${q(draftId)}`,
+    { rating: Number(rating), rated_at: new Date().toISOString() },
+    { returning: false }
+  );
+  await logEvent({
+    staff_id: staff.id, actor: staff.email, action: "ai.rated",
+    detail: { draftId, rating: Number(rating) },
+  });
+  return json({ ok: true });
 }
 
 async function listTickets(url, session) {
@@ -202,7 +312,7 @@ async function listEvents(url, session) {
 // ---------------------------------------------------------------------------
 
 async function postMessage(request, session, staff) {
-  const { ticketId, body, kind = "reply", solve = false } = await request.json().catch(() => ({}));
+  const { ticketId, body, kind = "reply", solve = false, draftId = null } = await request.json().catch(() => ({}));
   if (!ticketId || !String(body || "").trim()) return json({ error: "Write something first" }, 400);
   if (!["reply", "note"].includes(kind)) return json({ error: "Unknown message kind" }, 400);
   if (!can(session, kind)) return json({ error: "Your role cannot do that" }, 403);
@@ -226,11 +336,23 @@ async function postMessage(request, session, staff) {
       return json({ error: "No e-mail provider is configured, so the reply cannot be sent" }, 503);
     }
     const signature = staff.signature || settings?.signature || "";
+    const subjectLine = replySubject(ticket.subject, ticket.number);
+    const rendered = agentReplyEmail({
+      reference: ticketRef(ticket.number),
+      subject: subjectLine,
+      body: text,
+      agentName: staff.display_name || staff.email,
+      signature,
+      locale: ticket.locale,
+    });
     try {
       const sent = await sendMail({
         to: ticket.customer.email,
-        subject: replySubject(ticket.subject, ticket.number),
+        subject: subjectLine,
+        // Both parts, always: some people read plain text by choice, and a
+        // message with no text alternative scores worse with spam filters.
         text: withSignature(text, signature),
+        html: rendered.html,
         inReplyTo: ticket.email_message_id || undefined,
         fromName: settings?.from_name,
         from: settings?.from_email,
@@ -273,12 +395,32 @@ async function postMessage(request, session, staff) {
   await update("support_tickets", `id=eq.${q(ticketId)}`, patch, { returning: false });
   await rpc("support_recount", { p_ticket_id: ticketId });
 
+  // If an AI draft was on screen when this was sent, record what actually went
+  // out. The gap between the draft and this text is an agent quietly correcting
+  // the model — the strongest signal available, and it costs nobody a click.
+  if (draftId && kind === "reply") {
+    try {
+      const draft = await selectOne("support_ai_drafts", `select=draft&id=eq.${q(draftId)}`);
+      if (draft) {
+        await update(
+          "support_ai_drafts",
+          `id=eq.${q(draftId)}`,
+          { sent_body: text, edited: draft.draft.trim() !== text.trim() },
+          { returning: false }
+        );
+      }
+    } catch (err) {
+      // Never let bookkeeping fail a reply that has already left the building.
+      console.error("recording the AI draft outcome failed", err);
+    }
+  }
+
   await logEvent({
     ticket_id: ticketId,
     staff_id: staff.id,
     actor: staff.email,
     action: kind === "reply" ? "message.replied" : "message.noted",
-    detail: { solve: Boolean(solve) },
+    detail: { solve: Boolean(solve), ...(draftId ? { fromAiDraft: true } : {}) },
   });
 
   return json({ ok: true, detail: await rpc("support_ticket_detail", { p_ticket_id: ticketId }) });
@@ -312,11 +454,21 @@ async function createTicket(request, session, staff) {
   const settings = await selectOne("support_settings", "select=*&id=is.true");
   const signature = staff.signature || settings?.signature || "";
   let sent;
+  const outboundSubject = `${String(subject).trim()} [${ticketRef(ticket.number)}]`;
+  const outbound = agentReplyEmail({
+    reference: ticketRef(ticket.number),
+    subject: outboundSubject,
+    body: String(body).trim(),
+    agentName: staff.display_name || staff.email,
+    signature,
+    locale: null,
+  });
   try {
     sent = await sendMail({
       to: address,
-      subject: `${String(subject).trim()} [${ticketRef(ticket.number)}]`,
+      subject: outboundSubject,
       text: withSignature(String(body).trim(), signature),
+      html: outbound.html,
       fromName: settings?.from_name,
       from: settings?.from_email,
     });
@@ -632,13 +784,25 @@ async function handleInbound(request) {
   if (result.created && !result.duplicate && isMailConfigured()) {
     const settings = await selectOne("support_settings", "select=*&id=is.true");
     if (settings?.auto_ack) {
+      const ackSubject = replySubject(full.subject || "(no subject)", result.number);
+      const ackBody = (settings.auto_ack_body || "").replace(/\{\{\s*ref\s*\}\}/g, ticketRef(result.number));
+      const ack = inboundAckEmail({
+        reference: ticketRef(result.number),
+        subject: ackSubject,
+        body: text,
+        locale: null,
+      });
+      // From the no-reply address: this is a robot's receipt, and a reply to
+      // it would only produce a second robot.
+      const ackFrom = identities().supportNoreply;
       try {
         const sent = await sendMail({
           to: sender.email,
-          subject: replySubject(full.subject || "(no subject)", result.number),
-          text: (settings.auto_ack_body || "").replace(/\{\{\s*ref\s*\}\}/g, ticketRef(result.number)),
-          fromName: settings.from_name,
-          from: settings.from_email,
+          subject: ackSubject,
+          text: ackBody || ack.text,
+          html: ack.html,
+          fromName: ackFrom.name,
+          from: ackFrom.email,
         });
         await update(
           "support_tickets",

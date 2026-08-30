@@ -328,58 +328,100 @@ podejrzany komuś przez ramię nie da się użyć drugi raz.
 
 ---
 
-## 7. Poczta: wysyłka z contact@plately.eu
+## 7. Poczta: wysyłka z contact@help.plately.eu
 
 > **Ten krok wystarcza, żeby formularz `/help` działał od początku do końca.** Klient
-> zgłasza problem → ticket od razu jest w panelu → klient dostaje potwierdzenie
-> z `contact@plately.eu`. Formularz zapisuje zgłoszenie **prosto do bazy**, nie mailem,
-> więc do samego zobaczenia go w help desku poczta przychodząca nie jest potrzebna.
+> zgłasza problem → dostaje link potwierdzający z `noreply@help.plately.eu` → klika →
+> ticket jest w panelu. Formularz zapisuje zgłoszenie **prosto do bazy**, nie mailem, więc
+> do samego zobaczenia go w help desku poczta przychodząca nie jest potrzebna.
 >
 > Krok 8 dokłada dwie rzeczy, których bez niego nie ma: **odpowiedź klienta wraca na ten
 > sam ticket** (bez tego rozmowa jest jednokierunkowa), oraz **mail wysłany wprost na
-> `contact@plately.eu`, z pominięciem formularza, też zakłada ticket**.
+> `contact@help.plately.eu`, z pominięciem formularza, też zakłada ticket**.
 >
-> Krok 7 niczego nie psuje. Krok 8 przekierowuje całą pocztę `@plately.eu` — przeczytaj
-> ostrzeżenie na jego początku, zanim go zrobisz.
+> Żaden z nich nie rusza `plately.eu` — obie skrzynki siedzą na subdomenie `help.`,
+> a MX apeksu zostaje tam, gdzie jest.
+
+### Adresy: dwie subdomeny, trzy nadawcy
+
+|  | adres | do czego |
+| --- | --- | --- |
+| **help** | `contact@help.plately.eu` | rozmowa. Odpowiedzi klientów wracają tu i doklejają się do ticketu |
+| **help** | `noreply@help.plately.eu` | link potwierdzający i automatyczne potwierdzenia |
+| **info** | `noreply@info.plately.eu` | koniec subskrypcji, przypomnienie o passie, cała reszta cyklu życia |
+
+Podział na **dwie domeny**, nie tylko dwa adresy, i to jest tu najważniejsza decyzja.
+Reputację nadawcy liczy się per domena. W dniu, w którym „utrzymaj swoją passę" zbierze
+dość kliknięć „to spam", pociągnie za sobą `info.plately.eu` — a `help.plately.eu`, którym
+idzie poczta, na którą ktoś faktycznie czeka, zostaje nietknięta. Mieszanie tych dwóch
+rzeczy to typowy sposób, w jaki dział pomocy ląduje w spamie przez wysyłkę marketingową,
+z którą nie miał nic wspólnego.
+
+Obie są **subdomenami**, nie apeksem, i to załatwia drugą rzecz: **MX na `plately.eu` się
+nie rusza**. Sprawdziłem stan Twojej domeny — apex ma `mx1/mx2.efwd.spaceship.net`
+(darmowe forwardowanie Spaceship) i SPF `v=spf1 include:spf.efwd.spaceship.net ~all`.
+Po tym kroku dalej będzie je miał, więc przekierowanie `contact@plately.eu` na Gmaila
+działa jak działało. Nie ma tu żadnego przełączania z ryzykiem.
+
+Każda subdomena to osobna „domena" w Resend, z własnymi rekordami DNS. **Darmowy plan
+dopuszcza trzy**, więc obie mieszczą się bez płacenia.
 
 DNS plately.eu jest na **Spaceship** (`launch1/launch2.spaceship.net`) i tam zostaje.
-Rekordy do wysyłki lądują na subdomenie `send.` — **apex zostaje nietknięty**, więc ten krok
-niczego jeszcze nie psuje.
-
-Stan wyjściowy Twojej domeny (sprawdzone): MX na apeksie to `mx1/mx2.efwd.spaceship.net`
-(darmowe forwardowanie Spaceship), a SPF to `v=spf1 include:spf.efwd.spaceship.net ~all`.
-Na `send.plately.eu` nie ma jeszcze nic. Po kroku 7 apex zostaje dokładnie taki, jaki jest.
 
 1. Załóż darmowe konto na [resend.com](https://resend.com).
-2. **Domains → Add Domain** → `plately.eu`. Region wybierz europejski, jeśli jest dostępny.
+2. **Domains → Add Domain** → wpisz **`help.plately.eu`** (nie `plately.eu`).
+   Region wybierz europejski, jeśli jest dostępny.
 3. Resend pokaże 3 rekordy. Wejdź na Spaceship → **Domains → plately.eu → Advanced DNS**
    i dodaj je dokładnie tak, jak są pokazane (Resend podaje wartości; poniżej kształt):
 
    | Typ | Host | Wartość | Priorytet |
    | --- | --- | --- | --- |
-   | MX | `send` | `feedback-smtp.eu-west-1.amazonses.com` (Resend pokaże swoją) | 10 |
-   | TXT | `send` | `v=spf1 include:amazonses.com ~all` | — |
-   | TXT | `resend._domainkey` | `p=MIGfMA0…` (długi klucz z Resend) | — |
+   | MX | `send.help` | `feedback-smtp.eu-west-1.amazonses.com` (Resend pokaże swoją) | 10 |
+   | TXT | `send.help` | `v=spf1 include:amazonses.com ~all` | — |
+   | TXT | `resend._domainkey.help` | `p=MIGfMA0…` (długi klucz z Resend) | — |
 
-   **Wpisuj sam host, bez domeny** — `send`, nie `send.plately.eu`. Spaceship dokleja domenę sam.
+   **Wpisuj sam host, bez domeny** — `send.help`, nie `send.help.plately.eu`. Spaceship
+   dokleja domenę sam. Jeśli Resend pokazuje Ci hosty już z `.plately.eu` na końcu, utnij
+   tę końcówkę.
 
    Istniejącego SPF na apeksie (`v=spf1 include:spf.efwd.spaceship.net ~all`) **nie ruszaj** —
-   SPF Resenda siedzi na `send`, to dwa różne rekordy. (Gdyby kiedykolwiek trzeba było mieć
-   dwa include'y na apeksie, muszą wylądować w **jednym** rekordzie TXT — dwa rekordy SPF to
-   błąd konfiguracji.)
+   SPF Resenda siedzi pod `send.help`, to zupełnie inna nazwa. (Gdyby kiedykolwiek trzeba
+   było mieć dwa include'y na jednej nazwie, muszą wylądować w **jednym** rekordzie TXT —
+   dwa rekordy SPF na tej samej nazwie to błąd konfiguracji.)
 
 4. Wróć do Resend → **Verify**. Propagacja to zwykle kilka minut, czasem godzina.
-5. **API Keys → Create API Key**, uprawnienia **Full access** (panel i wysyła, i czyta
+5. **Powtórz kroki 2–4 dla `info.plately.eu`** — te same trzy rekordy, tylko z `info`
+   zamiast `help` w hoście (`send.info`, `resend._domainkey.info`). Możesz to zrobić
+   później; bez tego działa wszystko poza mailami cyklu życia.
+6. **API Keys → Create API Key**, uprawnienia **Full access** (panel i wysyła, i czyta
    przychodzące). Skopiuj — pokazuje się raz.
-6. Vercel → dodaj `RESEND_API_KEY` → **Redeploy**.
+7. Vercel → dodaj `RESEND_API_KEY` oraz adresy nadawców:
+
+   | Zmienna | Wartość |
+   | --- | --- |
+   | `SUPPORT_MAIL_DOMAIN` | `help.plately.eu` |
+   | `SUPPORT_FROM_EMAIL` | `contact@help.plately.eu` |
+   | `SUPPORT_NOREPLY_EMAIL` | `noreply@help.plately.eu` |
+   | `INFO_MAIL_DOMAIN` | `info.plately.eu` |
+   | `INFO_FROM_EMAIL` | `noreply@info.plately.eu` |
+
+   → **Redeploy**.
 
 Test 1 — panel wysyła: **New ticket** → wpisz swój prywatny adres, temat i treść →
-*Create and send*. Mail powinien dojść z `Plately Support <contact@plately.eu>`, a w panelu
-pojawia się ticket `SUP-1000`.
+*Create and send*. Mail powinien dojść z `Plately Support <contact@help.plately.eu>`,
+ładnie złożony, a w panelu pojawia się ticket `SUP-1000`.
 
-Test 2 — formularz działa: wejdź na `https://plately.eu/help`, wyślij zgłoszenie na swój
-adres. Ma się wydarzyć jedno i drugie naraz: numer `SUP-…` na stronie i potwierdzenie
-w skrzynce, a w panelu nowy ticket z kanałem `form`.
+Test 2 — formularz i potwierdzenie: wejdź na `https://plately.eu/help`, wyślij zgłoszenie
+na swój adres. Kolejność jest teraz taka:
+
+1. strona mówi **„Sprawdź skrzynkę"** — i **nie** ma jeszcze numeru, bo nie ma jeszcze
+   ticketu;
+2. na Twój adres przychodzi mail od **`noreply@help.plately.eu`** z przyciskiem
+   *Potwierdzam zgłoszenie*;
+3. klikasz → wracasz na `/help` z komunikatem „Zgłoszenie potwierdzone" i numerem `SUP-…`;
+4. **dopiero teraz** ticket jest w panelu, z kanałem `form`.
+
+Zajrzyj też do panelu przed krokiem 3 — ma tam nie być nic. O to chodzi.
 
 Szybkie sprawdzenie, że klucz doszedł:
 
@@ -391,30 +433,31 @@ curl -s https://plately.eu/api/staff/health
 
 ---
 
-## 8. Poczta: odbiór na contact@plately.eu
+## 8. Poczta: odbiór na contact@help.plately.eu
 
-> ⚠️ **Ten krok wyłącza dotychczasowe przekierowanie ze Spaceship.** Sprawdziłem: apex ma
-> teraz `MX → mx1.efwd.spaceship.net` i `mx2.efwd.spaceship.net` (priorytet 0), czyli
-> darmowe forwardowanie Spaceship — to jest to, co dziś przenosi pocztę z `contact@` na
-> Twojego Gmaila. Po podmianie na MX Resenda **każdy** adres `@plately.eu` (contact@,
-> hello@, cokolwiek) trafia do Resenda, a nie na Gmaila. To jest właśnie cel — panel staje
-> się skrzynką — ale warto wiedzieć zawczasu, i warto zrobić to wtedy, gdy masz chwilę
-> sprawdzić efekt, a nie w piątek wieczorem.
+> ✅ **Ten krok już niczego nie wyłącza.** Wcześniejsza wersja tej instrukcji kazała
+> podmienić MX na apeksie, co zabierało całą pocztę `@plately.eu` Gmailowi. Przejście na
+> subdomenę to załatwiło: MX dokładamy na **`help.plately.eu`**, a apex zostaje z
+> `mx1/mx2.efwd.spaceship.net` i dalej przekierowuje `contact@plately.eu` tam, gdzie
+> przekierowywał. Nie ma cut-overu i nie ma czego pilnować po zmianie.
 >
 > Jeśli chcesz na jakiś czas dostawać też kopię na Gmaila: ustaw w Vercelu
 > `SUPPORT_FORWARD_COPY_TO="twoj@gmail.com"`. Webhook prześle wtedy kopię każdej
 > przychodzącej wiadomości (kosztuje 1 mail z dziennego limitu 100). Usuniesz zmienną, gdy
 > przestanie być potrzebna.
 
-1. Resend → **Domains → plately.eu → Inbound** (albo *Receiving*) → włącz odbiór.
-2. Resend pokaże **rekord MX dla odbioru**. Na Spaceship → **Advanced DNS**:
-   - **usuń** dwa istniejące rekordy MX `mx1.efwd.spaceship.net` i `mx2.efwd.spaceship.net`,
-   - **dodaj** MX z hostem `@` i wartością/priorytetem podanym przez Resend.
+1. Resend → **Domains → help.plately.eu → Inbound** (albo *Receiving*) → włącz odbiór.
+2. Resend pokaże **rekord MX dla odbioru**. Na Spaceship → **Advanced DNS** dodaj go
+   z hostem **`help`** (nie `@`). Niczego nie usuwasz.
 3. Sprawdź propagację:
+   ```bash
+   nslookup -type=MX help.plately.eu 8.8.8.8
+   ```
+   Ma pokazać host Resenda. A dla pewności, że apex jest nietknięty:
    ```bash
    nslookup -type=MX plately.eu 8.8.8.8
    ```
-   Ma pokazać host Resenda, nie `efwd.spaceship.net`.
+   Tu dalej ma być `efwd.spaceship.net`.
 4. Resend → **Webhooks → Add Webhook**:
    - **Endpoint URL**: `https://plately.eu/api/support/inbound`
    - **Event**: `email.received`
@@ -432,9 +475,12 @@ curl -s https://plately.eu/api/staff/health
 
 Szukasz `"inboundMailWorks": true`.
 
-Test: z prywatnej skrzynki napisz na `contact@plately.eu`. W ciągu kilkunastu sekund
-w Inboxie pojawia się nowy ticket, a nadawca dostaje automatyczne potwierdzenie
+Test: z prywatnej skrzynki napisz na **`contact@help.plately.eu`**. W ciągu kilkunastu
+sekund w Inboxie pojawia się nowy ticket, a nadawca dostaje automatyczne potwierdzenie
 (z numerem `SUP-…`, treść edytujesz w *Settings → E-mail channel*).
+
+Mail wysłany wprost na adres pomija krok potwierdzenia — i słusznie, bo sam fakt, że
+przyszedł z tej skrzynki, jest dowodem, którego formularz nie ma.
 
 Jeśli nic nie przychodzi, kolejność sprawdzania jest zawsze ta sama: czy `nslookup` pokazuje
 już MX Resenda (propagacja bywa godzinna), potem Resend → **Webhooks → Attempts** — tam widać
@@ -483,7 +529,42 @@ dzieje — zamykanie im wtedy jedynych drzwi nie miałoby sensu.
 
 ---
 
-## 10. Jak to jest poskładane (żeby dało się to potem debugować)
+## 10. „Use AI" — podpowiedź odpowiedzi
+
+Opcjonalne. Bez klucza przycisk po prostu się nie pojawia i nic innego się nie zmienia.
+
+1. Weź klucz z [aistudio.google.com](https://aistudio.google.com) (ma darmowy limit).
+   To ten sam dostawca, którego używa aplikacja — nie dokładamy drugiego rachunku.
+2. Vercel → `GEMINI_API_KEY` → **Redeploy**. Jeśli masz już w aplikacji pulę
+   `AI_API_KEYS`, ta zmienna też zadziała (bierze pierwszy klucz z listy).
+3. W panelu otwórz ticket od klienta. Nad polem odpowiedzi jest **Use AI**.
+
+**Skąd model bierze odpowiedzi.** Wyłącznie z opublikowanych artykułów bazy wiedzy
+(*Knowledge base* → stan `published`) i z treści samego ticketu. Systemowa instrukcja
+zabrania mu wymyślać funkcje, ceny, terminy i zasady zwrotów — jeśli w bazie nie ma
+odpowiedzi, ma to powiedzieć wprost. **Pusta baza wiedzy = bezużyteczne szkice**, więc to
+jest ta rzecz, którą warto zrobić najpierw: kilka artykułów na najczęstsze pytania.
+
+Notatki wewnętrzne **nie trafiają do modelu**. Do promptu idą tylko wiadomości od klienta
+i wysłane odpowiedzi.
+
+**Nic nie wychodzi automatycznie.** Przycisk wpisuje tekst do pola odpowiedzi i tyle.
+Wysyła dokładnie ten sam przycisk co zawsze, po tym jak człowiek to przeczytał.
+
+**Kciuki — co realnie robią.** To nie jest trenowanie modelu; wagi się nie zmieniają.
+Oceniony szkic ląduje w `support_ai_drafts`, a `support_ai_examples()` wstrzykuje go do
+**następnego** promptu: zaakceptowane odpowiedzi jako „tak pisze to biurko", odrzucone jako
+„tak nie odpowiadaj". To zmienia kolejne szkice — bo tak działa każdy prompt z przykładami
+— ale nie jest magią i warto wiedzieć, które z dwóch dostajesz.
+
+Mocniejszy sygnał zbiera się sam: kiedy wyślesz odpowiedź, mając na ekranie szkic, zapisuje
+się **to, co faktycznie poszło**. Różnica między szkicem a wysłanym tekstem to człowiek po
+cichu poprawiający model, i to właśnie ta wersja jest potem pokazywana jako wzór — nie szkic.
+Nie wymaga żadnego kliknięcia.
+
+---
+
+## 11. Jak to jest poskładane (żeby dało się to potem debugować)
 
 **Logowanie.** `POST /api/staff/start` zwraca URL Google, zapisując
 `state` + `nonce` w podpisanym ciasteczku. `GET /api/staff/callback` wymienia kod na
@@ -534,6 +615,21 @@ sesji zespołu, a tutaj wszystko jest dostępne dla każdego z internetu. Trzyma
 w jednym pliku oznaczałoby, że jedna zapomniana bramka zamienia formularz kontaktowy
 w nieuwierzytelniony odczyt bazy ticketów.
 
+**Formularz `/help`.** Zgłoszenie **nie** trafia od razu do biurka. Ląduje w
+`support_pending_requests` razem z HMAC-iem jednorazowego tokenu, a mail z linkiem idzie
+z `noreply@help`. Dopiero kliknięcie promuje je na ticket. Powód jest prosty: formularz,
+który wysyła maila na dowolny wpisany adres, jest maszynką do wysyłania poczty obcym
+ludziom — a na reputacji odbija się to nam, nie temu, kto wpisał cudzy adres.
+
+Osobna tabela, nie flaga na `support_tickets`, i to jest cały projekt tego rozwiązania:
+wszystkie widoki, liczniki i raporty czytają z `support_tickets`, więc gdyby
+niepotwierdzone wiersze leżały tam, każdy z nich potrzebowałby nowego filtra — a pierwszy
+zapomniany wpuściłby śmieci do skrzynki albo, gorzej, do raportów.
+
+`support_confirm_request` jest idempotentna: kasuje wiersz w tej samej instrukcji, w której
+tworzy ticket. Skanery w bramkach pocztowych klikają każdy link zanim zobaczy go człowiek,
+więc drugie wejście musi znaleźć gotowy ticket, a nie założyć duplikat.
+
 **Poczta przychodząca.** Webhook Resenda niesie tylko metadane, więc treść dociągamy z
 `GET /emails/receiving/{id}`. Dopasowanie do wątku po kolei: `[SUP-1042]` w temacie →
 `In-Reply-To`/`References` wskazujące na nasz `Message-ID` → ten sam nadawca + ten sam temat
@@ -548,7 +644,7 @@ uprawnień działa natychmiast**, a nie po wygaśnięciu ciasteczka.
 
 ---
 
-## 11. Role i tiery
+## 12. Role i tiery
 
 | | owner | admin | agent T3 | agent T2 | agent T1 | viewer |
 | --- | :-: | :-: | :-: | :-: | :-: | :-: |
@@ -582,7 +678,7 @@ aplikacji. Powiedz, gdzie ma się pojawić, to podepnę.
 
 ---
 
-## 12. Kiedy coś pójdzie nie tak
+## 13. Kiedy coś pójdzie nie tak
 
 **Nie mogę się zalogować / zgubiłem PIN albo telefon.**
 Jeśli jest inny owner — zrobi to z panelu (*Settings → Team and roles → Edit → Reset PIN*
@@ -664,7 +760,7 @@ curl -s https://plately.eu/api/staff/health
 
 ---
 
-## 13. Limity, o których warto pamiętać
+## 14. Limity, o których warto pamiętać
 
 - **Resend free: 3 000 maili/miesiąc, 100/dzień**, i **odbiór liczy się do tej samej puli**.
   Jeden ticket to zwykle 1 (przychodzący) + 1 (auto-potwierdzenie) + 1 (odpowiedź) = 3 sztuki.

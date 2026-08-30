@@ -110,6 +110,12 @@
   .done { border: 1px solid rgba(52,211,153,.35); background: #12201a; border-radius: 22px; padding: clamp(24px,4vw,34px); margin-top: clamp(30px,4vw,42px); }
   .done h2 { margin: 0 0 10px; font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
   .done p { margin: 0 0 12px; font-size: 15px; line-height: 1.7; color: #b6b6bd; }
+  .done p.small { font-size: 13px; color: #8a8a92; }
+  .done strong { color: #f4f4f5; font-weight: 600; }
+  /* The one case where the request did not go through: same card, different
+     edge, so it does not read as success at a glance. */
+  .done.bad { border-color: rgba(248,113,113,.35); background: #2a1416; }
+  .done.bad .ref { border-color: rgba(248,113,113,.35); color: #fca5a5; }
   .ref { display: inline-block; margin: 6px 0 14px; padding: 10px 16px; border-radius: 12px; background: #0a0a0b; border: 1px solid rgba(52,211,153,.35); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 18px; font-weight: 500; color: #34d399; letter-spacing: .06em; }
 
   /* --- the FAQ ----------------------------------------------------------- */
@@ -221,13 +227,20 @@
     </div>
   </form>
 
-  <!-- Replaces the form once a ticket exists. -->
+  <!-- Replaces the form once the request is parked and the link is on its way. -->
   <section class="done" id="done" hidden>
-    <h2 data-t="doneTitle">Mamy Twoją wiadomość</h2>
-    <div class="ref" id="done-ref"></div>
+    <h2 data-t="doneTitle">Sprawdź skrzynkę</h2>
     <p id="done-body"></p>
-    <p data-t="doneReply">Możesz po prostu odpowiedzieć na tego maila, jeśli chcesz coś dodać — dopisze się do tej samej rozmowy.</p>
+    <p data-t="doneWhy">Jedno kliknięcie potwierdza, że adres należy do Ciebie. Dopiero wtedy zgłoszenie trafia do zespołu — dzięki temu nikt nie może wpisać w ten formularz cudzego adresu i zafundować komuś maila, o który nie prosił.</p>
+    <p class="small" data-t="doneSpam">Nie widzisz wiadomości po kilku minutach? Zajrzyj do spamu — przychodzi od <strong>noreply@help.plately.eu</strong>.</p>
     <button type="button" class="linkbtn" id="again" data-t="again">Napisz w innej sprawie</button>
+  </section>
+
+  <!-- Where the link in that e-mail lands. -->
+  <section class="done" id="confirmed" hidden>
+    <h2 id="confirmed-title"></h2>
+    <div class="ref" id="confirmed-ref" hidden></div>
+    <p id="confirmed-body"></p>
   </section>
 
   <section class="faq">
@@ -304,9 +317,18 @@
       nameLabel: 'Imię <span class="opt">(opcjonalnie)</span>', namePh: 'Jak się do Ciebie zwracać',
       send: 'Wyślij do pomocy', sending: 'Wysyłam…',
       footNote: 'Wysyłając, przekazujesz nam swój adres e-mail i treść wiadomości, żebyśmy mogli odpowiedzieć. Szczegóły w <a href="/privacy">Polityce Prywatności</a>.',
-      doneTitle: 'Mamy Twoją wiadomość',
-      doneReply: 'Możesz po prostu odpowiedzieć na tego maila, jeśli chcesz coś dodać — dopisze się do tej samej rozmowy.',
+      doneTitle: 'Sprawdź skrzynkę',
+      doneWhy: 'Jedno kliknięcie potwierdza, że adres należy do Ciebie. Dopiero wtedy zgłoszenie trafia do zespołu — dzięki temu nikt nie może wpisać w ten formularz cudzego adresu i zafundować komuś maila, o który nie prosił.',
+      doneSpam: 'Nie widzisz wiadomości po kilku minutach? Zajrzyj do spamu — przychodzi od <strong>noreply@help.plately.eu</strong>.',
       again: 'Napisz w innej sprawie',
+      confirmOkTitle: 'Zgłoszenie potwierdzone',
+      confirmOkBody: 'Trafiło do zespołu. Odpowiedź przyjdzie na ten sam adres, zwykle w ciągu jednego dnia roboczego — od contact@help.plately.eu.',
+      confirmExpiredTitle: 'Ten link już nie działa',
+      confirmExpiredBody: 'Albo zgłoszenie zostało już potwierdzone — wtedy wszystko jest w porządku i czeka na odpowiedź — albo link wygasł po siedmiu dniach. Jeśli nie masz pewności, wyślij zgłoszenie jeszcze raz.',
+      confirmInvalidTitle: 'Nieprawidłowy link',
+      confirmInvalidBody: 'Ten adres nie wygląda na nasz link potwierdzający. Sprawdź, czy skopiowałeś/aś go w całości.',
+      confirmFailedTitle: 'Coś poszło nie tak',
+      confirmFailedBody: 'Nie udało się potwierdzić zgłoszenia. Spróbuj kliknąć link jeszcze raz albo napisz bezpośrednio na contact@plately.eu.',
       faqTitle: 'Zanim napiszesz',
       q1: 'Ile czeka się na odpowiedź?',
       a1: 'Zwykle jeden dzień roboczy. Każdą wiadomość czyta człowiek — nie ma tu bota, który zamyka zgłoszenia.',
@@ -324,8 +346,7 @@
       errBody: 'Opisz sprawę trochę szerzej — przynajmniej zdanie lub dwa.',
       errEmail: 'Ten adres e-mail wygląda na niepoprawny.',
       errNet: 'Nie udało się wysłać. Sprawdź połączenie i spróbuj ponownie.',
-      doneBody: function (mail) { return 'Potwierdzenie poszło na ' + mail + '. Jeśli go nie widzisz w ciągu kilku minut, sprawdź spam.'; },
-      doneBodyNoMail: function (mail) { return 'Zapisaliśmy zgłoszenie pod tym numerem. Potwierdzenie na ' + mail + ' nie doszło do skutku, ale wiadomość mamy i odpiszemy.'; },
+      doneBody: function (mail) { return 'Wysłaliśmy link potwierdzający na ' + mail + '. Kliknij go, a zgłoszenie trafi do zespołu.'; },
       signinOk: 'Adres podłączony.',
       signinCancelled: 'Logowanie przez Google zostało przerwane. Możesz wpisać adres ręcznie.',
       signinExpired: 'Link wygasł. Spróbuj jeszcze raz albo wpisz adres ręcznie.',
@@ -353,9 +374,18 @@
       nameLabel: 'Name <span class="opt">(optional)</span>', namePh: 'What to call you',
       send: 'Send to support', sending: 'Sending…',
       footNote: 'By sending this you give us your e-mail address and your message so we can answer. Details in the <a href="/privacy">Privacy Policy</a>.',
-      doneTitle: 'We have your message',
-      doneReply: 'Just reply to that e-mail if you want to add anything — it joins the same conversation.',
+      doneTitle: 'Check your inbox',
+      doneWhy: 'One click confirms the address is yours. Only then does the request reach the team — which is what stops anyone typing a stranger’s address into this form and having us mail them unasked.',
+      doneSpam: 'Nothing after a few minutes? Look in spam — it comes from <strong>noreply@help.plately.eu</strong>.',
       again: 'Write about something else',
+      confirmOkTitle: 'Request confirmed',
+      confirmOkBody: 'It has reached the team. The answer comes back to this address, usually within one business day, from contact@help.plately.eu.',
+      confirmExpiredTitle: 'That link no longer works',
+      confirmExpiredBody: 'Either the request was already confirmed — in which case all is well and it is waiting for an answer — or the link expired after seven days. If you are not sure, just send it again.',
+      confirmInvalidTitle: 'That is not a valid link',
+      confirmInvalidBody: 'This address does not look like one of our confirmation links. Check that you copied all of it.',
+      confirmFailedTitle: 'Something went wrong',
+      confirmFailedBody: 'We could not confirm the request. Try the link once more, or write to contact@plately.eu directly.',
       faqTitle: 'Before you write',
       q1: 'How long until someone answers?',
       a1: 'Usually one business day. A person reads every message — there is no bot here closing tickets.',
@@ -373,8 +403,7 @@
       errBody: 'Tell us a little more — at least a sentence or two.',
       errEmail: 'That e-mail address does not look right.',
       errNet: 'That did not send. Check your connection and try again.',
-      doneBody: function (mail) { return 'A confirmation is on its way to ' + mail + '. If it is not there within a few minutes, check your spam folder.'; },
-      doneBodyNoMail: function (mail) { return 'Your message is filed under this reference. The confirmation to ' + mail + ' did not go out, but we do have the message and will reply.'; },
+      doneBody: function (mail) { return 'We sent a confirmation link to ' + mail + '. Click it and the request reaches the team.'; },
       signinOk: 'Address attached.',
       signinCancelled: 'Google sign-in was cancelled. You can type your address instead.',
       signinExpired: 'That link expired. Try again, or type your address instead.',
@@ -389,7 +418,7 @@
   var lang = 'pl';
   var t = T.pl;
   var state = { siteKey: null, token: null, widget: null, email: null, category: null,
-                sending: false, msgKey: null, receipt: null };
+                sending: false, msgKey: null, receipt: null, confirm: null };
 
   function esc(v) {
     return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
@@ -422,9 +451,9 @@
     drawCategories();
     paintMessage();
     if (!$('done').hidden && state.receipt) {
-      $('done-body').textContent =
-        (state.receipt.confirmed ? t.doneBody : t.doneBodyNoMail)(state.receipt.email);
+      $('done-body').textContent = t.doneBody(state.receipt.email);
     }
+    if (state.confirm) paintConfirmation();
     $('send').textContent = state.sending ? t.sending : t.send;
   }
 
@@ -554,6 +583,8 @@
 
   $('again').addEventListener('click', function () {
     $('done').hidden = true;
+    $('confirmed').hidden = true;
+    state.confirm = null;
     $('form').hidden = false;
     $('subject').value = '';
     $('body').value = '';
@@ -601,9 +632,8 @@
     }).then(function (data) {
       $('form').hidden = true;
       $('done').hidden = false;
-      state.receipt = { confirmed: data.confirmed, email: data.email };
-      $('done-ref').textContent = data.reference;
-      $('done-body').textContent = (data.confirmed ? t.doneBody : t.doneBodyNoMail)(data.email);
+      state.receipt = { email: data.email };
+      $('done-body').textContent = t.doneBody(data.email);
       $('done').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }).catch(function (err) {
       // Straight from the server, already in a language it chose — shown as-is.
@@ -621,6 +651,37 @@
   try { stored = localStorage.getItem('plately_landing_lang'); } catch (e) {}
   var guess = stored || (navigator.language || 'pl').slice(0, 2).toLowerCase();
   applyLang(guess === 'pl' ? 'pl' : 'en');
+
+  /**
+   * What the link in the confirmation e-mail lands on.
+   *
+   * Rendered as its own card instead of a banner over the form, because the
+   * person arriving here has already written their message — showing them an
+   * empty form to scroll past would read as though it had been lost.
+   */
+  function paintConfirmation() {
+    var c = state.confirm;
+    if (!c) return;
+    var ok = c.state === 'ok';
+    var key = ok ? 'Ok' : c.state === 'expired' ? 'Expired'
+            : c.state === 'invalid' ? 'Invalid' : 'Failed';
+    $('form').hidden = true;
+    $('done').hidden = true;
+    $('confirmed').hidden = false;
+    $('confirmed').className = 'done' + (ok ? '' : ' bad');
+    $('confirmed-title').textContent = t['confirm' + key + 'Title'];
+    $('confirmed-body').textContent = t['confirm' + key + 'Body'];
+    $('confirmed-ref').hidden = !(ok && c.ref);
+    if (ok && c.ref) $('confirmed-ref').textContent = c.ref;
+  }
+
+  var params = new URLSearchParams(location.search);
+  var confirmState = params.get('confirm');
+  if (confirmState) {
+    state.confirm = { state: confirmState, ref: params.get('ref') };
+    history.replaceState(null, '', '/help');
+    paintConfirmation();
+  }
 
   // Report on the Google round trip, then drop the parameter so a refresh does
   // not replay the message.

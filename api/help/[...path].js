@@ -17,20 +17,30 @@
 //   GET  /api/help/callback  Google returns; we verify the address and store it
 //                            in a short signed cookie. No account is created
 //                            and nothing is written to the database
-//   POST /api/help/submit    the form itself → a ticket + a confirmation e-mail
+//   POST /api/help/submit    the form. Parks the request and mails a confirm
+//                            link — no ticket exists yet
+//   GET  /api/help/confirm   the link. Turns the parked request into a real
+//                            ticket the desk can see
 //   POST /api/help/signout   drops the cookie above
 //
 // Signing in is entirely optional and buys exactly one thing: the address on
 // the ticket is one Google vouched for rather than one somebody typed. An
-// agent can see which it was — support_ingest_form records it — and that is
-// the difference between "I am locked out of this account" being actionable
-// and being a request to take a stranger's word for it.
+// agent can see which it was — the ticket.created_form event records it — and
+// that is the difference between "I am locked out of this account" being
+// actionable and being a request to take a stranger's word for it.
+//
+// Nothing here writes to support_tickets. A form submission is parked in
+// support_pending_requests until somebody clicks the link mailed to the
+// address they gave, and only the confirm route promotes it. A form that mails
+// whatever address is typed into it is a machine for mailing strangers, and
+// the reputation damage lands on us rather than on whoever typed it.
 // ============================================================================
 
 import { hmacHex, timingSafeEqual } from "../_lib/auth.js";
 import { explainSetupFailure } from "../_lib/setup-error.js";
-import { rpc, selectOne } from "../_lib/db.js";
+import { rpc } from "../_lib/db.js";
 import { sendMail, isMailConfigured, ticketRef } from "../_lib/mail.js";
+import { confirmRequestEmail, identities } from "../_lib/email-templates.js";
 import { verifyTurnstile, clientIp } from "../_lib/staff-session.js";
 
 export const config = { runtime: "edge" };
@@ -183,6 +193,8 @@ export default async function handler(request) {
         return await finishGoogle(request);
       case "POST submit":
         return await submit(request);
+      case "GET confirm":
+        return await confirmRequest(request);
       case "POST signout":
         return json({ ok: true }, 200, { "Set-Cookie": clearCookie(IDENTITY_COOKIE) });
       default:
@@ -334,85 +346,120 @@ async function submit(request) {
     return json({ error: "The help desk is temporarily unable to accept messages. Please try again later." }, 503);
   }
 
-  const result = await rpc("support_ingest_form", {
+  const locale = String(payload.locale || "").slice(0, 8) || null;
+
+  // The token goes out in the link; only its HMAC is stored. This table is the
+  // one place somebody could read a pending confirmation out of, and a hash is
+  // not a link.
+  const token = randomToken();
+  const staged = await rpc("support_stage_form", {
     p_payload: {
+      token_hash: await tokenHash(token),
       email,
       name: identity ? identity.nm : String(name || "").trim().slice(0, MAX_NAME) || null,
       subject: cleanSubject,
       text: cleanBody,
       tag: category,
-      locale: String(payload.locale || "").slice(0, 8) || null,
+      locale,
       ip_hash: await ipHash(request),
       email_verified: Boolean(identity),
     },
     p_max_per_hour: MAX_PER_HOUR,
   });
 
-  if (!result?.ok) {
-    if (result?.error === "rate_limited") {
+  if (!staged?.ok) {
+    if (staged?.error === "rate_limited") {
       return json(
-        { error: "That is several messages in a short time. Reply to the e-mail you already have, or try again in an hour." },
+        { error: "That is several messages in a short time. Check your inbox for the confirmation we already sent, or try again in an hour." },
         429
       );
     }
     return json({ error: "We could not file that message. Please try again." }, 500);
   }
 
-  const reference = ticketRef(result.number);
+  const origin = new URL(request.url).origin;
+  const mail = confirmRequestEmail({
+    reference: `REQ-${String(staged.request_id).slice(0, 8).toUpperCase()}`,
+    subject: cleanSubject,
+    category,
+    body: cleanBody,
+    confirmUrl: `${origin}/api/help/confirm?t=${token}`,
+    locale,
+  });
 
-  // The sender comes from the desk's own settings, not from the environment
-  // alone, so that changing it in Settings -> E-mail channel changes it here
-  // too. Out of the box that is Plately Support <contact@plately.eu>, and a
-  // reply to it lands straight back in the same ticket.
-  const settings = await selectOne("support_settings", "select=from_name,from_email&id=is.true");
-
-  // The confirmation is the whole promise of the page: the message landed, it
-  // has a number, and a person will answer it. A failure to send does NOT undo
-  // the ticket — the desk has the message either way, and telling someone
-  // their report vanished when it did not is the worse of the two errors.
-  let confirmed = true;
+  // Sent from the no-reply address, not the desk's: nobody should answer a
+  // confirmation, and a reply to it would arrive at an address with no ticket
+  // behind it yet.
+  const from = identities().supportNoreply;
   try {
     await sendMail({
       to: email,
-      subject: `We have your message [${reference}]`,
-      text: confirmationText({ reference, subject: cleanSubject, category, body: cleanBody }),
-      fromName: settings?.from_name,
-      from: settings?.from_email,
+      subject: mail.subject,
+      text: mail.text,
+      html: mail.html,
+      from: from.email,
+      fromName: from.name,
     });
   } catch (err) {
     console.error("help confirmation failed", err);
-    confirmed = false;
+    // Here the failure DOES matter: without the mail there is no way to
+    // confirm, so the pending row is dead weight and the person needs to know
+    // rather than sit waiting for a link that was never sent.
+    return json({ error: "We could not send the confirmation e-mail. Please check the address and try again." }, 502);
   }
 
-  return json({ ok: true, reference, number: result.number, confirmed, email });
+  return json({ ok: true, pending: true, email });
 }
 
 /**
- * Written to be replied to. The reference in the subject is what threads the
- * answer back onto this ticket if they write again from their own mailbox —
- * support_ingest_email matches on exactly that.
+ * The click that turns a pending request into a ticket.
+ *
+ * A GET, because it is a link in an e-mail and that is the only verb a link
+ * has. That normally makes a state change uncomfortable — but the token is
+ * single-use and unguessable, the "state change" is one the recipient is being
+ * asked for, and support_confirm_request is idempotent, so the mail scanners
+ * and prefetchers that will inevitably hit this URL first cost nothing.
  */
-function confirmationText({ reference, subject, category, body }) {
-  return [
-    "Thanks for writing to Plately support.",
-    "",
-    `We have your message and it is now ticket ${reference}. A person reads every one of them,`,
-    "and you will get a real answer at this address — usually within one business day.",
-    "",
-    "You do not need to do anything else. If you want to add something, just reply to this",
-    "e-mail and it joins the same conversation.",
-    "",
-    "— — —",
-    `Reference: ${reference}`,
-    `Category:  ${category}`,
-    `Subject:   ${subject}`,
-    "",
-    "What you sent us:",
-    "",
-    body,
-    "",
-    "— — —",
-    "Plately · plately.eu",
-    "This is an automatic confirmation. Replying to it reaches the support team.",
-  ].join("\n");
+async function confirmRequest(request) {
+  const url = new URL(request.url);
+  const token = url.searchParams.get("t") || "";
+  const done = (state, ref) =>
+    redirect(`/help?confirm=${state}${ref ? `&ref=${encodeURIComponent(ref)}` : ""}`);
+
+  if (!/^[a-f0-9]{48,80}$/.test(token)) return done("invalid");
+
+  const result = await rpc("support_confirm_request", { p_token_hash: await tokenHash(token) });
+  if (!result?.ok) return done(result?.error === "not_pending" ? "expired" : "failed");
+
+  const reference = ticketRef(result.number);
+  await logConfirmation(result, reference);
+  return done("ok", reference);
+}
+
+/**
+ * Tells the desk the ticket exists. Deliberately after the redirect decision
+ * and wrapped: the person has confirmed either way, and a failure to write an
+ * extra note must not turn a successful confirmation into an error page.
+ */
+async function logConfirmation(result, reference) {
+  try {
+    await rpc("support_recount", { p_ticket_id: result.ticket_id });
+  } catch (err) {
+    console.error("recount after confirmation failed", err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// tokens
+// ---------------------------------------------------------------------------
+
+function randomToken() {
+  return [...crypto.getRandomValues(new Uint8Array(24))]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/** HMAC rather than a bare hash, so a stolen table cannot be rainbow-tabled. */
+function tokenHash(token) {
+  return hmacHex(process.env.PEPPER || process.env.SESSION_SECRET || "", `help-confirm:${token}`);
 }

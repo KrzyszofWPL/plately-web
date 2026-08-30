@@ -637,6 +637,290 @@ revoke all on function public.support_ingest_form(jsonb, integer) from public;
 
 
 -- ============================================================================
+-- support_pending_requests — the /help form, before the address is proved
+--
+-- A form that takes an address and sends mail to it is a machine for mailing
+-- strangers: type somebody else's address in, and we deliver to a person who
+-- never asked. The reputation damage lands on us, not on whoever typed it. So
+-- a form submission waits here until one click from that mailbox proves it is
+-- real, and only then becomes a ticket.
+--
+-- A SEPARATE TABLE rather than a flag on support_tickets, and that is the
+-- whole design. Every view, every count, every report already written selects
+-- from support_tickets; if unconfirmed rows lived there, each one would need a
+-- new filter and the first one anybody forgot would put unverified junk in the
+-- inbox — or worse, in the reports. Nothing unconfirmed can leak into the desk
+-- if the desk's tables never hold it.
+--
+-- The token is stored hashed for the same reason a password is: this table is
+-- the one place an attacker could read a confirmation link out of, and a hash
+-- is not a link.
+-- ============================================================================
+create table if not exists public.support_pending_requests (
+  id uuid primary key default gen_random_uuid(),
+  token_hash text not null,
+  email text not null,
+  name text,
+  subject text not null,
+  body text not null,
+  tag text,
+  locale text,
+  ip_hash text,
+  -- Whether the address came from a Google sign-in on the form. Carried across
+  -- to the event log when the ticket is finally created.
+  email_verified boolean not null default false,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '7 days'
+);
+
+create unique index if not exists support_pending_token_key on public.support_pending_requests (token_hash);
+create index if not exists support_pending_email_idx on public.support_pending_requests (email, created_at desc);
+create index if not exists support_pending_expiry_idx on public.support_pending_requests (expires_at);
+
+alter table public.support_pending_requests enable row level security;
+
+
+-- ============================================================================
+-- support_stage_form — a form submission, parked until it is confirmed
+--
+-- Replaces support_ingest_form on the /help path. Same validation and the same
+-- rate limit; the difference is that it produces a pending row and a token
+-- instead of a ticket.
+--
+-- Returns { ok, request_id } or { ok:false, error:'rate_limited' }.
+-- ============================================================================
+create or replace function public.support_stage_form(p_payload jsonb, p_max_per_hour integer default 5)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_email    text := lower(trim(p_payload ->> 'email'));
+  v_ip_hash  text := nullif(trim(coalesce(p_payload ->> 'ip_hash', '')), '');
+  v_recent   integer;
+  v_id       uuid;
+begin
+  if v_email is null or v_email = '' then
+    return jsonb_build_object('ok', false, 'error', 'missing email');
+  end if;
+
+  -- Self-cleaning: a link nobody clicked is rubbish after a week, and doing it
+  -- here means the table stays small without a scheduled job to forget about.
+  delete from public.support_pending_requests where expires_at < now();
+
+  -- The limit counts unconfirmed attempts as well as tickets, or the whole
+  -- rate limit could be walked around by simply never confirming.
+  select
+    (select count(*) from public.support_pending_requests r
+      where r.created_at > now() - interval '1 hour'
+        and (r.email = v_email or (v_ip_hash is not null and r.ip_hash = v_ip_hash)))
+    +
+    (select count(*) from public.support_events e
+      where e.action = 'ticket.created_form'
+        and e.created_at > now() - interval '1 hour'
+        and (e.actor = v_email or (v_ip_hash is not null and e.ip_hash = v_ip_hash)))
+  into v_recent;
+
+  if v_recent >= p_max_per_hour then
+    return jsonb_build_object('ok', false, 'error', 'rate_limited');
+  end if;
+
+  insert into public.support_pending_requests
+    (token_hash, email, name, subject, body, tag, locale, ip_hash, email_verified)
+  values (
+    p_payload ->> 'token_hash',
+    v_email,
+    nullif(trim(coalesce(p_payload ->> 'name', '')), ''),
+    coalesce(nullif(trim(p_payload ->> 'subject'), ''), '(no subject)'),
+    coalesce(p_payload ->> 'text', ''),
+    nullif(trim(coalesce(p_payload ->> 'tag', '')), ''),
+    nullif(trim(coalesce(p_payload ->> 'locale', '')), ''),
+    v_ip_hash,
+    coalesce((p_payload ->> 'email_verified')::boolean, false)
+  )
+  returning id into v_id;
+
+  return jsonb_build_object('ok', true, 'request_id', v_id);
+end;
+$$;
+
+revoke all on function public.support_stage_form(jsonb, integer) from public;
+
+
+-- ============================================================================
+-- support_confirm_request — the click, and the ticket it creates
+--
+-- Idempotent on purpose. Mail clients pre-fetch links, people double-click,
+-- and a scanner in a corporate mail gateway will follow every URL in a message
+-- before the human ever sees it. Consuming the pending row inside the same
+-- statement that creates the ticket means the second visit finds the ticket
+-- already there and says so, rather than filing a duplicate.
+--
+-- Returns { ok, number, ticket_id, already } or { ok:false, error }.
+-- ============================================================================
+create or replace function public.support_confirm_request(p_token_hash text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_req         public.support_pending_requests%rowtype;
+  v_customer_id uuid;
+  v_ticket_id   uuid;
+  v_number      integer;
+  v_app_user    uuid;
+begin
+  -- Deleting on the way out is what makes a second click a no-op rather than a
+  -- second ticket. RETURNING gives us the row we just consumed.
+  delete from public.support_pending_requests
+   where token_hash = p_token_hash and expires_at > now()
+  returning * into v_req;
+
+  if v_req.id is null then
+    -- Either already used, or expired, or never existed. The caller cannot
+    -- tell those apart and neither should a visitor holding a stale link.
+    return jsonb_build_object('ok', false, 'error', 'not_pending');
+  end if;
+
+  select id into v_app_user from auth.users where lower(email) = v_req.email limit 1;
+
+  insert into public.support_customers (email, name, app_user_id, locale, last_seen_at)
+  values (v_req.email, v_req.name, v_app_user, v_req.locale, now())
+  on conflict (lower(email)) do update
+    set name         = coalesce(support_customers.name, excluded.name),
+        app_user_id  = coalesce(support_customers.app_user_id, excluded.app_user_id),
+        locale       = coalesce(excluded.locale, support_customers.locale),
+        last_seen_at = now()
+  returning id into v_customer_id;
+
+  insert into public.support_tickets
+    (customer_id, subject, channel, tag, locale, last_message_at, last_customer_message_at, message_count)
+  values
+    (v_customer_id, v_req.subject, 'form', v_req.tag, v_req.locale, now(), now(), 1)
+  returning id, number into v_ticket_id, v_number;
+
+  insert into public.support_messages (ticket_id, kind, author_name, author_email, body)
+  values (v_ticket_id, 'customer', v_req.name, v_req.email, v_req.body);
+
+  insert into public.support_events (ticket_id, actor, action, detail, ip_hash)
+  values (v_ticket_id, v_req.email, 'ticket.created_form',
+          jsonb_build_object('subject', v_req.subject, 'tag', v_req.tag,
+                             'email_verified', v_req.email_verified,
+                             'confirmed', true,
+                             'waited_seconds', round(extract(epoch from (now() - v_req.created_at)))),
+          v_req.ip_hash);
+
+  return jsonb_build_object('ok', true, 'ticket_id', v_ticket_id, 'number', v_number,
+                            'customer_id', v_customer_id, 'email', v_req.email,
+                            'subject', v_req.subject, 'locale', v_req.locale);
+end;
+$$;
+
+revoke all on function public.support_confirm_request(text) from public;
+
+
+-- ============================================================================
+-- support_ai_drafts — every AI-written draft, and what the agent did with it
+--
+-- Two things are recorded, and the second is the valuable one:
+--
+--   rating     the agent's thumb, up or down. Cheap to give, coarse.
+--   sent_body  what was ACTUALLY sent, when the draft was used. The difference
+--              between `draft` and `sent_body` is an agent silently correcting
+--              the model, which is a far stronger signal than a thumb and
+--              costs nobody an extra click.
+--
+-- What this is NOT: fine-tuning. Nothing here changes model weights. The rows
+-- are read back by support_ai_examples() and put in front of the next request
+-- as worked examples — the model is shown how this desk answered similar
+-- questions well, and told what it got wrong before. That genuinely moves the
+-- output, because it is the same mechanism that makes any example-led prompt
+-- work; it just is not magic, and it is worth being precise about which of the
+-- two is on offer.
+-- ============================================================================
+create table if not exists public.support_ai_drafts (
+  id uuid primary key default gen_random_uuid(),
+  ticket_id uuid references public.support_tickets(id) on delete cascade,
+  staff_id uuid references public.staff(id) on delete set null,
+  model text,
+  -- What the customer had asked at the moment of drafting, so an example is
+  -- readable later without walking the whole thread.
+  question text not null default '',
+  draft text not null,
+  -- Which knowledge-base articles were in the prompt. Lets you see whether a
+  -- bad answer came from a bad article or from the model.
+  article_ids jsonb not null default '[]'::jsonb,
+  rating smallint check (rating in (-1, 1)),
+  rated_at timestamptz,
+  -- Filled in when a reply is sent while a draft was on screen.
+  sent_body text,
+  edited boolean,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists support_ai_drafts_ticket_idx on public.support_ai_drafts (ticket_id, created_at desc);
+create index if not exists support_ai_drafts_rating_idx on public.support_ai_drafts (rating, created_at desc)
+  where rating is not null;
+
+alter table public.support_ai_drafts enable row level security;
+
+
+-- ============================================================================
+-- support_ai_examples — the feedback, on its way back into the next prompt
+--
+-- This is the function that makes the thumbs mean something. It returns two
+-- lists:
+--
+--   good  answers this desk approved. Where an agent edited before sending,
+--         the EDITED text is returned, not the draft — the point is to show
+--         the model what the right answer looked like, and the agent's version
+--         is the right answer by definition.
+--   bad   drafts that were thumbed down, returned as things to avoid.
+--
+-- Ordered newest first so the desk's current voice wins over its old one, and
+-- capped, because a prompt is not a database and twenty examples cost tokens
+-- on every single draft.
+-- ============================================================================
+create or replace function public.support_ai_examples(p_limit integer default 6)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'good', coalesce((
+      select jsonb_agg(jsonb_build_object('question', question, 'answer', answer) order by created_at desc)
+      from (
+        select d.question,
+               -- The agent's edit is the correction; prefer it over the draft.
+               coalesce(nullif(trim(d.sent_body), ''), d.draft) as answer,
+               d.created_at
+        from public.support_ai_drafts d
+        where d.rating = 1 and length(trim(d.question)) > 0
+        order by d.created_at desc
+        limit p_limit
+      ) g
+    ), '[]'::jsonb),
+    'bad', coalesce((
+      select jsonb_agg(jsonb_build_object('question', question, 'rejected', rejected) order by created_at desc)
+      from (
+        select d.question, d.draft as rejected, d.created_at
+        from public.support_ai_drafts d
+        where d.rating = -1 and length(trim(d.question)) > 0
+        order by d.created_at desc
+        limit greatest(1, p_limit / 2)
+      ) b
+    ), '[]'::jsonb)
+  );
+$$;
+
+revoke all on function public.support_ai_examples(integer) from public;
+
+
+-- ============================================================================
 -- support_view_counts — the numbers next to every entry in the sidebar
 --
 -- One round trip instead of ten HEAD requests with Prefer: count=exact.

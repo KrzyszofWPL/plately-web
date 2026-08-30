@@ -54,6 +54,11 @@
     staffList: null,
     maintenance: null,
     mailConfigured: true,
+    aiConfigured: false,
+    // The draft currently on screen, per ticket: { id, text, model, articlesUsed,
+    // rating }. Keyed by ticket so switching away and back does not lose it.
+    aiDrafts: {},
+    aiBusy: false,
     busy: false,
     listBusy: false,
     error: "",
@@ -191,6 +196,9 @@
     chevron: svg('<path d="m6 9 6 6 6-6"></path>', 16),
     shield: svg('<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path>', 16),
     info: svg('<circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path>', 20),
+    spark: svg('<path d="M9.5 3 11 7.5 15.5 9 11 10.5 9.5 15 8 10.5 3.5 9 8 7.5z"></path><path d="M17.5 13 18.4 15.6 21 16.5 18.4 17.4 17.5 20 16.6 17.4 14 16.5 16.6 15.6z"></path>', 16),
+    thumbUp: svg('<path d="M7 10v11"></path><path d="M14.5 3 12 10h6.6a2 2 0 0 1 2 2.4l-1.3 6a2 2 0 0 1-2 1.6H7V10l3.5-7a2 2 0 0 1 4 0z"></path>', 15),
+    thumbDown: svg('<path d="M17 14V3"></path><path d="M9.5 21 12 14H5.4a2 2 0 0 1-2-2.4l1.3-6a2 2 0 0 1 2-1.6H17v11l-3.5 7a2 2 0 0 1-4 0z"></path>', 15),
     phone: svg('<rect width="14" height="20" x="5" y="2" rx="2"></rect><path d="M12 18h.01"></path><path d="M9 6h6"></path>', 16),
   };
 
@@ -432,6 +440,7 @@
       S.statuses = data.statuses || [];
       S.priorities = data.priorities || [];
       S.mailConfigured = data.mailConfigured !== false;
+      S.aiConfigured = data.aiConfigured === true;
       S.phase = "ready";
       render();
       return refreshTickets(true);
@@ -1106,6 +1115,48 @@
     "</article>";
   }
 
+  /**
+   * The AI strip above the composer.
+   *
+   * Three states, and the middle one is the important one. Before: an offer.
+   * After: a banner saying plainly that a machine wrote what is now in the box
+   * and a person is accountable for sending it. The thumbs sit here rather than
+   * after sending, because this is the moment the agent has actually just
+   * judged the text.
+   *
+   * Notes never get this. An internal note is one colleague talking to another
+   * and there is nothing for a model to do in it.
+   */
+  function aiBar(t, noteMode) {
+    if (noteMode || !S.perms.reply) return "";
+    var draft = S.aiDrafts[t.id];
+
+    if (!draft) {
+      if (!S.aiConfigured) return "";
+      return '<div class="ai-bar">' +
+        '<button type="button" class="ai-btn" data-act="ai-draft" ' + (S.aiBusy ? "disabled" : "") + ">" +
+          (S.aiBusy ? '<span class="spinner"></span>' : ICON.spark) +
+          "<span>" + (S.aiBusy ? "Reading the knowledge base…" : "Use AI") + "</span>" +
+        "</button>" +
+        '<span class="ai-hint">Drafts a reply from published articles. You read it before anything is sent.</span>' +
+      "</div>";
+    }
+
+    return '<div class="ai-bar ai-bar-done">' +
+      '<span class="ai-tag">' + ICON.spark + "AI draft</span>" +
+      '<span class="ai-hint">' +
+        (draft.articlesUsed
+          ? "From " + esc(draft.articlesUsed) + " knowledge-base article" + (draft.articlesUsed === 1 ? "" : "s") + " — check it before sending."
+          : "No published articles to work from, so check this especially carefully.") +
+      "</span>" +
+      '<span class="ai-rate">' +
+        '<button type="button" class="ai-thumb ' + (draft.rating === 1 ? "on up" : "") + '" data-act="ai-rate" data-rating="1" title="Good draft — show answers like this to the model next time">' + ICON.thumbUp + "</button>" +
+        '<button type="button" class="ai-thumb ' + (draft.rating === -1 ? "on down" : "") + '" data-act="ai-rate" data-rating="-1" title="Bad draft — tell the model not to answer like this again">' + ICON.thumbDown + "</button>" +
+        '<button type="button" class="ai-thumb" data-act="ai-discard" title="Discard the draft">✕</button>' +
+      "</span>" +
+    "</div>";
+  }
+
   function composer(t) {
     var draft = S.drafts[t.id] || "";
     var noteMode = S.composerKind === "note";
@@ -1118,6 +1169,7 @@
           ? "Only the team sees this"
           : (S.mailConfigured ? "Goes to " + esc(t.customer_email) : "No mail provider configured — replies cannot be sent")) + "</span>" +
       "</div>" +
+      aiBar(t, noteMode) +
       '<textarea id="composer" placeholder="' + (noteMode ? "Leave a note for whoever picks this up next…" : "Write the reply…") + '">' + esc(draft) + "</textarea>" +
       '<div class="foot">' +
         S.macros.slice(0, 4).map(function (m) {
@@ -1709,6 +1761,56 @@
 
     "show-secret": function () { S.showSecret = true; render(); },
 
+    "ai-draft": function () {
+      if (!S.selectedId || S.aiBusy) return;
+      var id = S.selectedId;
+      saveDraft();
+      S.aiBusy = true;
+      render();
+      api("/api/support/ai-draft", { method: "POST", body: { ticketId: id } })
+        .then(function (data) {
+          S.aiBusy = false;
+          S.aiDrafts[id] = {
+            id: data.draftId, text: data.draft, model: data.model,
+            articlesUsed: data.articlesUsed, rating: 0,
+          };
+          // Straight into the box, because the agent is going to edit it there
+          // anyway and a preview they have to copy out of is a wasted step.
+          // Anything already typed is kept above it rather than thrown away.
+          var typed = (S.drafts[id] || "").trim();
+          S.drafts[id] = typed ? typed + "\n\n" + data.draft : data.draft;
+          render();
+          focusComposer();
+        })
+        .catch(function (err) {
+          S.aiBusy = false;
+          render();
+          toast(err.message, true);
+        });
+    },
+
+    "ai-rate": function (el) {
+      var draft = S.aiDrafts[S.selectedId];
+      if (!draft || !draft.id) return;
+      var rating = Number(el.dataset.rating);
+      // Optimistic: the thumb is a hint to the next prompt, not a transaction,
+      // and waiting on a round trip to colour a button reads as broken.
+      draft.rating = rating;
+      render();
+      api("/api/support/ai-feedback", { method: "POST", body: { draftId: draft.id, rating: rating } })
+        .then(function () {
+          toast(rating === 1
+            ? "Noted — answers like this will be shown to the model as examples"
+            : "Noted — the model will be told not to answer like that again");
+        })
+        .catch(function (err) { draft.rating = 0; render(); toast(err.message, true); });
+    },
+
+    "ai-discard": function () {
+      delete S.aiDrafts[S.selectedId];
+      render();
+    },
+
     "enrol-again": function () {
       if (!confirm("Throw away the code on screen and generate a new one? Anything you already scanned stops working.")) return;
       S.enrolBusy = true;
@@ -2063,11 +2165,20 @@
     var kind = S.composerKind;
     var button = document.querySelector('[data-act="send"]');
     busy(button, true);
+    var aiDraft = S.aiDrafts[S.selectedId];
     api("/api/support/message", {
       method: "POST",
-      body: { ticketId: S.selectedId, body: text, kind: kind, solve: Boolean(solve) && kind === "reply" },
+      body: {
+        ticketId: S.selectedId, body: text, kind: kind,
+        solve: Boolean(solve) && kind === "reply",
+        // Lets the server compare what the model wrote with what was actually
+        // sent. That difference is the agent correcting it, and it is worth
+        // more than the thumb.
+        draftId: aiDraft && kind === "reply" ? aiDraft.id : undefined,
+      },
     }).then(function (data) {
       delete S.drafts[S.selectedId];
+      delete S.aiDrafts[S.selectedId];
       S.detail = data.detail;
       render();
       scrollThreadToEnd();

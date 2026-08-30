@@ -668,6 +668,47 @@ html[data-theme="dark"] .kind { background: rgba(255, 255, 255, .1); }
   padding: 16px 26px 20px; display: flex; flex-direction: column; gap: 12px;
 }
 .composer .tabs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* --- the AI draft strip --------------------------------------------------
+   Sits between the tabs and the textarea, so it reads as a property of what
+   is about to be written rather than a toolbar bolted to the top. */
+.ai-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px; border-radius: 14px;
+  background: var(--m3-surface-container); border: 1px solid var(--m3-outline-variant);
+}
+/* Once a draft is in the box the strip changes colour, because the agent now
+   has something of a machine's on screen with their name about to go on it. */
+.ai-bar-done { background: var(--m3-tertiary-container); border-color: transparent; }
+.ai-btn {
+  display: inline-flex; align-items: center; gap: 8px; flex: none;
+  min-height: 32px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--m3-outline-variant); background: var(--m3-surface-container-low);
+  color: var(--m3-on-surface); font-size: 13px; font-weight: 600; font-family: inherit;
+}
+.ai-btn:hover:not(:disabled) { border-color: var(--m3-primary); color: var(--m3-primary); }
+.ai-btn:disabled { opacity: .6; cursor: progress; }
+.ai-tag {
+  display: inline-flex; align-items: center; gap: 6px; flex: none;
+  font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--m3-on-tertiary-container);
+}
+.ai-hint {
+  font-size: 12px; line-height: 17px; color: var(--m3-on-surface-variant);
+  min-width: 0; flex: 1 1 200px;
+}
+.ai-bar-done .ai-hint { color: var(--m3-on-tertiary-container); opacity: .85; }
+.ai-rate { display: flex; align-items: center; gap: 4px; flex: none; margin-left: auto; }
+.ai-thumb {
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+  border-radius: 999px; border: 1px solid transparent; cursor: pointer;
+  background: transparent; color: var(--m3-on-tertiary-container); opacity: .6;
+  font-size: 13px; font-family: inherit;
+}
+.ai-thumb:hover { opacity: 1; background: rgba(127, 127, 127, .16); }
+.ai-thumb.on { opacity: 1; }
+.ai-thumb.on.up { background: var(--m3-primary); color: var(--m3-on-primary); }
+.ai-thumb.on.down { background: var(--m3-error); color: var(--m3-on-error); }
 .tab {
   min-height: 34px; padding: 0 16px; border-radius: 999px; border: none;
   background: transparent; color: var(--m3-on-surface-variant);
