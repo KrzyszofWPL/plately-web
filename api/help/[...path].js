@@ -28,6 +28,7 @@
 // ============================================================================
 
 import { hmacHex, timingSafeEqual } from "../_lib/auth.js";
+import { explainSetupFailure } from "../_lib/setup-error.js";
 import { rpc, selectOne } from "../_lib/db.js";
 import { sendMail, isMailConfigured, ticketRef } from "../_lib/mail.js";
 import { verifyTurnstile, clientIp } from "../_lib/staff-session.js";
@@ -189,7 +190,9 @@ export default async function handler(request) {
     }
   } catch (err) {
     console.error("help route failed", route, err);
-    return json({ error: "Something went wrong on our side" }, 500);
+    // A setup step nobody has run yet is not a fault, and saying so turns a
+    // dead end into a fix. Anything else keeps the shrug.
+    return json({ error: explainSetupFailure(err) || "Something went wrong on our side" }, 500);
   }
 }
 

@@ -16,6 +16,29 @@ export class DbError extends Error {
     this.name = "DbError";
     this.status = status;
     this.detail = detail;
+    // PostgREST answers with JSON carrying a Postgres SQLSTATE. Parsing it
+    // once here is what lets a caller tell "the schema has not been installed"
+    // apart from "the query is wrong", which are the same 400 otherwise.
+    try {
+      const body = JSON.parse(detail);
+      this.code = body.code || null;
+      this.pgMessage = body.message || null;
+    } catch {
+      this.code = null;
+      this.pgMessage = null;
+    }
+  }
+
+  /**
+   * True when the database answered correctly and the answer was "that does
+   * not exist here" — a missing table, column or function. Always a
+   * deployment step somebody has not run yet, never a visitor's doing.
+   *
+   *   42P01 undefined_table   42703 undefined_column
+   *   42883 undefined_function                PGRST202 unknown RPC
+   */
+  get isMissingSchema() {
+    return ["42P01", "42703", "42883", "PGRST202", "PGRST204"].includes(this.code);
   }
 }
 

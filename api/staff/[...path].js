@@ -70,6 +70,7 @@ import {
   qrSvg,
 } from "../_lib/totp.js";
 import { hmacHex, timingSafeEqual } from "../_lib/auth.js";
+import { explainSetupFailure } from "../_lib/setup-error.js";
 import { selectOne, select, insert, update, q } from "../_lib/db.js";
 
 export const config = { runtime: "edge" };
@@ -187,6 +188,8 @@ export default async function handler(request) {
         return await handleCallback(request);
       case "GET session":
         return await readSession(request);
+      case "GET health":
+        return await health();
       case "POST pin":
         return await submitPin(request);
       case "POST pin-setup":
@@ -220,7 +223,9 @@ export default async function handler(request) {
     // Never leak a stack or a Postgres message to the browser; the panel shows
     // `error`, the deployment log keeps the rest.
     console.error("staff route failed", route, err);
-    return json({ error: "Something went wrong on our side" }, 500);
+    // A setup step nobody has run yet is not a fault, and saying so turns a
+    // dead end into a fix. Anything else keeps the shrug.
+    return json({ error: explainSetupFailure(err) || "Something went wrong on our side" }, 500);
   }
 }
 
@@ -375,6 +380,79 @@ async function readSession(request) {
     state: "signed_out",
     turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
     googleConfigured: Boolean(process.env.GOOGLE_CLIENT_ID),
+  });
+}
+
+/**
+ * Which setup steps are done — checkable with curl, before anyone signs in.
+ *
+ * Deliberately unauthenticated, because the moment you need it is the moment
+ * nobody can get in. It answers only in booleans and in names this repository
+ * already publishes: no values, no keys, no addresses, no counts. That is a
+ * shade more than /api/staff/session gives away and far less than the sign-in
+ * page's own error messages, which is the right trade for the one diagnostic
+ * that turns "Something went wrong" into a task.
+ *
+ *   curl -s https://plately.eu/api/staff/health
+ */
+async function health() {
+  const env = {
+    SUPABASE_URL: Boolean(process.env.SUPABASE_URL),
+    SUPABASE_SERVICE_ROLE_KEY: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    GOOGLE_CLIENT_ID: Boolean(process.env.GOOGLE_CLIENT_ID),
+    GOOGLE_CLIENT_SECRET: Boolean(process.env.GOOGLE_CLIENT_SECRET),
+    SESSION_SECRET: Boolean(process.env.SESSION_SECRET),
+    PEPPER: Boolean(process.env.PEPPER),
+    TURNSTILE_SITE_KEY: Boolean(process.env.TURNSTILE_SITE_KEY),
+    TURNSTILE_SECRET_KEY: Boolean(process.env.TURNSTILE_SECRET_KEY),
+    RESEND_API_KEY: Boolean(process.env.RESEND_API_KEY),
+    RESEND_WEBHOOK_SECRET: Boolean(process.env.RESEND_WEBHOOK_SECRET),
+  };
+
+  const database = { reachable: false, schema: null, staffRows: null, note: null };
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    database.note = "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set, so nothing was checked";
+  } else {
+    try {
+      // Selecting the newest columns by name is the check: PostgREST answers
+      // 42703 for a column that is not there, which is exactly the state an
+      // install that predates the authenticator step is in.
+      const rows = await select("staff", "select=id,pin_hash,totp_secret,totp_enrolled_at,totp_last_step&limit=1");
+      database.reachable = true;
+      database.schema = "current";
+      // Whether anyone can sign in at all. The chicken-and-egg in step 1 of
+      // SUPPORT-SETUP.md is invisible otherwise: everything is configured,
+      // every address is refused, and nothing says why.
+      database.staffRows = Array.isArray(rows) ? rows.length : 0;
+      if (database.staffRows === 0) {
+        database.note = "the staff table is empty — no Google address can sign in until " +
+          "the 'First owner' insert at the bottom of supabase/support-schema.sql is run";
+      }
+    } catch (err) {
+      database.reachable = err.name === "DbError" && err.status !== 500;
+      database.schema = err.name === "DbError" && err.isMissingSchema ? "out of date" : "unknown";
+      database.note = explainSetupFailure(err) || "the database could not be queried";
+    }
+  }
+
+  const blocking = [];
+  for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET", "SESSION_SECRET", "PEPPER"]) {
+    if (!env[key]) blocking.push(`${key} is not set`);
+  }
+  if (database.schema === "out of date") blocking.push("run supabase/support-schema.sql");
+  if (database.staffRows === 0) blocking.push("add the first owner row to the staff table");
+
+  return json({
+    signInWorks: blocking.length === 0,
+    blocking,
+    // Not blocking: the desk opens without these, it just cannot send or
+    // receive mail, and the bot check is skipped.
+    mailWorks: env.RESEND_API_KEY,
+    inboundMailWorks: env.RESEND_API_KEY && env.RESEND_WEBHOOK_SECRET,
+    botCheckActive: env.TURNSTILE_SITE_KEY && env.TURNSTILE_SECRET_KEY,
+    env,
+    database,
   });
 }
 

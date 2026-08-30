@@ -250,7 +250,30 @@ Wypchnij zmiany do repo (`KrzyszofWPL/dasdvwes-app`, branch `main`) — Vercel z
 Jeśli dodałeś zmienne po ostatnim deployu: **Deployments → ⋯ → Redeploy**. Vercel podaje
 nowe wartości tylko nowym deploymentom.
 
-Szybki test, że funkcje wstały (bez zalogowania):
+### Sprawdź jedną komendą, czego brakuje
+
+```bash
+curl -s https://plately.eu/api/staff/health
+```
+
+To jest pierwsza rzecz, po którą sięgasz, gdy coś nie działa. Odpowiada **bez logowania**
+— bo moment, w którym tego potrzebujesz, to dokładnie moment, w którym nikt nie może
+wejść. Zwraca same wartości `true`/`false` i nazwy zmiennych, nigdy ich wartości.
+
+Szukasz dwóch pól:
+
+```json
+{ "signInWorks": true, "blocking": [] }
+```
+
+Jeśli `signInWorks` jest `false`, w `blocking` masz gotową listę rzeczy do zrobienia —
+np. `"run supabase/support-schema.sql"` albo `"GOOGLE_CLIENT_SECRET is not set"`.
+`database.schema` mówi `current` albo `out of date`, a `database.staffRows` pokazuje,
+czy ktokolwiek jest w ogóle na liście zespołu.
+
+Osobno, bo to nie blokuje logowania: `mailWorks`, `inboundMailWorks`, `botCheckActive`.
+
+Test samego endpointu sesji:
 
 ```bash
 curl -s https://plately.eu/api/staff/session
@@ -580,6 +603,17 @@ W Resend → Webhooks → Attempts widać próby i kod odpowiedzi? 401 = zły al
 **Odpowiedź nie wychodzi.** Vercel → Deployments → Functions → logi
 `api/support/[...path]`. Najczęściej: domena w Resend nie przeszła weryfikacji albo klucz
 API nie ma *Full access*.
+
+**„Something went wrong on our side" zaraz po zalogowaniu przez Google.**
+Prawie zawsze jedno z dwóch: nie puściłeś jeszcze SQL-a (brakuje kolumn `totp_*` w tabeli
+`staff`) albo nie ma zmiennych Supabase. Panel powie teraz które — komunikat nazywa
+brakującą kolumnę albo brakującą zmienną. Jeśli nadal widzisz sam ogólnik, to znaczy, że
+to nie jest problem konfiguracji: zajrzyj w Vercel → Deployments → Functions → logi
+`api/staff/[...path]`.
+
+```bash
+curl -s https://plately.eu/api/staff/health
+```
 
 **Panel wygląda jak sprzed zmian.** `support.css` i `app.js` mają godzinny cache — podbij
 `?v=` w `public/support/index.html`.
