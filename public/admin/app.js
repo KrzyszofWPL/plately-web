@@ -237,112 +237,68 @@
   }
 
   /**
-   * Loads Cloudflare's widget script, and is specific about how it failed.
+   * Loads Cloudflare's widget script the way Cloudflare documents it.
    *
-   * Three different things go wrong here and they used to collapse into one
-   * message. A blocked request, a script that loads without installing the API
-   * (which is what a stub injected by an extension looks like), and a request
-   * that simply never comes back are three different conversations with
-   * whoever has to fix it.
+   * With render=explicit the API object is NOT guaranteed to be complete when
+   * the script tag's own onload fires: window.turnstile can already exist as a
+   * bare object while render() is still being attached. Waiting on the tag was
+   * the bug behind "the script loaded but installed no widget API" — nothing
+   * was replacing anything, we were simply asking too early.
+   *
+   * The documented signal is the ?onload=<global> callback, so that is what we
+   * wait for. A short poll after the tag loads covers the reverse ordering,
+   * and a hard timeout covers a request that never returns at all.
    */
   function loadTurnstile() {
     if (turnstileReady()) return Promise.resolve();
     if (turnstileLoading) return turnstileLoading;
+
     turnstileLoading = new Promise(function (resolve, reject) {
-      var script = document.createElement("script");
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-      script.async = true;
+      var CALLBACK = "__platelyTurnstileReady";
       var settled = false;
+      var pollTimer = null;
+
       var finish = function (err) {
         if (settled) return;
         settled = true;
-        clearTimeout(timer);
+        clearTimeout(hardTimer);
+        clearInterval(pollTimer);
+        try { delete window[CALLBACK]; } catch (e) { window[CALLBACK] = undefined; }
         // Let a later attempt start over rather than replaying this failure
         // forever from the cached promise.
-        if (err) turnstileLoading = null;
-        if (err) reject(err); else resolve();
+        if (err) {
+          turnstileLoading = null;
+          reject(err);
+        } else {
+          resolve();
+        }
       };
-      var timer = setTimeout(function () {
+
+      var hardTimer = setTimeout(function () {
         finish(new Error("challenges.cloudflare.com did not answer within 12 seconds"));
       }, 12000);
+
+      window[CALLBACK] = function () { finish(turnstileReady() ? null : new Error("Turnstile reported ready without a render function")); };
+
+      var script = document.createElement("script");
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=" + CALLBACK;
+      script.async = true;
+      script.defer = true;
       script.onload = function () {
-        finish(turnstileReady() ? null : new Error("the script loaded but installed no widget API — something is replacing it"));
+        if (turnstileReady()) return finish(null);
+        // The callback is the real signal; this only catches the case where it
+        // has already run or will never come.
+        pollTimer = setInterval(function () {
+          if (turnstileReady()) finish(null);
+        }, 50);
       };
       script.onerror = function () {
         finish(new Error("the browser refused the request to challenges.cloudflare.com — usually an ad blocker, a privacy extension or a network filter"));
       };
       document.head.appendChild(script);
     });
+
     return turnstileLoading;
-  }
-
-  // Turnstile's own failure codes. Every one of these is a configuration
-  // problem with a different fix, and the widget renders them as a bare number
-  // in a box nobody can read.
-  var TURNSTILE_CODES = {
-    "110200": "this hostname is not on the widget's list in Cloudflare — add plately.eu and www.plately.eu to it",
-    "110100": "that site key does not exist",
-    "110110": "that site key belongs to a different widget",
-    "110500": "this browser is not supported by the challenge",
-    "300030": "the challenge could not run — usually an extension or a blocked script",
-  };
-
-  function turnstileNote(message) {
-    var note = document.getElementById("turnstile-note");
-    if (note) note.textContent = message || "";
-  }
-
-  function openGate() {
-    var gate = document.querySelector("[data-gated]");
-    if (gate) gate.disabled = false;
-  }
-
-  function mountTurnstile() {
-    var host = document.getElementById("turnstile");
-    if (!host || !S.turnstile.siteKey) return;
-    loadTurnstile().then(function () {
-      if (!document.getElementById("turnstile")) return;
-      // render() throws on a bad site key or a container that already holds a
-      // widget. Catching it here rather than letting it fall into the promise
-      // chain is what keeps "could not download" and "could not start" apart.
-      try {
-        renderWidget(host);
-      } catch (err) {
-        S.turnstile.token = null;
-        turnstileNote("Bot check could not start: " + (err && err.message ? err.message : err));
-        openGate();
-      }
-    }).catch(function (err) {
-      // The widget is one of three gates; if Cloudflare is unreachable the
-      // other two still stand, so the desk stays usable rather than dead.
-      S.turnstile.token = null;
-      turnstileNote("Bot check unavailable — " + (err && err.message ? err.message : err));
-      openGate();
-    });
-  }
-
-  function renderWidget(host) {
-      S.turnstile.widget = window.turnstile.render(host, {
-        sitekey: S.turnstile.siteKey,
-        theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
-        callback: function (token) {
-          S.turnstile.token = token;
-          turnstileNote("");
-          openGate();
-        },
-        "expired-callback": function () {
-          S.turnstile.token = null;
-          turnstileNote("The check expired. Reload the page.");
-        },
-        "error-callback": function (code) {
-          // Leave the button enabled: the server decides, and it now says why.
-          // Blocking here as well would hide the reason behind a dead control.
-          S.turnstile.token = null;
-          var known = TURNSTILE_CODES[String(code)];
-          turnstileNote("Bot check could not run" + (code ? " (" + code + ")" : "") + (known ? " — " + known : "."));
-          openGate();
-        },
-      });
   }
 
   function resetTurnstile() {
