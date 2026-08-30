@@ -263,7 +263,9 @@
         settled = true;
         clearTimeout(hardTimer);
         clearInterval(pollTimer);
-        try { delete window[CALLBACK]; } catch (e) { window[CALLBACK] = undefined; }
+        // The global stays. Deleting it made Cloudflare log "unable to find
+        // onload callback" whenever a second copy of the script ran, and the
+        // `settled` guard already makes a late call a no-op.
         // Let a later attempt start over rather than replaying this failure
         // forever from the cached promise.
         if (err) {
@@ -279,6 +281,17 @@
       }, 12000);
 
       window[CALLBACK] = function () { finish(turnstileReady() ? null : new Error("Turnstile reported ready without a render function")); };
+
+      // One tag only. A second copy makes Cloudflare warn about being imported
+      // twice and buys nothing: the API is already global once it lands.
+      var existing = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+      if (existing) {
+        if (turnstileReady()) return finish(null);
+        pollTimer = setInterval(function () {
+          if (turnstileReady()) finish(null);
+        }, 50);
+        return;
+      }
 
       var script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=" + CALLBACK;
@@ -299,6 +312,83 @@
     });
 
     return turnstileLoading;
+  }
+
+  // Turnstile's own failure codes. Every one of these is a configuration
+  // problem with a different fix, and the widget renders them as a bare number
+  // in a box nobody can read.
+  var TURNSTILE_CODES = {
+    "110200": "this hostname is not on the widget's list in Cloudflare — add plately.eu and www.plately.eu to it",
+    "110100": "that site key does not exist",
+    "110110": "that site key belongs to a different widget",
+    "110500": "this browser is not supported by the challenge",
+    "300030": "the challenge could not run — usually an extension or a blocked script",
+  };
+
+  // The container is deliberately NOT id="turnstile".
+  //
+  // A browser publishes every element id as a property of window, so a div with
+  // that id makes window.turnstile a DIV. Cloudflare's api.js opens with a
+  // "have I already been loaded?" check against exactly that global, finds the
+  // element, logs "Turnstile already has been loaded" and returns without
+  // installing render() — which then looks precisely like an ad blocker eating
+  // the script. It cost three wrong diagnoses; the id stays as it is.
+  function turnstileNote(message) {
+    var note = document.getElementById("ts-note");
+    if (note) note.textContent = message || "";
+  }
+
+  function openGate() {
+    var gate = document.querySelector("[data-gated]");
+    if (gate) gate.disabled = false;
+  }
+
+  function mountTurnstile() {
+    var host = document.getElementById("ts-widget");
+    if (!host || !S.turnstile.siteKey) return;
+    loadTurnstile().then(function () {
+      if (!document.getElementById("ts-widget")) return;
+      // render() throws on a bad site key or a container that already holds a
+      // widget. Catching it here rather than letting it fall into the promise
+      // chain is what keeps "could not download" and "could not start" apart.
+      try {
+        renderWidget(host);
+      } catch (err) {
+        S.turnstile.token = null;
+        turnstileNote("Bot check could not start: " + (err && err.message ? err.message : err));
+        openGate();
+      }
+    }).catch(function (err) {
+      // The widget is one of three gates; if Cloudflare is unreachable the
+      // other two still stand, so the desk stays usable rather than dead.
+      S.turnstile.token = null;
+      turnstileNote("Bot check unavailable — " + (err && err.message ? err.message : err));
+      openGate();
+    });
+  }
+
+  function renderWidget(host) {
+    S.turnstile.widget = window.turnstile.render(host, {
+      sitekey: S.turnstile.siteKey,
+      theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
+      callback: function (token) {
+        S.turnstile.token = token;
+        turnstileNote("");
+        openGate();
+      },
+      "expired-callback": function () {
+        S.turnstile.token = null;
+        turnstileNote("The check expired. Reload the page.");
+      },
+      "error-callback": function (code) {
+        // Leave the button enabled: the server decides, and it now says why.
+        // Blocking here as well would hide the reason behind a dead control.
+        S.turnstile.token = null;
+        var known = TURNSTILE_CODES[String(code)];
+        turnstileNote("Bot check could not run" + (code ? " (" + code + ")" : "") + (known ? " — " + known : "."));
+        openGate();
+      },
+    });
   }
 
   function resetTurnstile() {
@@ -486,8 +576,8 @@
             "Continue with Google" +
           "</button>" +
           (S.turnstile.siteKey
-            ? '<div id="turnstile" style="margin-top:18px"></div>' +
-              '<div id="turnstile-note" style="margin-top:8px;font-size:12px;line-height:18px;color:var(--m3-error)"></div>'
+            ? '<div id="ts-widget" style="margin-top:18px"></div>' +
+              '<div id="ts-note" style="margin-top:8px;font-size:12px;line-height:18px;color:var(--m3-error)"></div>'
             : "") +
           (message ? '<div class="auth-error">' + esc(message) + "</div>" : "") +
           '<div class="auth-note">' + ICON.shield +
@@ -523,8 +613,8 @@
             ? '<p class="lede" style="margin:18px 0 6px">Repeat it</p><div class="pin-row" data-pin-group="b">' + pinBoxes("b") + "</div>"
             : "") +
           (S.turnstile.siteKey
-            ? '<div id="turnstile" style="margin-top:18px"></div>' +
-              '<div id="turnstile-note" style="margin-top:8px;font-size:12px;line-height:18px;color:var(--m3-error)"></div>'
+            ? '<div id="ts-widget" style="margin-top:18px"></div>' +
+              '<div id="ts-note" style="margin-top:8px;font-size:12px;line-height:18px;color:var(--m3-error)"></div>'
             : "") +
           '<button type="button" class="btn btn-primary" style="margin-top:22px;min-height:48px" data-act="pin-submit">' +
             (setup ? "Set PIN and open the desk" : "Unlock") +
