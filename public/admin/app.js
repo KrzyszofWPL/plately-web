@@ -518,53 +518,12 @@
   function heroSide() {
     return '' +
       '<div class="auth-hero">' +
-        "<div>" +
+        '<img class="auth-mark" src="/logo.png" alt="Plately">' +
+        '<div class="auth-copy">' +
           "<h1>Every customer e-mail, one shared inbox</h1>" +
           "<p>Ticket list and full conversation side by side, with the customer's history and their actual plan. No tab switching, no lost threads.</p>" +
         "</div>" +
-        deskPeek() +
       "</div>";
-  }
-
-  /**
-   * The desk itself, drawn rather than screenshotted: the ticket list beside
-   * the conversation, which is exactly what the sentence above it claims.
-   *
-   * It carries no words at all, and that is deliberate twice over. A sign-in
-   * page has no business inventing customer names and subject lines to look
-   * busy, and a real screenshot would go stale the first time the layout
-   * moves. What is left is the arrangement — the one thing being promised.
-   */
-  function deskPeek() {
-    var bar = function (w, faint) {
-      return '<span class="pk-bar' + (faint ? " faint" : "") + '" style="width:' + w + '"></span>';
-    };
-
-    var rows = "";
-    for (var i = 0; i < 5; i++) {
-      rows += '<div class="pk-row' + (i === 1 ? " on" : "") + '">' +
-        '<span class="pk-dot"></span>' +
-        '<span class="pk-stack">' + bar(i % 2 ? "76%" : "88%") + bar(i % 2 ? "46%" : "58%", true) + "</span>" +
-      "</div>";
-    }
-
-    var talk = "";
-    [["in", 3], ["out", 2], ["in", 2]].forEach(function (msg) {
-      var body = "";
-      for (var j = 0; j < msg[1]; j++) body += bar(j === msg[1] - 1 ? "58%" : "100%");
-      talk += '<div class="pk-msg pk-' + msg[0] + '">' + body + "</div>";
-    });
-
-    return '<div class="peek" aria-hidden="true">' +
-      '<div class="pk-list">' +
-        '<div class="pk-head">' + bar("54%") + "</div>" +
-        rows +
-      "</div>" +
-      '<div class="pk-thread">' +
-        '<div class="pk-head">' + bar("62%") + bar("34%", true) + "</div>" +
-        '<div class="pk-talk">' + talk + "</div>" +
-      "</div>" +
-    "</div>";
   }
 
   var AUTH_ERRORS = {

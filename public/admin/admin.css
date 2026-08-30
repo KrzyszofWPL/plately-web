@@ -156,62 +156,29 @@ label.lbl { display: block; font-size: 12px; color: var(--m3-on-surface-variant)
 .auth-hero {
   width: 58%; position: relative; overflow: hidden;
   background: var(--m3-primary-container); color: var(--m3-on-primary-container);
-  padding: 72px; display: flex; flex-direction: column; justify-content: center;
+  padding: 72px; display: flex; flex-direction: column; justify-content: flex-start;
 }
 .auth-hero > * { position: relative; z-index: 1; }
-/* A pseudo-element is not matched by the .auth-hero > * rule above, so the
-   disc stays on z-index 0 and everything real keeps its layer over it. */
-.auth-hero::before {
-  content: ""; position: absolute; z-index: 0;
-  right: -180px; top: -220px; width: 620px; height: 620px; border-radius: 50%;
-  background: var(--m3-on-primary-container); opacity: .06;
+.auth-hero::after {
+  content: ""; position: absolute; right: -140px; bottom: -160px;
+  width: 620px; height: 620px; border-radius: 50%;
+  background: var(--m3-on-primary-container); opacity: .06; z-index: 0;
 }
+/* The real mark from public/logo.png: a green tile with its own rounded
+   corners already baked in, which is why nothing here paints a background
+   behind it. The radius is a touch smaller than the artwork's own so the CSS
+   never crops into the green. */
+.auth-mark { width: 64px; height: 64px; border-radius: 14px; object-fit: cover; display: block; }
+/* The fact strip that used to sit at the bottom is gone, so space-between has
+   only the mark and the sentence left to push apart — which would drop the
+   sentence to the floor. The mark stays at the top, and auto margins centre
+   the sentence in what is left below it. */
+.auth-copy { margin: auto 0; }
 .auth-hero h1 {
-  font-size: clamp(32px, 2.9vw, 52px); line-height: 1.07; font-weight: 700;
+  font-size: clamp(34px, 3.2vw, 60px); line-height: 1.07; font-weight: 700;
   letter-spacing: -.02em; margin: 0 0 20px; max-width: 780px;
 }
-.auth-hero p { font-size: 17px; line-height: 28px; margin: 0; opacity: .82; max-width: 640px; }
-
-/* The desk, sketched — see deskPeek() in app.js.
-   It is painted in the panel's surface colours rather than the hero's, so it
-   reads as the application sitting on the brand colour, and it runs off the
-   right edge on purpose: a fragment of something larger says more than a
-   small complete picture of it. */
-.peek {
-  margin: 52px -160px 0 0; height: 268px; display: flex; flex: none;
-  border: 1px solid var(--m3-outline-variant); border-right: 0;
-  border-radius: 20px 0 0 20px; overflow: hidden;
-  background: var(--m3-surface);
-  box-shadow: 0 26px 60px rgba(0, 0, 0, .22);
-}
-.pk-list { width: 38%; min-width: 200px; border-right: 1px solid var(--m3-outline-variant); }
-.pk-thread { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.pk-head {
-  height: 52px; padding: 0 18px; display: flex; flex-direction: column; justify-content: center; gap: 7px;
-  border-bottom: 1px solid var(--m3-outline-variant);
-}
-.pk-bar { display: block; height: 8px; border-radius: 4px; background: var(--m3-surface-container-highest); }
-.pk-bar.faint { height: 7px; opacity: .55; }
-.pk-row { display: flex; align-items: center; gap: 10px; padding: 13px 18px; }
-.pk-row.on { background: var(--m3-surface-container-high); }
-.pk-row.on .pk-dot { background: var(--m3-primary); }
-.pk-dot { width: 26px; height: 26px; border-radius: 50%; flex: none; background: var(--m3-surface-container-highest); }
-.pk-stack { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
-.pk-talk { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
-/* Stacked full-width cards rather than chat bubbles, and the same two
-   colours .msg-in and .msg-out use further down, because the sketch is only
-   worth anything if it is the arrangement the desk actually has. The reply
-   also tints its bars: in the dark theme the two card backgrounds sit within
-   a couple of levels of each other, which the real thread can afford and a
-   thumbnail this size cannot. */
-.pk-msg {
-  padding: 11px 13px; border-radius: 14px;
-  display: flex; flex-direction: column; gap: 6px;
-  border: 1px solid var(--m3-outline-variant); background: var(--m3-surface-container);
-}
-.pk-out { background: var(--m3-primary-container); border-color: transparent; }
-.pk-out .pk-bar { background: var(--m3-on-primary-container); opacity: .34; }
-.pk-out .pk-bar.faint { opacity: .22; }
+.auth-hero p { font-size: 18px; line-height: 30px; margin: 0; opacity: .82; max-width: 720px; }
 
 .auth-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 32px; }
 .auth-box { width: 100%; max-width: 420px; display: flex; flex-direction: column; }
@@ -753,10 +720,8 @@ html[data-theme="dark"] .kind { background: rgba(255, 255, 255, .1); }
   .auth-hero { width: 100%; padding: 40px 28px; gap: 28px; }
   .auth-hero h1 { font-size: 32px; }
   .auth-hero p { display: none; }
-  /* Stacked, the hero is a band a couple of lines tall. The sketch needs a
-     column to sit in, and the sign-in card is the thing worth scrolling to. */
-  .peek { display: none; }
-  .auth-hero::before { right: -90px; top: -120px; width: 300px; height: 300px; }
+  /* A band two lines tall has no room to centre anything in. */
+  .auth-copy { margin: 0; }
   .screen-inbox { flex-direction: column; overflow-y: auto; }
   .list { width: 100%; max-height: 46dvh; }
   .thread { min-height: 60dvh; }
