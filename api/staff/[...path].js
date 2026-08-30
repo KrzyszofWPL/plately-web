@@ -8,7 +8,9 @@
 //
 // The sign-in dance, end to end:
 //
-//   POST /api/staff/start      Turnstile token in, Google URL out (+ state cookie)
+//   POST /api/staff/start      Google URL out (+ state cookie). No bot check here:
+//                              the sign-in page is a plain "continue with Google"
+//                              button and Google runs its own
 //   GET  /api/staff/callback   Google comes back with a code; we swap it for an
 //                              id_token, match the address against `staff`, and
 //                              issue a *pre-session* — proof of Google, nothing more
@@ -120,6 +122,11 @@ function decodeJwtPayload(token) {
 /**
  * Turnstile, with the reason attached.
  *
+ * Guards the PIN routes only. The first step hands off to Google, which has
+ * its own abuse handling and hands us nothing worth brute-forcing; the PIN is
+ * four digits on an account that is already half authenticated, which is the
+ * step actually worth a bot's time.
+ *
  * The reason is safe to show: it names *our* misconfiguration, never anything
  * about the visitor. Hiding it turned a five-second fix ("the secret key is
  * the site key pasted twice") into an unsolvable sign-in button.
@@ -186,10 +193,6 @@ export default async function handler(request) {
 async function startSignIn(request) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) return json({ error: "Google sign-in is not configured" }, 500);
-
-  const { turnstileToken } = await request.json().catch(() => ({}));
-  const blocked = await turnstileGuard(request, turnstileToken);
-  if (blocked) return blocked;
 
   const state = randomHex(16);
   const nonce = randomHex(16);

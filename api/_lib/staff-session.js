@@ -3,9 +3,9 @@
 //
 // Three gates guard the panel, and they are deliberately of different kinds:
 //
-//   1. Cloudflare Turnstile — something a bot cannot cheaply do. Checked
-//      *before* the Google redirect, so a script cannot even start an OAuth
-//      dance, and again on every PIN attempt.
+//   1. Cloudflare Turnstile — something a bot cannot cheaply do. Checked on
+//      every PIN attempt. The sign-in page itself is not gated: it only hands
+//      off to Google, which brings its own abuse handling.
 //   2. Google — something you have: an account we put on the staff list.
 //      Ownership of the address is proved to Google, not to us.
 //   3. A four-digit PIN — something you know, and something a stolen or
@@ -235,7 +235,7 @@ const TURNSTILE_REASONS = {
 };
 
 /**
- * Checks a widget token. Returns { ok, reason }.
+ * Checks a widget token. Returns { ok, reason }. Only the PIN routes call it.
  *
  * With no TURNSTILE_SECRET_KEY configured this passes: the panel must stay
  * usable while the key is being set up, and Google + the PIN are the factors

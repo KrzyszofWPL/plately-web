@@ -338,11 +338,6 @@
     if (note) note.textContent = message || "";
   }
 
-  function openGate() {
-    var gate = document.querySelector("[data-gated]");
-    if (gate) gate.disabled = false;
-  }
-
   function mountTurnstile() {
     var host = document.getElementById("ts-widget");
     if (!host || !S.turnstile.siteKey) return;
@@ -356,14 +351,13 @@
       } catch (err) {
         S.turnstile.token = null;
         turnstileNote("Bot check could not start: " + (err && err.message ? err.message : err));
-        openGate();
       }
     }).catch(function (err) {
-      // The widget is one of three gates; if Cloudflare is unreachable the
-      // other two still stand, so the desk stays usable rather than dead.
+      // The widget sits beside Google and the PIN; if Cloudflare is
+      // unreachable those two still stand, so the desk stays usable rather
+      // than dead.
       S.turnstile.token = null;
       turnstileNote("Bot check unavailable — " + (err && err.message ? err.message : err));
-      openGate();
     });
   }
 
@@ -374,19 +368,17 @@
       callback: function (token) {
         S.turnstile.token = token;
         turnstileNote("");
-        openGate();
       },
       "expired-callback": function () {
         S.turnstile.token = null;
         turnstileNote("The check expired. Reload the page.");
       },
       "error-callback": function (code) {
-        // Leave the button enabled: the server decides, and it now says why.
+        // Leave the button alone: the server decides, and it now says why.
         // Blocking here as well would hide the reason behind a dead control.
         S.turnstile.token = null;
         var known = TURNSTILE_CODES[String(code)];
         turnstileNote("Bot check could not run" + (code ? " (" + code + ")" : "") + (known ? " — " + known : "."));
-        openGate();
       },
     });
   }
@@ -566,34 +558,22 @@
         heroSide() +
         '<div class="auth-panel"><div class="auth-box">' +
           "<h2>Sign in to Plately Support</h2>" +
-          '<p class="lede">This console is used by the Plately support team to handle customer correspondence. Access is limited to accounts authorised by the workspace owner, and is granted in two steps: your Google account, then your personal PIN.</p>' +
+          '<p class="lede">Please do not log in unless you are a Plately employee. Access is restricted to verified accounts only and is intended solely for providing customer support.</p>' +
           (S.auth.googleConfigured === false
             ? '<div class="auth-error">Google sign-in is not configured yet. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel.</div>'
             : "") +
-          '<button type="button" class="google-btn" data-act="google" ' +
-            (S.turnstile.siteKey ? "data-gated disabled" : "") + ">" +
+          '<button type="button" class="google-btn" data-act="google">' +
             '<svg width="18" height="18" viewBox="0 0 48 48" style="flex:none;display:block"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"></path><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C39.9 37.4 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"></path></svg>' +
             "Continue with Google" +
           "</button>" +
-          (S.turnstile.siteKey
-            ? '<div id="ts-widget" style="margin-top:18px"></div>' +
-              '<div id="ts-note" style="margin-top:8px;font-size:12px;line-height:18px;color:var(--m3-error)"></div>'
-            : "") +
           (message ? '<div class="auth-error">' + esc(message) + "</div>" : "") +
-          '<div class="auth-note">' + ICON.shield +
-            "<p>Every sign-in, reply, note and status change is recorded against the account that made it. " +
-            "Each account sees only what its role permits.</p>" +
-          "</div>" +
-          '<div class="auth-note" style="padding-top:16px">' + ICON.info +
+          '<div class="auth-note">' + ICON.info +
             "<p><strong style=\"color:var(--m3-on-surface)\">Looking for help with Plately?</strong><br>" +
-            "This page is not a customer account. Write to " +
-            '<a href="mailto:contact@plately.eu">contact@plately.eu</a> and a member of the team will reply to you directly — ' +
-            "no account is needed.</p>" +
+            "This page is not intended as customer support. If you need assistance, " +
+            "please contact us at plately.eu/help.</p>" +
           "</div>" +
         "</div></div>" +
       "</div>";
-
-    mountTurnstile();
   }
 
   /**
@@ -627,16 +607,17 @@
               '<span class="who"><b>' + esc(S.auth.displayName || S.auth.email) + "</b>" +
               "<span>" + esc(S.auth.email) + "</span></span>" +
             "</div>" +
+            (setup ? '<p class="lock-sub">Choose four digits</p>' : "") +
             '<div class="pin-row" data-pin-group="a">' + pinBoxes("a") + "</div>" +
             (setup
               ? '<p class="lock-sub">Confirm the same four digits</p>' +
                 '<div class="pin-row" data-pin-group="b">' + pinBoxes("b") + "</div>"
               : "") +
             (S.turnstile.siteKey
-              ? '<div id="ts-widget" style="margin-top:18px"></div>' +
-                '<div id="ts-note" style="margin-top:8px;font-size:12px;line-height:18px;color:var(--m3-error)"></div>'
+              ? '<div class="ts-slot" id="ts-widget"></div>' +
+                '<div class="ts-note" id="ts-note"></div>'
               : "") +
-            '<button type="button" class="btn btn-primary" style="margin-top:20px;min-height:48px;width:100%" data-act="pin-submit">' +
+            '<button type="button" class="btn btn-primary lock-submit" data-act="pin-submit">' +
               (setup ? "Set PIN and open the console" : "Unlock console") +
             "</button>" +
             (locked ? '<div class="auth-error">Locked until ' + esc(clockTime(S.auth.lockedUntil)) + ".</div>" : "") +
@@ -1459,11 +1440,10 @@
     google: function () {
       var button = document.querySelector('[data-act="google"]');
       if (button) button.disabled = true;
-      api("/api/staff/start", { method: "POST", body: { turnstileToken: S.turnstile.token } })
+      api("/api/staff/start", { method: "POST" })
         .then(function (data) { location.href = data.url; })
         .catch(function (err) {
           S.error = err.message;
-          resetTurnstile();
           render();
         });
     },

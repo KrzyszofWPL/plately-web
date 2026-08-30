@@ -1,7 +1,7 @@
 # Plately Support — uruchomienie krok po kroku
 
 Panel supportu żyje pod `https://plately.eu/admin`. Logowanie: **Google → 4-cyfrowy PIN**,
-z **Cloudflare Turnstile** przed jednym i drugim. Panel maintenance (włączanie/wyłączanie
+z **Cloudflare Turnstile** przed samym PIN-em. Panel maintenance (włączanie/wyłączanie
 strony) nie zniknął — jest teraz kartą **Site control** w zakładce *Settings*, widoczną
 wyłącznie dla ról `owner` i `admin`.
 
@@ -157,8 +157,9 @@ częściowo nieprzetłumaczoną.
 3. Widget mode: **Managed** (Cloudflare sam decyduje, czy pokazać wyzwanie).
 4. Zapisz **Site Key** i **Secret Key**.
 
-Turnstile jest sprawdzany dwa razy: zanim w ogóle ruszy przekierowanie do Google, i przy
-każdej próbie PIN-u. Bez tokenu żaden z tych requestów nie przechodzi.
+Turnstile stoi wyłącznie przed PIN-em — przy każdej próbie, bez tokenu request nie
+przechodzi. Sam ekran logowania nie jest bramkowany: oddaje ruch do Google, które ma własną
+ochronę przed botami, a pół-sesja bez PIN-u nie otwiera żadnego endpointu.
 
 ---
 
@@ -229,7 +230,7 @@ Jeśli widzisz `googleConfigured: false` — zmienne nie doszły, zrób redeploy
 ## 6. Pierwsze logowanie
 
 1. Wejdź na `https://plately.eu/admin`.
-2. Przejdź Turnstile → **Continue with Google** → wybierz adres z kroku 1.
+2. **Continue with Google** → wybierz adres z kroku 1.
 3. Panel poprosi o **ustawienie PIN-u** (pierwsze uruchomienie): cztery cyfry, dwa razy.
    Odrzuci `0000`, `1234` i kilka innych oczywistych.
 4. Jesteś w środku. Inbox będzie pusty do kroku 8.
@@ -314,7 +315,7 @@ Powinno dokleić się do **tego samego** ticketu, a nie założyć nowy.
 
 ## 9. Jak to jest poskładane (żeby dało się to potem debugować)
 
-**Logowanie.** `POST /api/staff/start` sprawdza Turnstile i zwraca URL Google, zapisując
+**Logowanie.** `POST /api/staff/start` zwraca URL Google, zapisując
 `state` + `nonce` w podpisanym ciasteczku. `GET /api/staff/callback` wymienia kod na
 `id_token`, sprawdza `aud`/`iss`/`nonce`, szuka adresu w `staff` i wydaje **pół-sesję** —
 dowód Google i nic więcej. Dopiero `POST /api/staff/pin` (PIN + Turnstile) wydaje właściwe

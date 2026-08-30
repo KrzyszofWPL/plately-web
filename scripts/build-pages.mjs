@@ -30,6 +30,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -146,6 +147,20 @@ function assertPrices(lang, t) {
       }
     }
   }
+}
+
+// Odcisk landing.js dopisywany do adresu skryptu.
+//
+// vercel.json cache'uje .js na godzine, z stale-while-revalidate na dobe, a
+// strony HTML na must-revalidate. Po wdrozeniu przegladarka bierze wiec nowy
+// dokument i STARY skrypt — dokladnie ta para wygasila przelacznik jezyka, bo
+// swiezy HTML nie ladowal juz slownika, ktorego stary landing.js szukal w
+// window. Zmiana adresu przy kazdej zmianie tresci pliku sprawia, ze nowy
+// dokument prosi o zasob, ktorego nie ma jeszcze w cache, i para nie moze sie
+// rozjechac. Dlugie cache'owanie zostaje — to jest jego warunek bezpieczenstwa.
+function assetVersion(file) {
+  const bytes = fs.readFileSync(path.join(ROOT, 'public', file));
+  return crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 8);
 }
 
 function hreflangBlock(eol) {
@@ -432,6 +447,10 @@ function buildPage(template, lang, t) {
     /<meta property="og:locale" content="[^"]*">\r?\n(?:<meta property="og:locale:alternate" content="[^"]*">\r?\n)*/;
   if (!localeRe.test(html)) throw new Error(`[${lang}] og:locale block not found`);
   html = html.replace(localeRe, localeBlock + eol);
+
+  const scriptRe = /(<script src="\/landing\.js)(\?v=[0-9a-f]+)?(" defer><\/script>)/;
+  if (!scriptRe.test(html)) throw new Error(`[${lang}] nie znaleziono <script src="/landing.js">`);
+  html = html.replace(scriptRe, `$1?v=${assetVersion('landing.js')}$3`);
 
   html = html.replace('<!--PLATELY:HREFLANG-->', hreflangBlock(eol));
   html = html.replace(
