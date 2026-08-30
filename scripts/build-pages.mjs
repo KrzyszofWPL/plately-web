@@ -554,7 +554,62 @@ ${standalone}
 
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Redirect sanity
+// ---------------------------------------------------------------------------
+
+// A redirect whose destination lands back on a source is an infinite loop, and
+// the browser's only symptom is ERR_TOO_MANY_REDIRECTS on a URL that looks
+// perfectly reasonable in the config. It shipped exactly once — a careless
+// find-and-replace rewrote `/admin -> /support` into `/support -> /support` —
+// and cost a deploy. The build refuses to produce another one.
+//
+// Vercel matches `source` with path-to-regexp and re-enters routing after a
+// redirect, so the test is: does any rule's destination match any rule's
+// source? Absolute URLs leave the site and are none of our business.
+function sourceMatcher(source) {
+  const pattern = source
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\/:[A-Za-z0-9_]+\*/g, '(?:/.*)?')  // /:path* — zero or more segments
+    .replace(/:[A-Za-z0-9_]+\+/g, '.+')
+    .replace(/:[A-Za-z0-9_]+/g, '[^/]+');
+  return new RegExp(`^${pattern}$`);
+}
+
+function assertNoRedirectLoops() {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
+  const rules = (config.redirects || []).filter((r) => !/^https?:\/\//i.test(r.destination));
+
+  const problems = [];
+  for (const rule of rules) {
+    // Params carry through verbatim, so a concrete stand-in is enough to see
+    // where the destination actually lands.
+    const landing = rule.destination.replace(/:[A-Za-z0-9_]+[*+]?/g, 'x');
+    for (const other of rules) {
+      if (sourceMatcher(other.source).test(landing)) {
+        problems.push(
+          `  ${rule.source} -> ${rule.destination}` +
+          (rule.source === other.source
+            ? '  (redirects to itself)'
+            : `  (lands on the source of ${other.source})`)
+        );
+        break;
+      }
+    }
+  }
+
+  if (problems.length) {
+    throw new Error(
+      `vercel.json has ${problems.length} redirect loop(s):\n${problems.join('\n')}\n` +
+      'A browser sees these as ERR_TOO_MANY_REDIRECTS.'
+    );
+  }
+  console.log(`  redirects    ${rules.length} local rules, no loops`);
+}
+
 function main() {
+  assertNoRedirectLoops();
+
   const template = fs.readFileSync(path.join(ROOT, 'content', 'index.template.html'), 'utf8');
   const dict = loadDictionary();
 

@@ -11,12 +11,12 @@
       "permanent": true
     },
     {
-      "source": "/support",
+      "source": "/admin",
       "destination": "/support",
       "permanent": true
     },
     {
-      "source": "/support/:path*",
+      "source": "/admin/:path*",
       "destination": "/support/:path*",
       "permanent": true
     },
