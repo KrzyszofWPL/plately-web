@@ -405,7 +405,7 @@
   function heroSide() {
     return '' +
       '<div class="auth-hero">' +
-        '<div class="auth-mark">P</div>' +
+        '<img class="auth-mark" src="/logo.png" alt="Plately">' +
         "<div>" +
           "<h1>Every customer e-mail, one shared inbox</h1>" +
           "<p>Ticket list and full conversation side by side, with customer history, macros and the plan they actually pay for. No tab switching, no lost threads.</p>" +
@@ -558,7 +558,7 @@
     }).join("") + "</div>" : "";
 
     return '<nav class="nav">' +
-      '<div class="nav-brand"><div class="mark">P</div><div><b>Plately</b><span>SUPPORT</span></div></div>' +
+      '<div class="nav-brand"><img class="mark" src="/logo.png" alt="Plately"><div><b>Plately</b><span>SUPPORT</span></div></div>' +
       (S.perms.reply
         ? '<button type="button" class="nav-new" data-act="compose">' + ICON.plus + "<span>New ticket</span></button>"
         : "") +
