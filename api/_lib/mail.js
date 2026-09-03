@@ -45,14 +45,30 @@ export function replySubject(subject, number) {
  * In-Reply-To header, and support_ingest_email() matches on it. Resend does
  * not hand back the RFC Message-ID, so we mint our own and pass it as a
  * header — deterministic, and unique per send.
+ *
+ * `autoSubmitted` is the other half of the inbound loop guard, and the half
+ * that protects the far side rather than us. RFC 3834: a message carrying
+ * Auto-Submitted with anything but "no" must not itself provoke an automatic
+ * response, which is how a vacation responder knows not to answer a robot.
+ * handleInbound already honours it on the way in; without setting it on the
+ * way out we were asking for a courtesy we did not extend.
+ *
+ *   "auto-generated"  something we sent on our own initiative — a
+ *                     confirmation, a lifecycle notice
+ *   "auto-replied"    an automatic answer to a message somebody sent us
+ *
+ * There is deliberately no default. A reply an agent typed is not automatic,
+ * and labelling it so would tell the customer's mail client that the human
+ * they are talking to is a machine.
  */
-export async function sendMail({ to, subject, text, html, replyTo, inReplyTo, references, from, fromName }) {
+export async function sendMail({ to, subject, text, html, replyTo, inReplyTo, references, from, fromName, autoSubmitted }) {
   const domain = (process.env.SUPPORT_MAIL_DOMAIN || "plately.eu").trim();
   const address = (from || process.env.SUPPORT_FROM_EMAIL || `contact@${domain}`).trim();
   const name = (fromName || process.env.SUPPORT_FROM_NAME || "Plately Support").trim();
   const messageId = `<${crypto.randomUUID()}@${domain}>`;
 
   const headers = { "Message-ID": messageId };
+  if (autoSubmitted) headers["Auto-Submitted"] = autoSubmitted;
   if (inReplyTo) {
     headers["In-Reply-To"] = inReplyTo;
     headers.References = [references, inReplyTo].filter(Boolean).join(" ").trim();

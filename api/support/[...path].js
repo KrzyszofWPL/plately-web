@@ -844,6 +844,10 @@ async function handleInbound(request) {
           html: ack.html,
           fromName: ackFrom.name,
           from: ackFrom.email,
+          // An automatic answer to a message somebody sent us — which is
+          // precisely the message an autoresponder would answer back, and
+          // precisely the loop this desk cannot afford.
+          autoSubmitted: "auto-replied",
         });
         await update(
           "support_tickets",
@@ -870,10 +874,13 @@ async function handleInbound(request) {
         subject: `[${ticketRef(result.number)}] ${full.subject || "(no subject)"}`,
         text: `From: ${sender.name ? sender.name + " " : ""}<${sender.email}>
 ` +
-          `Ticket: https://plately.eu/support
+          `Ticket: https://www.plately.eu/support
 
 ${text}`,
         replyTo: sender.email,
+        // A machine-made copy for us. Gmail's own vacation responder would
+        // otherwise answer it straight back into the desk.
+        autoSubmitted: "auto-generated",
       });
     } catch (err) {
       console.error("forwarding a copy failed", err);

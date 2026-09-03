@@ -202,6 +202,9 @@ async function submit(request) {
       html: mail.html,
       from: from.email,
       fromName: from.name,
+      // Nobody typed this, and a vacation responder on the far side should
+      // not answer it. RFC 3834.
+      autoSubmitted: "auto-generated",
     });
   } catch (err) {
     console.error("help confirmation failed", err);
