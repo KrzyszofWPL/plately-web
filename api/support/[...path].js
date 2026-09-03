@@ -715,6 +715,44 @@ async function writeMaintenance(request, session, staff) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Is this address one of ours?
+ *
+ * The loop guard used to compare the sender against SUPPORT_MAIL_DOMAIN alone,
+ * and that variable stopped describing where our mail comes from. This
+ * deployment sends conversations from contact@plately.eu, confirmations from
+ * noreply@help.plately.eu and lifecycle mail from noreply@info.plately.eu —
+ * three domains, one of which the variable named. Worse, the check was
+ * `endsWith("@plately.eu")`, which is false for anything on a subdomain, so
+ * the two addresses most likely to start a loop were the two it could not
+ * see: an automatic confirmation is exactly the kind of message another robot
+ * answers.
+ *
+ * So the set is built from the addresses we actually send from, taken from
+ * identities() — the same function the health check prints — plus the domains
+ * they are configured with. Whatever the variables are spelt as, the guard
+ * covers what leaves the building.
+ *
+ * Matching is on the domain rather than the mailbox, and a subdomain of one of
+ * ours counts too. "noreply@" is not the only mailbox a mail server answers
+ * from: bounce@, mailer-daemon@ and postmaster@ exist by convention on every
+ * domain we own, and a loop through any of them is the same loop.
+ */
+function isOurAddress(email) {
+  const domain = String(email || "").toLowerCase().split("@")[1];
+  if (!domain) return false;
+
+  const who = identities();
+  const ours = new Set();
+  for (const identity of [who.support, who.supportNoreply, who.info]) {
+    const fromAddress = String(identity.email || "").toLowerCase().split("@")[1];
+    if (fromAddress) ours.add(fromAddress);
+    if (identity.domain) ours.add(String(identity.domain).toLowerCase());
+  }
+
+  return [...ours].some((mine) => domain === mine || domain.endsWith(`.${mine}`));
+}
+
+/**
  * Resend calls this when mail arrives for the domain.
  *
  * It answers 200 for anything it has decided not to act on (a delivery event,
@@ -748,9 +786,8 @@ async function handleInbound(request) {
 
   // Never answer our own mail: an auto-reply loop between two robots is the
   // classic way a support address takes itself offline.
-  const ourDomain = (process.env.SUPPORT_MAIL_DOMAIN || "plately.eu").toLowerCase();
-  if (!sender.email || sender.email.endsWith(`@${ourDomain}`)) {
-    return json({ ok: true, ignored: "own domain" });
+  if (!sender.email || isOurAddress(sender.email)) {
+    return json({ ok: true, ignored: "own address" });
   }
   const headers = full.headers || {};
   const autoSubmitted = String(headers["auto-submitted"] || "").toLowerCase();
