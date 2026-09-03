@@ -256,7 +256,7 @@ nowe wartości tylko nowym deploymentom.
 ### Sprawdź jedną komendą, czego brakuje
 
 ```bash
-curl -s https://plately.eu/api/staff/health
+curl -s https://www.plately.eu/api/staff/health
 ```
 
 To jest pierwsza rzecz, po którą sięgasz, gdy coś nie działa. Odpowiada **bez logowania**
@@ -279,7 +279,7 @@ Osobno, bo to nie blokuje logowania: `mailWorks`, `inboundMailWorks`, `botCheckA
 Test samego endpointu sesji:
 
 ```bash
-curl -s https://plately.eu/api/staff/session
+curl -s https://www.plately.eu/api/staff/session
 ```
 
 Oczekiwane: `{"state":"signed_out","turnstileSiteKey":"0x4AAA…","googleConfigured":true}`.
@@ -288,7 +288,7 @@ Jeśli widzisz `googleConfigured: false` — zmienne nie doszły, zrób redeploy
 To samo dla publicznej strony pomocy:
 
 ```bash
-curl -s https://plately.eu/api/help/session
+curl -s https://www.plately.eu/api/help/session
 ```
 
 Oczekiwane: `{"email":null,…,"googleConfigured":true,"mailConfigured":true}`.
@@ -298,7 +298,7 @@ i nie przyjmie wiadomości, której nie umiałby potwierdzić.
 I że stary adres panelu przekierowuje:
 
 ```bash
-curl -sI https://plately.eu/admin | head -3
+curl -sI https://www.plately.eu/admin | head -3
 ```
 
 Oczekiwane: `HTTP/2 308` i `location: /support`.
@@ -429,7 +429,7 @@ Zajrzyj też do panelu przed krokiem 3 — ma tam nie być nic. O to chodzi.
 Szybkie sprawdzenie, że klucz doszedł:
 
 ```bash
-curl -s https://plately.eu/api/staff/health
+curl -s https://www.plately.eu/api/staff/health
 ```
 
 `"mailWorks": true` oznacza, że `RESEND_API_KEY` jest na miejscu.
@@ -462,7 +462,13 @@ curl -s https://plately.eu/api/staff/health
    ```
    Tu dalej ma być `efwd.spaceship.net`.
 4. Resend → **Webhooks → Add Webhook**:
-   - **Endpoint URL**: `https://plately.eu/api/support/inbound`
+   - **Endpoint URL**: `https://www.plately.eu/api/support/inbound`
+
+     **Z `www.`** — to nie jest kosmetyka. Apex odpowiada na POST `308` i przekierowuje
+     na `www`, a nadawca webhooka nie ma obowiązku iść za przekierowaniem (i nawet gdy
+     idzie, potrafi po drodze zgubić ciało żądania albo nagłówki `svix-*`, bez których
+     podpis się nie zgadza). Zarejestrowany na apeksie webhook wygląda w Resendzie na
+     poprawny i nigdy nie dowozi.
    - **Event**: `email.received`
    - Zapisz i skopiuj **Signing Secret** (`whsec_…`).
 5. Vercel → `RESEND_WEBHOOK_SECRET` = ten sekret → **Redeploy**.
@@ -473,7 +479,7 @@ curl -s https://plately.eu/api/staff/health
 Sprawdzenie, że oba sekrety doszły:
 
 ```bash
-curl -s https://plately.eu/api/staff/health
+curl -s https://www.plately.eu/api/staff/health
 ```
 
 Szukasz `"inboundMailWorks": true`.
@@ -804,7 +810,7 @@ to nie jest problem konfiguracji: zajrzyj w Vercel → Deployments → Functions
 `api/staff/[...path]`.
 
 ```bash
-curl -s https://plately.eu/api/staff/health
+curl -s https://www.plately.eu/api/staff/health
 ```
 
 **Panel wygląda jak sprzed zmian.** `support.css` i `app.js` mają godzinny cache — podbij
