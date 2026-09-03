@@ -21,7 +21,7 @@ zewnętrznej ani opłaty: sekret i kod QR generuje nasza własna funkcja, a po d
 działa dowolna darmowa aplikacja (Google Authenticator, Aegis, 1Password, Bitwarden).
 
 Kolejność ma znaczenie. Kroki 1–6 uruchamiają panel, 7–8 podpinają pocztę, 9 włącza
-publiczną stronę pomocy.
+publiczną stronę pomocy, a 10 — stronę statusu.
 
 ---
 
@@ -42,6 +42,12 @@ Showcase WEB/
   public/support/support.css
   public/support/legacy.html       ← stary panel maintenance, jako wyjście awaryjne
   public/help.html                 ← strona pomocy dla klientów (PL/EN, jeden plik)
+  public/status.html               ← publiczna strona statusu (PL/EN, jeden plik)
+  api/status.js                    ← cztery sprawdzenia na żywo + historia 7 dni
+  supabase/status-schema.sql       ← tabela pomiarów i roll-up. Uruchamiasz raz.
+  api/_lib/email-render.js         ← jak wygląda każdy nasz mail (tabele, style inline)
+  api/_lib/email-templates.js      ← co każdy z nich mówi i od kogo przychodzi
+  scripts/build-email-previews.mjs ← renderuje te maile do email-templates/ (npm run emails)
   .env.example                     ← opis każdej zmiennej środowiskowej
   vercel.json                      ← przekierowanie /admin → /support, CSP dla obu stron
 
@@ -527,7 +533,56 @@ dzieje — zamykanie im wtedy jedynych drzwi nie miałoby sensu.
 
 ---
 
-## 10. „Use AI" — podpowiedź odpowiedzi
+## 10. Strona statusu — `/status`
+
+Publiczna odpowiedź na pytanie „czy Plately działa?". Pod adresem
+`https://www.plately.eu/status`, tym samym ciemnym szablonem co `/help`, `/terms`
+i `/privacy`. Linkuje do niej stopka każdego maila, który wysyłamy.
+
+**Bez historii działa od razu.** Po deployu strona sprawdza cztery rzeczy na żywo przy
+każdym wejściu — stronę, aplikację, Supabase i Resend — i pokazuje czas odpowiedzi
+w milisekundach. Nie trzeba nic ustawiać: używa `SUPABASE_*` i `RESEND_API_KEY`, które
+już masz. Składnik bez kluczy pokazuje się jako **„brak pomiaru"**, nigdy jako zielony.
+
+**Wykres siedmiodniowy wymaga jednego kroku:**
+
+1. Supabase → *SQL Editor* → *New query* → wklej `supabase/status-schema.sql` → **Run**.
+   Jak wszystko w tym repo, można to puścić ponownie bez szkody.
+2. Wejdź na `/status` i rozwiń dowolną pozycję. Wykres będzie pusty — to poprawnie,
+   nie ma jeszcze pomiarów.
+3. Wróć po kilkunastu minutach. Pierwsze słupki pojawiają się, gdy uzbiera się kilka
+   próbek.
+
+**Skąd biorą się pomiary.** Nie ma tu crona ani żadnej usługi monitorującej — Vercel
+Hobby daje jedno uruchomienie crona na dobę, a z tego nie da się zrobić wykresu. Zamiast
+tego: każde wejście na `/status` sprawdza wszystko na żywo, a **co najwyżej jedno wejście
+na pięć minut** dodatkowo zapisuje wynik do bazy. Historia zbiera się więc ze zwykłego
+ruchu i nic nie kosztuje, a stu jednoczesnych gości to nadal jeden zapis.
+
+Ma to jedną uczciwą konsekwencję, którą strona mówi wprost: **dziura w danych znaczy
+„nikt nie patrzył", a nie „wszystko działało"**. Dzień bez próbek rysuje się jako pusty
+obrys, nigdy jako zielony słupek. To najczęstszy sposób, w jaki strony statusu zaczynają
+kłamać, i jedyny, którego naprawdę warto tu pilnować.
+
+**Retencja:** 30 dni. Sprząta `status_prune()`, wołane mniej więcej co pięćdziesiąty
+zapis — codzienne kasowanie miesiąca wierszy zrobiłoby z najtańszego żądania na stronie
+najdroższe zapytanie w bazie, a cron kosztowałby to jedno dzienne uruchomienie, które
+mamy.
+
+**Strona jest dostępna podczas przerwy technicznej** (jest w `ALWAYS_PUBLIC`
+w `middleware.js`), z tego samego powodu co `/help`, tylko mocniejszego: przerwa
+techniczna to dokładnie ten moment, w którym ktoś wchodzi na status. Ogłoszona przerwa
+pokazuje się zresztą jako osobny stan — „Przerwa techniczna", nie „Awaria".
+
+**Czego ta strona nie potrafi.** Stoi na tym samym hostingu co reszta serwisu, więc
+padnięcie Vercela zabiera ją razem z resztą. Strona mówi o tym w akapicie „Skąd te
+liczby" i podaje `contact@plately.eu` jako drogę, która idzie inaczej. Prawdziwe
+rozwiązanie to postawić `/status` u innego dostawcy — warto, ale dopiero wtedy, gdy
+będzie czym to uzasadnić.
+
+---
+
+## 11. „Use AI" — podpowiedź odpowiedzi
 
 Opcjonalne. Bez klucza przycisk po prostu się nie pojawia i nic innego się nie zmienia.
 
@@ -562,7 +617,7 @@ Nie wymaga żadnego kliknięcia.
 
 ---
 
-## 11. Jak to jest poskładane (żeby dało się to potem debugować)
+## 12. Jak to jest poskładane (żeby dało się to potem debugować)
 
 **Logowanie.** `POST /api/staff/start` zwraca URL Google, zapisując
 `state` + `nonce` w podpisanym ciasteczku. `GET /api/staff/callback` wymienia kod na
@@ -642,7 +697,7 @@ uprawnień działa natychmiast**, a nie po wygaśnięciu ciasteczka.
 
 ---
 
-## 12. Role i tiery
+## 13. Role i tiery
 
 | | owner | admin | agent T3 | agent T2 | agent T1 | viewer |
 | --- | :-: | :-: | :-: | :-: | :-: | :-: |
@@ -676,7 +731,7 @@ aplikacji. Powiedz, gdzie ma się pojawić, to podepnę.
 
 ---
 
-## 13. Kiedy coś pójdzie nie tak
+## 14. Kiedy coś pójdzie nie tak
 
 **Nie mogę się zalogować / zgubiłem PIN albo telefon.**
 Jeśli jest inny owner — zrobi to z panelu (*Settings → Team and roles → Edit → Reset PIN*
@@ -757,7 +812,7 @@ curl -s https://plately.eu/api/staff/health
 
 ---
 
-## 14. Limity, o których warto pamiętać
+## 15. Limity, o których warto pamiętać
 
 - **Resend free: 3 000 maili/miesiąc, 100/dzień**, i **odbiór liczy się do tej samej puli**.
   Jeden ticket to zwykle 1 (przychodzący) + 1 (auto-potwierdzenie) + 1 (odpowiedź) = 3 sztuki.

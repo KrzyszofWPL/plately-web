@@ -76,44 +76,45 @@ export function identities() {
  */
 export function confirmRequestEmail({ reference, subject, category, body, confirmUrl, locale }) {
   const pl = locale !== "en";
-  const title = pl ? "Potwierdź swoje zgłoszenie" : "Confirm your request";
+  const title = pl ? "Potwierdź zgłoszenie" : "Confirm your request";
 
   return {
     subject: pl
       ? `Potwierdź zgłoszenie [${reference}]`
       : `Confirm your request [${reference}]`,
     ...renderEmail({
+      locale,
       title,
       accentLabel: "Support",
       preheader: pl
-        ? "Jedno kliknięcie i Twoje zgłoszenie trafi do zespołu."
+        ? "Kliknij, żeby Twoje zgłoszenie do nas dotarło."
         : "One click and your request reaches the team.",
       blocks: [
         block.text(
           pl
-            ? "Dostaliśmy zgłoszenie z formularza pomocy na plately.eu. Zanim trafi do zespołu, potwierdź proszę, że ten adres należy do Ciebie — to jedno kliknięcie."
-            : "We received a request from the help form on plately.eu. Before it reaches the team, please confirm this address is yours — it is one click."
+            ? "Cześć! Widzimy, że wysłałeś/aś wiadomość przez formularz na plately.eu. Potwierdź proszę swój adres e-mail — wystarczy kliknąć przycisk poniżej."
+            : "Hi! We see you sent a message through the form on plately.eu. Please confirm your email address — just click the button below."
         ),
-        block.button(pl ? "Potwierdzam zgłoszenie" : "Confirm my request", confirmUrl),
+        block.button(pl ? "Potwierdzam" : "Confirm my request", confirmUrl, locale),
         block.facts([
           [pl ? "Numer" : "Reference", reference],
           [pl ? "Kategoria" : "Category", category],
           [pl ? "Temat" : "Subject", subject],
-        ]),
+        ], locale),
         block.quote(pl ? "Twoja wiadomość" : "Your message", body),
         block.text(
           pl
-            ? "Po potwierdzeniu odpiszemy na ten adres — zwykle w ciągu jednego dnia roboczego."
-            : "Once confirmed we will reply to this address, usually within one business day."
+            ? "Jak tylko potwierdzisz, zajmiemy się Twoją sprawą. Staramy się odpowiadać w ciągu jednego dnia roboczego."
+            : "Once you confirm, we'll get right on it. We usually reply within one business day."
         ),
       ],
       footer: [
         pl
-          ? "Jeśli to nie Ty wypełniałeś/aś ten formularz, po prostu zignoruj tę wiadomość — bez kliknięcia nic się nie wydarzy i nikt Ci nie odpisze."
-          : "If you did not fill in this form, simply ignore this message — without the click nothing happens and nobody will write to you.",
+          ? "Nie wypełniałeś/aś tego formularza? Zignoruj tę wiadomość — nic się nie stanie."
+          : "Didn't fill in this form? Just ignore this message — nothing will happen.",
         pl
-          ? "Ta wiadomość jest wysyłana automatycznie i nie przyjmuje odpowiedzi."
-          : "This message is automatic and does not accept replies.",
+          ? "Wiadomość wysłana automatycznie — nie odpowiadaj na nią."
+          : "This is an automated message — please don't reply to it.",
       ],
     }),
   };
@@ -160,6 +161,7 @@ export function agentReplyEmail({ reference, subject, body, agentName, agentRole
   return {
     subject,
     ...renderEmail({
+      locale,
       title: pl ? "Odpowiedź od zespołu Plately" : "A reply from the Plately team",
       accentLabel: "Support",
       preheader: String(body || "").slice(0, 110),
@@ -169,12 +171,12 @@ export function agentReplyEmail({ reference, subject, body, agentName, agentRole
         block.facts([
           [pl ? "Zgłoszenie" : "Ticket", reference],
           [pl ? "Temat" : "Subject", subject.replace(/\s*\[[A-Z]+-\d+\]\s*$/, "")],
-        ]),
+        ], locale),
       ],
       footer: [
         pl
-          ? "Możesz po prostu odpowiedzieć na tę wiadomość — dopisze się do tej samej rozmowy."
-          : "You can simply reply to this message — it joins the same conversation.",
+          ? "Chcesz coś dodać? Odpowiedz na tego maila — trafimy na tę samą rozmowę."
+          : "Want to follow up? Just reply to this email — it stays on the same thread.",
       ],
     }),
   };
@@ -189,30 +191,32 @@ export function inboundAckEmail({ reference, subject, body, locale }) {
   return {
     subject,
     ...renderEmail({
-      title: pl ? "Mamy Twoją wiadomość" : "We have your message",
+      locale,
+      title: pl ? "Dostaliśmy Twoją wiadomość" : "We got your message",
       accentLabel: "Support",
       preheader: pl
-        ? `Zgłoszenie ${reference} — odpowie człowiek, zwykle w jeden dzień roboczy.`
-        : `Ticket ${reference} — a person will answer, usually within one business day.`,
+        ? `Zgłoszenie ${reference} — odezwiemy się najszybciej, jak się da.`
+        : `Ticket ${reference} — we'll get back to you as soon as we can.`,
       blocks: [
         block.text(
           pl
-            ? `Twoja wiadomość dotarła do zespołu Plately i ma numer ${reference}. Czyta ją człowiek — odpowiedź przyjdzie na ten adres, zwykle w ciągu jednego dnia roboczego.`
-            : `Your message reached the Plately team and is ticket ${reference}. A person reads it — the answer comes back to this address, usually within one business day.`
+            ? `Cześć! Twoja wiadomość do nas dotarła — ma numer ${reference}. Ktoś z zespołu ją przeczyta i odpowie Ci na ten adres, zwykle w ciągu jednego dnia roboczego.`
+            : `Hi! Your message made it through — it's ticket ${reference}. Someone from the team will read it and reply to this address, usually within one business day.`
         ),
         ...(body ? [block.quote(pl ? "Co do nas napisałeś/aś" : "What you sent us", body)] : []),
         block.text(
           pl
-            ? "Nie musisz nic więcej robić. Jeśli chcesz coś dodać, odpowiedz na tę wiadomość."
-            : "You do not need to do anything else. If you want to add something, reply to this message."
+            ? "Nie musisz nic więcej robić. Chcesz coś dodać? Po prostu odpowiedz na tego maila."
+            : "Nothing else needed from your side. Want to add something? Just reply to this email."
         ),
       ],
       footer: [
-        pl ? "To jest automatyczne potwierdzenie." : "This is an automatic acknowledgement.",
+        pl ? "To automatyczne potwierdzenie." : "This is an automatic confirmation.",
       ],
     }),
   };
 }
+
 
 // ---------------------------------------------------------------------------
 // 4. lifecycle  —  noreply@info
@@ -232,19 +236,20 @@ export function lifecycleEmail({ title, body, cta, ctaUrl, unsubscribeUrl, prehe
   return {
     subject: title,
     ...renderEmail({
+      locale,
       title,
       preheader: preheader || String(body || "").slice(0, 110),
       blocks: [
         block.text(body),
-        ...(cta && ctaUrl ? [block.button(cta, ctaUrl)] : []),
+        ...(cta && ctaUrl ? [block.button(cta, ctaUrl, locale)] : []),
       ],
       footer: [
         pl
-          ? `Dostajesz tę wiadomość, bo masz konto w Plately. <a href="${unsubscribeUrl || SITE}" style="color:#71717a;text-decoration:underline;">Wypisz się z powiadomień</a>.`
-          : `You are getting this because you have a Plately account. <a href="${unsubscribeUrl || SITE}" style="color:#71717a;text-decoration:underline;">Unsubscribe from notifications</a>.`,
+          ? `Wysyłamy Ci to, bo masz konto w Plately. <a href="${unsubscribeUrl || SITE}" style="color:#71717a;text-decoration:underline;">Wypisz się</a>.`
+          : `You're getting this because you have a Plately account. <a href="${unsubscribeUrl || SITE}" style="color:#71717a;text-decoration:underline;">Unsubscribe</a>.`,
         pl
-          ? "W sprawach pomocy pisz na plately.eu/help — ten adres nie przyjmuje odpowiedzi."
-          : "For help, write via plately.eu/help — this address does not accept replies.",
+          ? "Potrzebujesz pomocy? Napisz na plately.eu/help — ten adres nie przyjmuje odpowiedzi."
+          : "Need help? Head to plately.eu/help — this address doesn't accept replies.",
       ],
     }),
   };

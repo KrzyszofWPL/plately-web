@@ -31,6 +31,12 @@ const ALWAYS_PUBLIC = new Set([
   // link to the file must not fall through to a 503 either.
   "/help",
   "/help.html",
+  // The status page, for the same reason and then some: a maintenance window
+  // is the single moment it is most likely to be loaded, and a status page
+  // that answers 503 during one has failed at the only job it has. It reads
+  // /api/status, which the matcher already excludes, so both halves stay up.
+  "/status",
+  "/status.html",
   // Same reasoning as robots.txt, for the crawlers that read this instead: a
   // description of the product is not the thing that goes offline during a
   // maintenance window.

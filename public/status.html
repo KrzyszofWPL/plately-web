@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Status usług — Plately</title>
+<meta name="description" content="Czy Plately działa? Bieżący stan strony, aplikacji, bazy danych i poczty — z czasem odpowiedzi w milisekundach i historią z ostatnich siedmiu dni.">
+<link rel="canonical" href="https://www.plately.eu/status">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="apple-touch-icon" href="/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Same palette, spacing and header as /help, /privacy and /terms. A status
+     page is read by somebody who is already slightly annoyed; landing on
+     something that looks like a different company at that moment is its own
+     small failure. */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { background: #0a0a0b; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #0a0a0b; color: #f4f4f5; font-family: "Inter", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #34d399; text-decoration: none; }
+  a:hover { color: #6ee7b7; }
+  ::selection { background: #34d399; color: #04140d; }
+  :focus-visible { outline: 2px solid #34d399; outline-offset: 3px; border-radius: 4px; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(18px); background: rgba(10,10,11,.72); border-bottom: 1px solid rgba(255,255,255,.08); }
+  .bar { max-width: 880px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 11px; color: #f4f4f5; }
+  .brand img { width: 32px; height: 32px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); display: block; }
+  .brand span { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+  .langs { display: flex; align-items: center; gap: 6px; }
+  .langs button { font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: #131316; color: #e4e4e7; cursor: pointer; transition: border-color .2s ease, background-color .2s ease, color .2s ease; }
+  .langs button:hover { border-color: rgba(52,211,153,.45); }
+  .langs button[aria-pressed="true"] { border-color: rgba(52,211,153,.5); background: #17251f; color: #34d399; }
+
+  main { max-width: 880px; margin: 0 auto; padding: clamp(36px,5vw,64px) 24px clamp(56px,7vw,88px); }
+  .back { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #8a8a92; margin-bottom: 26px; }
+  .back:hover { color: #34d399; }
+  h1 { margin: 0; font-size: clamp(30px,4.4vw,46px); line-height: 1.1; font-weight: 700; letter-spacing: -.03em; text-wrap: balance; }
+  .lede { margin: 14px 0 0; font-size: 16px; line-height: 1.65; color: #b6b6bd; max-width: 62ch; text-wrap: pretty; }
+
+  /* --- the headline ------------------------------------------------------ */
+  /* One sentence, sized so it answers the question from across the room. */
+  .banner { margin-top: clamp(30px,4vw,42px); border: 1px solid rgba(255,255,255,.1); background: #131316; border-radius: 22px; padding: clamp(22px,3.4vw,30px); display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .banner .beat { flex: none; width: 14px; height: 14px; border-radius: 50%; background: #6b6b73; box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+  .banner h2 { margin: 0; font-size: clamp(19px,2.6vw,24px); font-weight: 700; letter-spacing: -.02em; }
+  .banner p { margin: 5px 0 0; font-size: 14px; line-height: 1.6; color: #8a8a92; }
+  .banner .txt { flex: 1 1 260px; min-width: 0; }
+  .banner .stamp { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; color: #6b6b73; letter-spacing: .03em; white-space: nowrap; }
+
+  .banner.ok { border-color: rgba(52,211,153,.35); background: #12201a; }
+  .banner.ok .beat { background: #34d399; box-shadow: 0 0 0 5px rgba(52,211,153,.14); }
+  .banner.warn { border-color: rgba(251,191,36,.35); background: #201a10; }
+  .banner.warn .beat { background: #fbbf24; box-shadow: 0 0 0 5px rgba(251,191,36,.14); }
+  .banner.bad { border-color: rgba(248,113,113,.35); background: #2a1416; }
+  .banner.bad .beat { background: #f87171; box-shadow: 0 0 0 5px rgba(248,113,113,.14); }
+
+  /* --- the components ---------------------------------------------------- */
+  .list { margin-top: clamp(26px,3.4vw,34px); border: 1px solid rgba(255,255,255,.1); border-radius: 20px; overflow: hidden; background: #131316; }
+  .item { border-bottom: 1px solid rgba(255,255,255,.07); }
+  .item:last-child { border-bottom: 0; }
+
+  /* <details> rather than a button and a class: the row is open or it is not,
+     the browser already knows how to say that to a screen reader, and it keeps
+     working if the script never runs. */
+  summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 14px; padding: 17px 20px; }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover { background: rgba(255,255,255,.025); }
+  .dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #6b6b73; }
+  .dot.operational { background: #34d399; }
+  .dot.degraded { background: #fbbf24; }
+  .dot.down { background: #f87171; }
+  .dot.unknown { background: #4b4b52; }
+  .nm { flex: 1 1 auto; min-width: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .nm small { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 400; line-height: 1.5; color: #8a8a92; }
+  .now { flex: none; text-align: right; }
+  .now .ms { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 14px; font-weight: 500; color: #e4e4e7; }
+  .now .st { display: block; margin-top: 2px; font-size: 12px; color: #8a8a92; }
+  .chev { flex: none; color: #6b6b73; font-size: 18px; line-height: 1; transition: transform .18s ease; }
+  details[open] .chev { transform: rotate(45deg); }
+
+  .panel { padding: 4px 20px 22px; }
+  .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .fig { background: #0f0f11; border: 1px solid rgba(255,255,255,.07); border-radius: 14px; padding: 12px 14px; }
+  .fig dt { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #6b6b73; }
+  .fig dd { margin: 6px 0 0; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 17px; font-weight: 500; color: #f4f4f5; }
+  .fig dd.dim { color: #6b6b73; }
+
+  /* --- the seven days ---------------------------------------------------- */
+  .chart-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .chart-h b { font-size: 12.5px; font-weight: 600; color: #b6b6bd; }
+  .chart-h span { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; color: #6b6b73; }
+  .chart { display: flex; align-items: flex-end; gap: 6px; height: 104px; padding: 0 2px; }
+  .col { flex: 1 1 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; min-width: 0; }
+  /* Not ".bar": the site header already owns that name in the shell this page
+     shares with /help, and a chart column painting the header green is exactly
+     what happens when two stylesheets meet. */
+  .cbar { width: 100%; border-radius: 5px 5px 2px 2px; background: #34d399; min-height: 4px; transition: height .3s ease; }
+  .cbar.warn { background: #fbbf24; }
+  .cbar.bad { background: #f87171; }
+  /* A day nobody looked is not a day everything worked. It gets a hollow stub,
+     never a full green column — the single most common way a status page ends
+     up lying is by drawing absence as health. */
+  .cbar.none { background: transparent; border: 1px dashed rgba(255,255,255,.16); height: 14px !important; }
+  .days { display: flex; gap: 6px; margin-top: 8px; }
+  .days span { flex: 1 1 0; text-align: center; font-size: 10.5px; color: #6b6b73; font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: .02em; min-width: 0; }
+  .note { margin: 14px 0 0; font-size: 12.5px; line-height: 1.6; color: #6b6b73; }
+
+  .msg { margin-top: clamp(26px,3.4vw,34px); padding: 16px 18px; border-radius: 16px; font-size: 14px; line-height: 1.65; border: 1px solid rgba(255,255,255,.1); background: #131316; color: #b6b6bd; }
+  .msg.bad { background: #2a1416; border-color: rgba(248,113,113,.35); color: #fca5a5; }
+
+  .about { margin-top: clamp(40px,5vw,56px); padding-top: clamp(28px,3.6vw,36px); border-top: 1px solid rgba(255,255,255,.08); }
+  .about h2 { margin: 0 0 14px; font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+  .about p { margin: 0 0 12px; font-size: 14px; line-height: 1.72; color: #b6b6bd; max-width: 68ch; }
+  .about p:last-child { margin-bottom: 0; }
+
+  footer { border-top: 1px solid rgba(255,255,255,.08); }
+  .fbar { max-width: 880px; margin: 0 auto; padding: 26px 24px 34px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; color: #8a8a92; }
+  .fbar span { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: .04em; }
+  .fbar nav { display: flex; gap: 16px; flex-wrap: wrap; }
+
+  @media (max-width: 520px) {
+    /* On a phone the reading is worth its own line rather than being squeezed
+       against the name. Order, not markup: the DOM stays in the order a screen
+       reader should hear it — what it is, then how it is doing. */
+    summary { gap: 10px; padding: 15px 16px; flex-wrap: wrap; align-items: flex-start; }
+    .dot { order: 1; margin-top: 6px; }
+    .nm { order: 2; flex: 1 1 0; }
+    .chev { order: 3; margin-top: 1px; }
+    .now { order: 4; flex-basis: 100%; margin-top: 8px; padding-left: 19px; display: flex; align-items: baseline; gap: 9px; text-align: left; }
+    .now .st { display: inline; margin-top: 0; }
+    .panel { padding: 4px 16px 20px; }
+    .figs { grid-template-columns: 1fr 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cbar, .chev { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <a class="brand" href="/">
+      <img src="/logo.png" alt="" width="32" height="32">
+      <span>Plately</span>
+    </a>
+    <div class="langs" role="group" aria-label="Language / Język">
+      <button type="button" data-lang="pl" lang="pl" aria-pressed="true">Polski</button>
+      <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <a class="back" href="/">&larr; <span data-t="back">Strona główna</span></a>
+
+  <h1 data-t="title">Status usług</h1>
+  <p class="lede" data-t="lede">Cztery rzeczy, z których składa się Plately, sprawdzane naprawdę — każde odświeżenie tej strony wysyła do nich żądanie i mierzy, ile trwało. Rozwiń dowolną pozycję, żeby zobaczyć ostatnie siedem dni.</p>
+
+  <!-- The headline, before anything is known. Deliberately not "operational":
+       the page must never claim health it has not measured yet. -->
+  <section class="banner" id="banner" aria-live="polite">
+    <span class="beat" id="beat"></span>
+    <div class="txt">
+      <h2 id="banner-title" data-t="checking">Sprawdzam…</h2>
+      <p id="banner-sub"></p>
+    </div>
+    <div class="stamp" id="stamp"></div>
+  </section>
+
+  <div class="msg" id="msg" hidden></div>
+
+  <div class="list" id="list"></div>
+
+  <section class="about">
+    <h2 data-t="aboutTitle">Skąd te liczby</h2>
+    <p data-t="about1">Nic tu nie jest przełączane ręcznie. Przy każdym wejściu na tę stronę serwer wysyła cztery prawdziwe żądania — do strony, do aplikacji, do bazy i do poczty — i mierzy czas od wysłania do odpowiedzi. To, co widzisz, wydarzyło się kilka sekund temu.</p>
+    <p data-t="about2">Historia zbiera się z tych samych pomiarów: jeden zapis co pięć minut, niezależnie od tego, ile osób patrzy. Dlatego dzień, w którym nikt tu nie zajrzał, zostaje pusty zamiast zielony — brak danych to nie to samo co „wszystko działało”.</p>
+    <p data-t="about3">Jedno ograniczenie, o którym warto wiedzieć: ta strona stoi na tym samym hostingu co reszta serwisu. Jeśli nie otwiera się w ogóle, to też jest odpowiedź. Piszcie wtedy na <a href="mailto:contact@plately.eu">contact@plately.eu</a> — poczta idzie inną drogą.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="fbar">
+    <span>PLATELY</span>
+    <nav>
+      <a href="/" data-t="navHome">Strona główna</a>
+      <a href="/help" data-t="navHelp">Pomoc</a>
+      <a href="/terms" data-t="navTerms">Regulamin</a>
+      <a href="/privacy" data-t="navPrivacy">Prywatność</a>
+      <a href="mailto:contact@plately.eu">contact@plately.eu</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // --- copy -----------------------------------------------------------------
+  // Polish and English in one file, the same pair /help is written in.
+  // Component ids come from the API and are never translated; their names are.
+  var COMPONENTS = [
+    { id: 'site',     pl: ['Strona plately.eu', 'Strona główna, cennik, pomoc i dokumenty.'],
+                      en: ['The plately.eu website', 'Landing page, pricing, help and legal pages.'] },
+    { id: 'app',      pl: ['Aplikacja', 'app.plately.eu — miejsce, w którym korzystasz z Plately.'],
+                      en: ['The app', 'app.plately.eu — where you actually use Plately.'] },
+    { id: 'database', pl: ['Baza danych', 'Konta, plany i wszystko, co zapisujesz w aplikacji.'],
+                      en: ['Database', 'Accounts, plans and everything you save in the app.'] },
+    { id: 'mail',     pl: ['Poczta i zgłoszenia', 'Potwierdzenia, odpowiedzi wsparcia i formularz pomocy.'],
+                      en: ['E-mail and support', 'Confirmations, support replies and the help form.'] }
+  ];
+
+  var T = {
+    pl: {
+      docTitle: 'Status usług — Plately',
+      back: 'Strona główna', title: 'Status usług',
+      lede: 'Cztery rzeczy, z których składa się Plately, sprawdzane naprawdę — każde odświeżenie tej strony wysyła do nich żądanie i mierzy, ile trwało. Rozwiń dowolną pozycję, żeby zobaczyć ostatnie siedem dni.',
+      checking: 'Sprawdzam…',
+      allOk: 'Wszystko działa', allOkSub: '{n} z {total} usług odpowiada normalnie.',
+      partial: 'Częściowo sprawdzone', partialSub: '{n} z {total} usług odpowiada normalnie. Reszty nie udało się w tej chwili zmierzyć.',
+      someSlow: 'Działa, ale wolniej', someSlowSub: 'Coś odpowiada dłużej, niż powinno. Możesz zauważyć opóźnienia.',
+      someDown: 'Mamy awarię', someDownSub: '{down} z {total} usług nie odpowiada. Pracujemy nad tym.',
+      maint: 'Przerwa techniczna', maintSub: 'Strona jest chwilowo wyłączona celowo. Aplikacja działa normalnie.',
+      unreachable: 'Nie udało się sprawdzić',
+      unreachableSub: 'Nie dostaliśmy odpowiedzi od naszego własnego serwera — to samo w sobie jest sygnałem.',
+      stamp: 'sprawdzono {t}',
+      stOperational: 'działa', stDegraded: 'wolno', stDown: 'nie odpowiada', stUnknown: 'brak pomiaru',
+      now: 'Odpowiedź teraz', avg7: 'Średnia 7 dni', up7: 'Dostępność 7 dni', worst: 'Najwolniej w 7 dni',
+      chart: 'Czas odpowiedzi, 7 dni', chartScale: 'skala do {n} ms',
+      noData: 'brak danych', noHistoryYet: 'Historia zacznie się rysować, gdy uzbiera się pierwszych kilka pomiarów.',
+      noHistorySchema: 'Historia jest wyłączona: w bazie nie ma jeszcze tabel ze statusem (supabase/status-schema.sql).',
+      noHistoryDb: 'Historia jest chwilowo niedostępna — baza nie odpowiedziała na pytanie o pomiary.',
+      dayLabel: '{d}: {u}, średnio {ms} ms',
+      dayNone: '{d}: brak pomiarów',
+      unmeasured: 'nie zmierzono',
+      aboutTitle: 'Skąd te liczby',
+      about1: 'Nic tu nie jest przełączane ręcznie. Przy każdym wejściu na tę stronę serwer wysyła cztery prawdziwe żądania — do strony, do aplikacji, do bazy i do poczty — i mierzy czas od wysłania do odpowiedzi. To, co widzisz, wydarzyło się kilka sekund temu.',
+      about2: 'Historia zbiera się z tych samych pomiarów: jeden zapis co pięć minut, niezależnie od tego, ile osób patrzy. Dlatego dzień, w którym nikt tu nie zajrzał, zostaje pusty zamiast zielony — brak danych to nie to samo co „wszystko działało”.',
+      about3: 'Jedno ograniczenie, o którym warto wiedzieć: ta strona stoi na tym samym hostingu co reszta serwisu. Jeśli nie otwiera się w ogóle, to też jest odpowiedź. Piszcie wtedy na <a href="mailto:contact@plately.eu">contact@plately.eu</a> — poczta idzie inną drogą.',
+      navHome: 'Strona główna', navHelp: 'Pomoc', navTerms: 'Regulamin', navPrivacy: 'Prywatność',
+      justNow: 'przed chwilą', minsAgo: '{n} min temu'
+    },
+    en: {
+      docTitle: 'Service status — Plately',
+      back: 'Home', title: 'Service status',
+      lede: 'The four things Plately is made of, checked for real — every load of this page sends them a request and times it. Open any row for the last seven days.',
+      checking: 'Checking…',
+      allOk: 'All systems normal', allOkSub: '{n} of {total} services are answering as they should.',
+      partial: 'Partly checked', partialSub: '{n} of {total} services are answering. The rest could not be measured right now.',
+      someSlow: 'Working, but slower', someSlowSub: 'Something is taking longer than it should. You may notice delays.',
+      someDown: 'We have an outage', someDownSub: '{down} of {total} services are not answering. We are on it.',
+      maint: 'Scheduled maintenance', maintSub: 'The website is deliberately offline for a moment. The app is unaffected.',
+      unreachable: 'Could not run the checks',
+      unreachableSub: 'Our own server did not answer — which is a signal in itself.',
+      stamp: 'checked {t}',
+      stOperational: 'operational', stDegraded: 'slow', stDown: 'not answering', stUnknown: 'not measured',
+      now: 'Response now', avg7: '7-day average', up7: '7-day uptime', worst: 'Slowest in 7 days',
+      chart: 'Response time, 7 days', chartScale: 'scale to {n} ms',
+      noData: 'no data', noHistoryYet: 'The graph starts once the first handful of samples has been recorded.',
+      noHistorySchema: 'History is off: the status tables are not in the database yet (supabase/status-schema.sql).',
+      noHistoryDb: 'History is briefly unavailable — the database did not answer the query for samples.',
+      dayLabel: '{d}: {u}, {ms} ms on average',
+      dayNone: '{d}: no samples',
+      unmeasured: 'not measured',
+      aboutTitle: 'Where these numbers come from',
+      about1: 'Nothing here is a switch somebody flips. Every time this page is opened the server sends four real requests — to the website, the app, the database and the mail provider — and times each one from send to answer. What you are looking at happened seconds ago.',
+      about2: 'The history is built from those same measurements: one recorded sample every five minutes, however many people are watching. That is why a day nobody looked stays empty rather than green — no data is not the same as "everything worked".',
+      about3: 'One limitation worth knowing: this page runs on the same hosting as the rest of the site. If it will not load at all, that is also an answer. Write to <a href="mailto:contact@plately.eu">contact@plately.eu</a> — mail takes a different road.',
+      navHome: 'Home', navHelp: 'Help', navTerms: 'Terms', navPrivacy: 'Privacy',
+      justNow: 'just now', minsAgo: '{n} min ago'
+    }
+  };
+
+  var lang = 'pl';
+  var t = T.pl;
+  var data = null;      // last good payload from /api/status
+  var failed = false;   // the endpoint itself did not answer
+
+  function fill(str, vars) {
+    return String(str).replace(/\{(\w+)\}/g, function (_, k) {
+      return vars[k] == null ? '' : String(vars[k]);
+    });
+  }
+
+  // --- language -------------------------------------------------------------
+  function applyLang(code) {
+    lang = code;
+    t = T[code];
+    document.documentElement.lang = code;
+    document.title = t.docTitle;
+
+    document.querySelectorAll('[data-t]').forEach(function (el) {
+      var value = t[el.getAttribute('data-t')];
+      if (typeof value !== 'string') return;
+      // Two strings carry a mailto link, and every one of them is authored in
+      // this file — nothing from the network reaches innerHTML here.
+      if (/<[a-z]/i.test(value)) el.innerHTML = value; else el.textContent = value;
+    });
+    document.querySelectorAll('[data-lang]').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-lang') === code ? 'true' : 'false');
+    });
+    render();
+  }
+
+  document.querySelectorAll('[data-lang]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var code = b.getAttribute('data-lang');
+      try { localStorage.setItem('plately_landing_lang', code); } catch (e) {}
+      applyLang(code);
+    });
+  });
+
+  // --- formatting -----------------------------------------------------------
+  function ms(value) {
+    return value == null ? '—' : String(value) + ' ms';
+  }
+
+  function pct(value) {
+    if (value == null) return '—';
+    // Two decimals only where they say something: "99.97%" is information,
+    // "100.00%" is noise.
+    var rounded = Math.round(value * 100) / 100;
+    return (rounded === 100 ? '100' : rounded.toFixed(2)) + '%';
+  }
+
+  function shortDay(iso) {
+    var d = new Date(iso + 'T00:00:00Z');
+    return d.toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', { weekday: 'short', timeZone: 'UTC' });
+  }
+
+  function longDay(iso) {
+    var d = new Date(iso + 'T00:00:00Z');
+    return d.toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+  }
+
+  function ago(iso) {
+    var mins = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000));
+    return mins < 1 ? t.justNow : fill(t.minsAgo, { n: mins });
+  }
+
+  // --- rendering ------------------------------------------------------------
+  function render() {
+    if (failed) {
+      $('banner').className = 'banner bad';
+      $('banner-title').textContent = t.unreachable;
+      $('banner-sub').textContent = t.unreachableSub;
+      $('stamp').textContent = '';
+      $('list').innerHTML = '';
+      return;
+    }
+    if (!data) return;
+
+    var c = data.counts || { operational: 0, down: 0, total: (data.components || []).length };
+    var n = { n: c.operational, down: c.down, total: c.total };
+    var headline = {
+      operational: ['ok',   t.allOk,    fill(t.allOkSub, n)],
+      partial:     ['warn', t.partial,  fill(t.partialSub, n)],
+      degraded:    ['warn', t.someSlow, t.someSlowSub],
+      down:        ['bad',  t.someDown, fill(t.someDownSub, n)],
+      maintenance: ['warn', t.maint,    t.maintSub]
+    }[data.overall] || ['', t.checking, ''];
+
+    $('banner').className = 'banner ' + headline[0];
+    $('banner-title').textContent = headline[1];
+    $('banner-sub').textContent = headline[2];
+    $('stamp').textContent = fill(t.stamp, { t: ago(data.checkedAt) });
+
+    // A note under the list only when the history is missing for a reason the
+    // reader can do nothing about — better an explanation than an empty graph.
+    var note = null;
+    if (!data.history.available) {
+      note = data.history.note === 'schema-missing' ? t.noHistorySchema
+           : data.history.note === 'database-unreachable' ? t.noHistoryDb
+           : t.noHistoryYet;
+    }
+    $('msg').hidden = !note;
+    if (note) $('msg').textContent = note;
+
+    $('list').innerHTML = data.components.map(row).join('');
+    // <details> loses its open state on re-render, so put it back.
+    document.querySelectorAll('#list details').forEach(function (d) {
+      if (openRows[d.getAttribute('data-id')]) d.open = true;
+      d.addEventListener('toggle', function () {
+        openRows[d.getAttribute('data-id')] = d.open;
+      });
+    });
+  }
+
+  var openRows = {};
+
+  function row(c) {
+    var meta = COMPONENTS.filter(function (m) { return m.id === c.id; })[0];
+    var copy = meta ? meta[lang] : [c.id, ''];
+    var label = { operational: t.stOperational, degraded: t.stDegraded, down: t.stDown, unknown: t.stUnknown }[c.status] || c.status;
+
+    return '<details class="item" data-id="' + esc(c.id) + '">' +
+      '<summary>' +
+        '<span class="dot ' + esc(c.status) + '"></span>' +
+        '<span class="nm">' + esc(copy[0]) + '<small>' + esc(copy[1]) + '</small></span>' +
+        '<span class="now"><span class="ms">' + esc(ms(c.latencyMs)) + '</span>' +
+        '<span class="st">' + esc(label) + '</span></span>' +
+        '<span class="chev" aria-hidden="true">+</span>' +
+      '</summary>' +
+      '<div class="panel">' +
+        '<dl class="figs">' +
+          fig(t.now, ms(c.latencyMs), c.latencyMs == null) +
+          fig(t.avg7, ms(c.avg7dMs), c.avg7dMs == null) +
+          fig(t.up7, pct(c.uptime7d), c.uptime7d == null) +
+          fig(t.worst, ms(worstOf(c.days)), worstOf(c.days) == null) +
+        '</dl>' +
+        chart(c) +
+      '</div>' +
+    '</details>';
+  }
+
+  function fig(term, value, dim) {
+    return '<div class="fig"><dt>' + esc(term) + '</dt>' +
+      '<dd' + (dim ? ' class="dim"' : '') + '>' + esc(dim ? '—' : value) + '</dd></div>';
+  }
+
+  function worstOf(days) {
+    var vals = days.map(function (d) { return d.maxMs; }).filter(function (v) { return v != null; });
+    return vals.length ? Math.max.apply(null, vals) : null;
+  }
+
+  /**
+   * Seven columns, always seven, whatever the data says.
+   *
+   * Height is the day's average response time against the worst of the week,
+   * so the shape is about speed. Colour is that day's uptime, so a slow day
+   * and a broken day cannot be confused — which is the pair of facts the graph
+   * exists to keep apart.
+   */
+  function chart(c) {
+    var days = c.days || [];
+    var peak = Math.max.apply(null, days.map(function (d) { return d.avgMs || 0; }).concat([1]));
+
+    var bars = days.map(function (d) {
+      if (!d.samples || d.avgMs == null) {
+        return '<div class="col" title="' + esc(fill(t.dayNone, { d: longDay(d.date) })) + '">' +
+          '<div class="cbar none"></div></div>';
+      }
+      // A floor of 8%: a genuinely fast day should still be visible as a bar
+      // rather than a line at the axis.
+      var height = Math.max(8, Math.round((d.avgMs / peak) * 100));
+      var tone = d.uptime == null || d.uptime >= 99.9 ? '' : (d.uptime >= 95 ? ' warn' : ' bad');
+      var title = fill(t.dayLabel, { d: longDay(d.date), u: pct(d.uptime), ms: d.avgMs });
+      return '<div class="col" title="' + esc(title) + '">' +
+        '<div class="cbar' + tone + '" style="height:' + height + '%"></div></div>';
+    }).join('');
+
+    var labels = days.map(function (d) { return '<span>' + esc(shortDay(d.date)) + '</span>'; }).join('');
+    var measured = days.some(function (d) { return d.samples > 0; });
+
+    return '<div class="chart-h"><b>' + esc(t.chart) + '</b>' +
+        '<span>' + esc(measured ? fill(t.chartScale, { n: peak }) : t.noData) + '</span></div>' +
+      '<div class="chart" role="img" aria-label="' + esc(chartAlt(c, days)) + '">' + bars + '</div>' +
+      '<div class="days">' + labels + '</div>' +
+      (measured ? '' : '<p class="note">' + esc(t.noHistoryYet) + '</p>');
+  }
+
+  /** The same seven facts as a sentence, for anyone not looking at the bars. */
+  function chartAlt(c, days) {
+    return days.map(function (d) {
+      return d.samples && d.avgMs != null
+        ? fill(t.dayLabel, { d: longDay(d.date), u: pct(d.uptime), ms: d.avgMs })
+        : fill(t.dayNone, { d: longDay(d.date) });
+    }).join('. ');
+  }
+
+  // --- loading --------------------------------------------------------------
+  function load() {
+    fetch('/api/status', { headers: { Accept: 'application/json' }, cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (payload) {
+        data = payload;
+        failed = false;
+        render();
+      })
+      .catch(function () {
+        // Keep the last good reading on screen if there is one: a single failed
+        // poll is not news, and blanking the page on it would be its own small
+        // false alarm.
+        if (!data) { failed = true; render(); }
+      });
+  }
+
+  // --- boot -----------------------------------------------------------------
+  var stored = null;
+  try { stored = localStorage.getItem('plately_landing_lang'); } catch (e) {}
+  var guess = stored || (navigator.language || 'pl').slice(0, 2).toLowerCase();
+  applyLang(guess === 'pl' ? 'pl' : 'en');
+
+  load();
+  // A minute is well under the edge cache's own life, so most of these cost
+  // nothing, and the page stays current for somebody watching an incident.
+  setInterval(load, 60000);
+  // Coming back to a tab left open overnight should not show last night.
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) load();
+  });
+})();
+</script>
+
+</body>
+</html>

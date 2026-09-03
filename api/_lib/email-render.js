@@ -34,16 +34,34 @@ const SITE = "https://www.plately.eu";
 // Absolute, because an e-mail has no origin to resolve against.
 const LOGO = `${SITE}/logo.png`;
 
+// The three links under every message. Kept here rather than in each template,
+// because the point of them is that they are the same in all of them.
+const NAV = {
+  pl: [
+    ["Pomoc", `${SITE}/help`],
+    ["Status", `${SITE}/status`],
+    ["Prywatność", `${SITE}/privacy`],
+  ],
+  en: [
+    ["Help", `${SITE}/help`],
+    ["Status", `${SITE}/status`],
+    ["Privacy", `${SITE}/privacy`],
+  ],
+};
+
 const C = {
-  page: "#0a0a0b",
-  card: "#131316",
-  line: "#26262b",
-  text: "#f4f4f5",
-  muted: "#a1a1aa",
-  faint: "#71717a",
-  brand: "#34d399",
-  onBrand: "#04140d",
-  quote: "#1b1c1f",
+  page: "#f8f9fa",
+  card: "#ffffff",
+  line: "#e2e8f0",
+  text: "#0f172a",
+  muted: "#334155",
+  faint: "#64748b",
+  // Sampled from logo.png rather than picked by eye. The mark is the one piece
+  // of the message a client cannot restyle, so everything else matches it —
+  // a button in a different green next to it reads as a broken template.
+  brand: "#0b845a",
+  onBrand: "#ffffff",
+  quote: "#f8fafc",
 };
 
 const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
@@ -70,7 +88,7 @@ function paragraphsFrom(text) {
 // ---------------------------------------------------------------------------
 
 const p = (html, color = C.muted) =>
-  `<p style="margin:0 0 16px;font-family:${FONT};font-size:15px;line-height:24px;color:${color};">${html}</p>`;
+  `<p style="margin:0 0 18px;font-family:${FONT};font-size:15px;line-height:25px;color:${color};">${html}</p>`;
 
 /**
  * Each block returns { html, text } so the plain-text alternative is built
@@ -85,51 +103,64 @@ export const block = {
   /** What the customer wrote, quoted back so they can see we have it. */
   quote: (label, value) => ({
     html:
-      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;">` +
-      `<tr><td bgcolor="${C.quote}" style="background:${C.quote};border-left:3px solid ${C.brand};border-radius:0 10px 10px 0;padding:16px 18px;">` +
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">` +
+      `<tr><td bgcolor="${C.quote}" style="background:${C.quote};border-left:4px solid ${C.brand};border-radius:6px;padding:16px 20px;">` +
       (label
-        ? `<p style="margin:0 0 8px;font-family:${FONT};font-size:11px;line-height:16px;letter-spacing:.08em;text-transform:uppercase;color:${C.faint};">${escapeHtml(label)}</p>`
+        ? `<div style="margin:0 0 8px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${C.faint};">${escapeHtml(label)}</div>`
         : "") +
-      paragraphsFrom(value).map((h) => p(h, C.text)).join("").replace(/margin:0 0 16px/g, "margin:0 0 10px") +
+      paragraphsFrom(value).map((h) => p(h, C.text)).join("").replace(/margin:0 0 16px/g, "margin:0 0 12px") +
       `</td></tr></table>`,
     text: (label ? `--- ${label} ---\n` : "") + String(value || "").trim() + "\n---",
   }),
 
   /** Reference, category, that sort of thing. */
-  facts: (pairs) => ({
-    html:
-      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;">` +
-      pairs
-        .filter(([, v]) => v !== null && v !== undefined && v !== "")
-        .map(
-          ([k, v]) =>
-            `<tr>` +
-            `<td style="padding:5px 12px 5px 0;font-family:${FONT};font-size:13px;line-height:20px;color:${C.faint};white-space:nowrap;vertical-align:top;">${escapeHtml(k)}</td>` +
-            `<td style="padding:5px 0;font-family:${FONT};font-size:13px;line-height:20px;color:${C.text};">${escapeHtml(v)}</td>` +
-            `</tr>`
-        )
-        .join("") +
-      `</table>`,
-    text: pairs
+  facts: (pairs, locale) => {
+    const title = locale === "en" ? "Request details" : "Szczegóły zgłoszenia";
+    const rows = pairs
       .filter(([, v]) => v !== null && v !== undefined && v !== "")
-      .map(([k, v]) => `${k}: ${v}`)
-      .join("\n"),
-  }),
+      .map(
+        ([k, v], idx) => {
+          const isLast = idx === pairs.length - 1;
+          const borderStyle = isLast ? "" : "border-bottom:1px solid #f1f5f9;";
+          return `<tr>` +
+            `<td style="padding:14px 0;font-family:${FONT};font-size:14px;line-height:20px;color:${C.faint};vertical-align:top;${borderStyle}">${escapeHtml(k)}:</td>` +
+            `<td style="padding:14px 0;font-family:${FONT};font-size:14px;line-height:20px;color:${C.text};font-weight:600;text-align:right;vertical-align:top;${borderStyle}">${escapeHtml(v)}</td>` +
+            `</tr>`;
+        }
+      );
+
+    return {
+      html:
+        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">` +
+        `<tr><td bgcolor="${C.quote}" style="background:${C.quote};border:1px solid ${C.line};border-radius:12px;padding:16px 20px;">` +
+        `<div style="font-family:${FONT};font-size:12px;font-weight:700;color:${C.text};text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">${title}</div>` +
+        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">` +
+        rows.join("") +
+        `</table>` +
+        `</td></tr></table>`,
+      text: pairs
+        .filter(([, v]) => v !== null && v !== undefined && v !== "")
+        .map(([k, v]) => `${k}: ${v}`)
+        .join("\n"),
+    };
+  },
 
   /**
    * The bulletproof button. Two nested tables and a padded link, because a
    * styled <a> loses its padding in several clients and becomes plain text.
    */
-  button: (label, href) => ({
+  button: (label, href, locale) => ({
     html:
-      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 24px;">` +
-      `<tr><td bgcolor="${C.brand}" style="background:${C.brand};border-radius:999px;">` +
-      `<a href="${escapeHtml(href)}" style="display:inline-block;padding:14px 32px;font-family:${FONT};font-size:15px;font-weight:700;line-height:20px;color:${C.onBrand};text-decoration:none;border-radius:999px;">${escapeHtml(label)}</a>` +
+      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:12px auto 28px;">` +
+      `<tr><td bgcolor="${C.brand}" style="background:${C.brand};border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.05);">` +
+      `<a href="${escapeHtml(href)}" style="display:inline-block;padding:14px 32px;font-family:${FONT};font-size:15px;font-weight:600;line-height:20px;color:${C.onBrand};text-decoration:none;border-radius:6px;letter-spacing:-.01em;">${escapeHtml(label)}</a>` +
       `</td></tr></table>` +
       // A button is useless to anyone whose client blocks the link, and to
       // anyone forwarding the message. The address goes below it, always.
-      `<p style="margin:0 0 20px;font-family:${FONT};font-size:12px;line-height:18px;color:${C.faint};word-break:break-all;">` +
-      `Jeśli przycisk nie działa, wklej ten adres w przeglądarkę:<br>` +
+      `<p style="margin:0 0 24px;font-family:${FONT};font-size:12px;line-height:18px;color:${C.faint};word-break:break-all;text-align:center;">` +
+      (locale === "en"
+        ? `If the button does not work, paste this address into your browser:<br>`
+        : `Jeśli przycisk nie działa, wklej ten adres w przeglądarkę:<br>`) +
       `<a href="${escapeHtml(href)}" style="color:${C.brand};text-decoration:underline;">${escapeHtml(href)}</a></p>`,
     text: `${label}:\n${href}`,
   }),
@@ -180,24 +211,40 @@ ${role}`,
  * Left unset, clients grab the first words of the body — usually the logo alt
  * text or "Jeśli przycisk nie działa", which is a poor first impression.
  */
-export function renderEmail({ title, preheader, blocks = [], footer = [], accentLabel = null }) {
+export function renderEmail({ title, preheader, blocks = [], footer = [], accentLabel = null, locale }) {
+  const pl = locale !== "en";
   const body = blocks.map((b) => b.html).join("");
   const footHtml = footer
     .map(
       (line) =>
-        `<p style="margin:0 0 6px;font-family:${FONT};font-size:12px;line-height:18px;color:${C.faint};">${line}</p>`
+        `<p style="margin:0 0 6px;font-family:${FONT};font-size:12px;line-height:18px;color:${C.faint};text-align:center;">${line}</p>`
     )
     .join("");
 
+  const nav = NAV[pl ? "pl" : "en"];
+
   const html =
     `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">` +
-    `<html xmlns="http://www.w3.org/1999/xhtml"><head>` +
+    `<html xmlns="http://www.w3.org/1999/xhtml" lang="${pl ? "pl" : "en"}"><head>` +
     `<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">` +
     `<meta name="viewport" content="width=device-width,initial-scale=1">` +
     // Tells a client that respects it not to "helpfully" invert our dark design.
     `<meta name="color-scheme" content="dark light">` +
     `<meta name="supported-color-schemes" content="dark light">` +
     `<title>${escapeHtml(title)}</title>` +
+    // The only stylesheet in the message, and nothing depends on it: every
+    // rule here is a phone-sized override of an inline style that already
+    // works. A client that drops <style> (Gmail does, in some views) loses
+    // the tighter padding and nothing else.
+    `<style type="text/css">` +
+    `body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}` +
+    `table,td{mso-table-lspace:0pt;mso-table-rspace:0pt;}` +
+    `img{-ms-interpolation-mode:bicubic;border:0;outline:none;text-decoration:none;}` +
+    `@media screen and (max-width:620px){` +
+    `.ec{width:100%!important;max-width:100%!important;}` +
+    `.card-pad{padding:28px 22px 12px!important;}` +
+    `.h1{font-size:22px!important;line-height:30px!important;}}` +
+    `</style>` +
     `</head>` +
     `<body style="margin:0;padding:0;background:${C.page};">` +
     // Hidden preheader, then enough zero-width space to stop the client
@@ -206,31 +253,45 @@ export function renderEmail({ title, preheader, blocks = [], footer = [], accent
     `${escapeHtml(preheader || title)}${"&#847;&zwnj;&nbsp;".repeat(60)}</div>` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${C.page}" style="background:${C.page};">` +
     `<tr><td align="center" style="padding:32px 16px;">` +
-    `<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;">` +
+    `<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="ec" style="width:600px;max-width:100%;">` +
 
     // --- brand ---
-    `<tr><td style="padding:0 4px 20px;">` +
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>` +
-    `<td style="padding-right:11px;"><img src="${LOGO}" width="34" height="34" alt="" style="display:block;width:34px;height:34px;border-radius:9px;border:0;"></td>` +
-    `<td style="font-family:${FONT};font-size:17px;font-weight:700;color:${C.text};letter-spacing:-.01em;">Plately` +
+    `<tr><td align="center" style="padding:0 4px 24px;">` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>` +
+    // alt text, not alt="": images are blocked by default in enough clients
+    // that the name has to survive without the mark.
+    `<td style="padding-right:10px;vertical-align:middle;"><img src="${LOGO}" width="36" height="36" alt="Plately" style="display:block;width:36px;height:36px;border-radius:10px;border:0;"></td>` +
+    `<td style="font-family:${FONT};font-size:22px;font-weight:700;color:${C.text};letter-spacing:-.02em;vertical-align:middle;">Plately` +
     (accentLabel
-      ? `<span style="font-weight:600;color:${C.faint};"> · ${escapeHtml(accentLabel)}</span>`
+      ? `<span style="font-weight:500;color:${C.faint};font-size:16px;"> · ${escapeHtml(accentLabel)}</span>`
       : "") +
     `</td></tr></table></td></tr>` +
 
     // --- card ---
-    `<tr><td bgcolor="${C.card}" style="background:${C.card};border:1px solid ${C.line};border-radius:18px;padding:32px 30px 14px;">` +
-    `<h1 style="margin:0 0 18px;font-family:${FONT};font-size:24px;line-height:31px;font-weight:700;color:${C.text};letter-spacing:-.02em;">${escapeHtml(title)}</h1>` +
+    `<tr><td bgcolor="${C.card}" class="card-pad" style="background:${C.card};border:1px solid ${C.line};border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.05), 0 10px 20px -5px rgba(0,0,0,0.03);padding:40px 36px 20px;">` +
+    `<h1 class="h1" style="margin:0 0 20px;font-family:${FONT};font-size:26px;line-height:34px;font-weight:700;color:${C.text};letter-spacing:-.03em;text-align:center;">${escapeHtml(title)}</h1>` +
     body +
     `</td></tr>` +
 
     // --- footer ---
+    //
+    // Three tiers, and the alignment is the whole design: the small print and
+    // the links sit centred under the card, mirroring the logo above it, and
+    // the only thing left against the left edge is the address itself. One
+    // anchor at the bottom reads as finished; three ragged-left blocks stacked
+    // on each other read as leftovers.
     (footHtml
       ? `<tr><td style="padding:22px 6px 0;">${footHtml}</td></tr>`
       : "") +
+    `<tr><td align="center" style="padding:14px 6px 0;">` +
+    `<p style="margin:0;font-family:${FONT};font-size:12px;line-height:18px;color:${C.faint};text-align:center;">` +
+    nav
+      .map(([label, href]) => `<a href="${href}" style="color:${C.faint};text-decoration:underline;">${label}</a>`)
+      .join(`<span style="color:#cbd5e1;padding:0 8px;">&middot;</span>`) +
+    `</p></td></tr>` +
     `<tr><td style="padding:14px 6px 0;">` +
     `<p style="margin:0;font-family:${FONT};font-size:12px;line-height:18px;color:${C.faint};">` +
-    `<a href="${SITE}" style="color:${C.faint};text-decoration:underline;">plately.eu</a></p>` +
+    `<a href="${SITE}" style="color:${C.faint};text-decoration:underline;">www.plately.eu</a></p>` +
     `</td></tr>` +
 
     `</table></td></tr></table></body></html>`;
@@ -243,7 +304,8 @@ export function renderEmail({ title, preheader, blocks = [], footer = [], accent
     "",
     "—",
     ...footer.map((line) => line.replace(/<[^>]+>/g, "")),
-    "plately.eu",
+    nav.map(([label, href]) => `${label}: ${href}`).join("\n"),
+    "www.plately.eu",
   ].join("\n");
 
   return { html, text };

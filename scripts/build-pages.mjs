@@ -22,7 +22,7 @@
 // Outputs  public/index.html             Polish, at the site root
 //          public/<lang>.html            the other eleven, served at /<lang>
 //          public/sitemap.xml            every URL with its hreflang alternates,
-//                                        plus /terms, /privacy and /help
+//                                        plus /terms, /privacy, /help, /status
 //
 // Editing public/index.html directly is pointless: the next run overwrites it.
 // Edit the template or the JSON instead.
@@ -522,16 +522,19 @@ ${alternates}
   </url>`
   ).join('\n');
 
-  // Terms, privacy and help are hand-written pages carrying their own Polish
-  // and English inside one URL, so they get no hreflang alternates.
+  // Terms, privacy, help and status are hand-written pages carrying their own
+  // Polish and English inside one URL, so they get no hreflang alternates.
   //
-  // Help is listed apart from the other two because it is worth more to a
+  // Help is listed apart from the small print because it is worth more to a
   // crawler: "how do I contact Plately" is a real query, and the page that
   // answers it should rank rather than sit at the bottom with the small print.
+  // "is Plately down" is the same kind of query, which is why /status sits
+  // beside it — and it changes daily, so it says so.
   const standalone = [
     { slug: 'terms', changefreq: 'yearly', priority: '0.3' },
     { slug: 'privacy', changefreq: 'yearly', priority: '0.3' },
     { slug: 'help', changefreq: 'monthly', priority: '0.6' },
+    { slug: 'status', changefreq: 'daily', priority: '0.5' },
   ]
     .map(
       ({ slug, changefreq, priority }) => `  <url>

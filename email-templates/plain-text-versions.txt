@@ -1,0 +1,122 @@
+=== support-ticket-received.html
+=== Temat: Potwierdź zgłoszenie [SUP-1042]
+
+Potwierdź zgłoszenie
+====================
+
+Cześć! Widzimy, że wysłałeś/aś wiadomość przez formularz na plately.eu. Potwierdź proszę swój adres e-mail — wystarczy kliknąć przycisk poniżej.
+Potwierdzam:
+https://www.plately.eu/api/help/confirm?t=8f2c1ad9b4e711f0a3c25d0e7b41cc92
+Numer: SUP-1042
+Kategoria: Konto i logowanie
+Temat: Nie mogę połączyć konta z aplikacją
+--- Twoja wiadomość ---
+Po wczorajszej aktualizacji aplikacja przestała widzieć moje konto — przy logowaniu dostaję komunikat o nieaktualnej sesji.
+
+Próbowałam już wylogować się i zalogować ponownie, bez skutku. Będę wdzięczna za pomoc.
+---
+Jak tylko potwierdzisz, zajmiemy się Twoją sprawą. Staramy się odpowiadać w ciągu jednego dnia roboczego.
+
+—
+Nie wypełniałeś/aś tego formularza? Zignoruj tę wiadomość — nic się nie stanie.
+Wiadomość wysłana automatycznie — nie odpowiadaj na nią.
+Pomoc: https://www.plately.eu/help
+Status: https://www.plately.eu/status
+Prywatność: https://www.plately.eu/privacy
+www.plately.eu
+
+
+=== support-agent-reply.html
+=== Temat: Re: Nie mogę połączyć konta z aplikacją [SUP-1042]
+
+Odpowiedź od zespołu Plately
+============================
+
+Dzień dobry! Już wiem, co się stało.
+
+Po wczorajszej aktualizacji klucz połączenia z aplikacją wymagał ponownej synchronizacji — stąd komunikat o nieaktualnej sesji. Zresetowałem to po naszej stronie, więc nic więcej nie musisz robić.
+
+Zaloguj się proszę jeszcze raz w aplikacji i daj znać, czy konto już się widzi. Gdyby błąd wrócił, odpowiedz na tego maila — zostaniemy przy tej samej rozmowie.
+Pozdrawiam,
+Krzysztof Pawlak
+Wsparcie Plately
+Zgłoszenie: SUP-1042
+Temat: Re: Nie mogę połączyć konta z aplikacją
+
+—
+Chcesz coś dodać? Odpowiedz na tego maila — trafimy na tę samą rozmowę.
+Pomoc: https://www.plately.eu/help
+Status: https://www.plately.eu/status
+Prywatność: https://www.plately.eu/privacy
+www.plately.eu
+
+
+=== support-inbound-ack.html
+=== Temat: Nie mogę połączyć konta z aplikacją
+
+Dostaliśmy Twoją wiadomość
+==========================
+
+Cześć! Twoja wiadomość do nas dotarła — ma numer SUP-1042. Ktoś z zespołu ją przeczyta i odpowie Ci na ten adres, zwykle w ciągu jednego dnia roboczego.
+--- Co do nas napisałeś/aś ---
+Po wczorajszej aktualizacji aplikacja przestała widzieć moje konto — przy logowaniu dostaję komunikat o nieaktualnej sesji.
+
+Próbowałam już wylogować się i zalogować ponownie, bez skutku. Będę wdzięczna za pomoc.
+---
+Nie musisz nic więcej robić. Chcesz coś dodać? Po prostu odpowiedz na tego maila.
+
+—
+To automatyczne potwierdzenie.
+Pomoc: https://www.plately.eu/help
+Status: https://www.plately.eu/status
+Prywatność: https://www.plately.eu/privacy
+www.plately.eu
+
+
+=== lifecycle-notice.html
+=== Temat: Twoja subskrypcja odnawia się za trzy dni
+
+Twoja subskrypcja odnawia się za trzy dni
+=========================================
+
+Plan Premium odnowi się 6 września i zostanie pobrana opłata 6,99 €. Nic nie musisz robić — piszemy tylko po to, żeby kwota na wyciągu nie była zaskoczeniem.
+
+Chcesz zmienić plan albo zrezygnować? Wszystko jest w ustawieniach konta.
+Zarządzaj subskrypcją:
+https://app.plately.eu/settings/billing
+
+—
+Wysyłamy Ci to, bo masz konto w Plately. Wypisz się.
+Potrzebujesz pomocy? Napisz na plately.eu/help — ten adres nie przyjmuje odpowiedzi.
+Pomoc: https://www.plately.eu/help
+Status: https://www.plately.eu/status
+Prywatność: https://www.plately.eu/privacy
+www.plately.eu
+
+
+=== support-ticket-received.en.html
+=== Temat: Confirm your request [SUP-1042]
+
+Confirm your request
+====================
+
+Hi! We see you sent a message through the form on plately.eu. Please confirm your email address — just click the button below.
+Confirm my request:
+https://www.plately.eu/api/help/confirm?t=8f2c1ad9b4e711f0a3c25d0e7b41cc92
+Reference: SUP-1042
+Category: Account
+Subject: I cannot link my account to the app
+--- Your message ---
+Since yesterday's update the app stopped seeing my account — signing in gives me a "session out of date" message.
+
+I have already signed out and back in, with no luck. Any help appreciated.
+---
+Once you confirm, we'll get right on it. We usually reply within one business day.
+
+—
+Didn't fill in this form? Just ignore this message — nothing will happen.
+This is an automated message — please don't reply to it.
+Help: https://www.plately.eu/help
+Status: https://www.plately.eu/status
+Privacy: https://www.plately.eu/privacy
+www.plately.eu
