@@ -1,0 +1,24 @@
+{
+  "_comment": [
+    "Sygnaly tozsamosci marki, wspolne dla wszystkich dwunastu jezykow.",
+    "",
+    "Po co to istnieje: 'Plately' to zajeta nazwa. W indeksie sa juz plately.io,",
+    "plately.com, getplately.com, quokkalabs.com/plately oraz dwie aplikacje o tej",
+    "nazwie w App Store i jedna w Google Play. Same dane strukturalne mowiace",
+    "'nazywam sie Plately' nie rozstrzygaja, ktory z nich jest ktory — Google laczy",
+    "byt z jego profilami. sameAs jest ta lista profili i dopoki jest pusta,",
+    "wyszukiwarka nie ma czym odroznic tej witryny od pozostalych.",
+    "",
+    "Wpisuj TYLKO adresy, ktore naprawde naleza do plately.eu i w ktorych profilu",
+    "widnieje odnosnik z powrotem tutaj. Wskazanie cudzego profilu (np. istniejacego",
+    "@platelyapp na Instagramie, ktory nalezy do innej firmy) polaczy te witryne z",
+    "nie ta marka i pogorszy sytuacje zamiast ja poprawic."
+  ],
+  "alternateName": [
+    "Plately.eu",
+    "Plately App"
+  ],
+  "email": "contact@plately.eu",
+  "sameAs": [],
+  "appSameAs": []
+}

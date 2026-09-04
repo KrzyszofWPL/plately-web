@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-pages.mjs",
-    "emails": "node scripts/build-email-previews.mjs"
+    "emails": "node scripts/build-email-previews.mjs",
+    "indexnow": "node scripts/indexnow.mjs"
   }
 }

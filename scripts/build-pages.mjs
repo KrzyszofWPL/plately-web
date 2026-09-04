@@ -73,6 +73,22 @@ const PLANS = [
 
 const APP_URL = 'https://app.plately.eu/';
 
+// Sygnaly tozsamosci marki. Wspolne dla wszystkich jezykow, wiec nie leza w
+// content/seo/<lang>.json tylko obok, w brand.json — plik opisuje sam siebie.
+const BRAND = JSON.parse(
+  fs.readFileSync(path.join(ROOT, 'content', 'seo', 'brand.json'), 'utf8')
+);
+
+// Pola, ktore maja zniknac z grafu, dopoki nikt ich nie wypelnil. Pusta tablica
+// sameAs jest gorsza niz jej brak: mowi konsumentowi grafu "sprawdzilem, ta
+// marka nie ma zadnych profili", zamiast zostawic pytanie otwarte.
+const nonEmpty = (obj) =>
+  Object.fromEntries(
+    Object.entries(obj).filter(
+      ([, v]) => v != null && v !== '' && !(Array.isArray(v) && v.length === 0)
+    )
+  );
+
 const OG_LOCALE = {
   pl: 'pl_PL', en: 'en_US', de: 'de_DE', uk: 'uk_UA', ru: 'ru_RU', fr: 'fr_FR',
   it: 'it_IT', es: 'es_ES', pt: 'pt_PT', ja: 'ja_JP', zh: 'zh_CN', ko: 'ko_KR',
@@ -257,6 +273,11 @@ function jsonLd(lang, t) {
         '@type': 'Organization',
         '@id': `${ORIGIN}/#organization`,
         name: 'Plately',
+        // "Plately" nie jest nazwa wolna — w indeksie sa juz plately.io,
+        // getplately.com i dwie aplikacje o tej nazwie w sklepach. Sama nazwa
+        // nie wskazuje wiec, o ktora firme chodzi; robia to dopiero
+        // alternateName i sameAs ponizej.
+        ...nonEmpty({ alternateName: BRAND.alternateName }),
         url: ORIGIN + '/',
         logo: {
           '@type': 'ImageObject',
@@ -272,12 +293,29 @@ function jsonLd(lang, t) {
         // jedną linijkę i domyka oba przypadki.
         image: { '@id': `${ORIGIN}/#logo` },
         description: t.metaDesc,
+        // sameAs to jedyna deklaracja, ktora Google traktuje jako dowod
+        // tozsamosci: profil potwierdza witryne, witryna potwierdza profil.
+        // Lista mieszka w content/seo/brand.json i jest pusta do czasu, az
+        // ktorys profil naprawde powstanie — patrz komentarz w tamtym pliku.
+        ...nonEmpty({ sameAs: BRAND.sameAs, email: BRAND.email }),
+        ...(BRAND.email
+          ? {
+              contactPoint: {
+                '@type': 'ContactPoint',
+                contactType: 'customer support',
+                email: BRAND.email,
+                url: `${ORIGIN}/help`,
+                availableLanguage: LANGS,
+              },
+            }
+          : {}),
       },
       {
         '@type': 'WebSite',
         '@id': `${ORIGIN}/#website`,
         url: ORIGIN + '/',
         name: 'Plately',
+        ...nonEmpty({ alternateName: BRAND.alternateName }),
         publisher: { '@id': `${ORIGIN}/#organization` },
         inLanguage: LANGS,
       },
@@ -312,6 +350,11 @@ function jsonLd(lang, t) {
         publisher: { '@id': `${ORIGIN}/#organization` },
         image: { '@id': `${ORIGIN}/#ogimage` },
         screenshot: shots,
+        installUrl: APP_URL,
+        // Wpisy w Google Play i App Store, gdy powstana. Dla aplikacji to
+        // mocniejszy sygnal tozsamosci niz profil spolecznosciowy: sklep
+        // publikuje wydawce, a wydawca wskazuje te domene.
+        ...nonEmpty({ sameAs: BRAND.appSameAs }),
         // No aggregateRating. Google's review-snippet guidelines forbid marking
         // up ratings gathered from third-party sites, and inventing them is a
         // manual action waiting to happen. It goes in when there are first-party

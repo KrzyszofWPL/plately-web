@@ -41,6 +41,12 @@ const ALWAYS_PUBLIC = new Set([
   // description of the product is not the thing that goes offline during a
   // maintenance window.
   "/llms.txt",
+  // Klucz IndexNow. Wyszukiwarka pobiera go, zeby potwierdzic, ze zgloszenie
+  // adresow pochodzi od wlasciciela domeny; 503 w tym miejscu uniewaznia cala
+  // paczke zgloszen, a przerwa techniczna to dokladnie ten moment, w ktorym
+  // najbardziej zalezy nam, zeby crawler wrocil. Nazwa musi zgadzac sie z
+  // plikiem w public/ — scripts/indexnow.mjs sprawdza to przy kazdym uruchomieniu.
+  "/04228dfae42074cd393583edf0361812.txt",
   "/favicon.ico",
   "/logo.png",
   "/LogoAPK.png",
