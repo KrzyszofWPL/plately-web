@@ -1,0 +1,291 @@
+{
+  "key": "makroskladniki",
+
+  "pl": {
+    "slug": "makroskladniki",
+    "title": "Makroskładniki — ile białka, tłuszczu i węglowodanów dziennie",
+    "metaTitle": "Makroskładniki — ile białka, tłuszczu i węglowodanów dziennie",
+    "metaDesc": "Jak rozłożyć kalorie na białko, tłuszcz i węglowodany. Konkretne przeliczniki na kilogram masy ciała, pełny przykład liczbowy i kolejność ustalania celów.",
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "lead": "Kalorie decydują o tym, czy chudniesz. Makroskładniki decydują o tym, co tracisz i jak się przy tym czujesz. Poniżej konkretne liczby na kilogram masy ciała, kolejność ustalania celów i przykład policzony do końca.",
+    "related": ["deficyt-kaloryczny", "liczenie-kalorii-ze-zdjecia", "dziennik-zywieniowy"],
+
+    "sections": [
+      {
+        "h2": "Trzy makroskładniki i ich wartość energetyczna",
+        "blocks": [
+          "Makroskładniki to składniki odżywcze, których organizm potrzebuje w gramach, nie w miligramach — w odróżnieniu od witamin i składników mineralnych. Jest ich trzy, plus alkohol, który energię dostarcza, ale funkcji odżywczej nie pełni.",
+          {
+            "table": [
+              ["Makroskładnik", "kcal / g", "Główna rola"],
+              ["Białko", "4", "budowa i naprawa tkanek, sytość"],
+              ["Węglowodany", "4", "paliwo, zwłaszcza dla pracy o wysokiej intensywności"],
+              ["Tłuszcz", "9", "hormony, wchłanianie witamin A, D, E, K"],
+              ["Alkohol", "7", "brak — energia bez wartości odżywczej"],
+              ["Błonnik", "ok. 2", "trawienie, sytość, mikrobiota"]
+            ]
+          },
+          "Z tabeli wynika rzecz, która zaskakuje najczęściej: **tłuszcz ma ponad dwukrotnie więcej kalorii na gram niż pozostałe.** Łyżka oliwy to około 120 kcal, czyli tyle co dwie duże garście warzyw albo pół piersi kurczaka. Dlatego pominięcie tłuszczu w zapisie posiłku psuje bilans mocniej niż pominięcie czegokolwiek innego."
+        ]
+      },
+      {
+        "h2": "Białko: ustaw je pierwsze",
+        "blocks": [
+          "Na deficycie kalorycznym organizm szuka energii wszędzie, gdzie może — również w mięśniach. Odpowiednia podaż białka razem z treningiem oporowym jest tym, co przesuwa ten wybór w stronę tkanki tłuszczowej.",
+          {
+            "table": [
+              ["Sytuacja", "Białko na kg masy ciała"],
+              ["Utrzymanie masy, brak treningów", "1,2–1,6 g"],
+              ["Redukcja z treningiem oporowym", "1,6–2,2 g"],
+              ["Budowa masy mięśniowej", "1,6–2,0 g"],
+              ["Duża nadwaga (BMI > 30)", "1,2–1,5 g na kg masy należnej"]
+            ]
+          },
+          "Powyżej mniej więcej 2,2 g/kg nie widać dodatkowej korzyści u osób trenujących rekreacyjnie — to nie jest szkodliwe, po prostu zajmuje miejsce, które mogłoby przypaść węglowodanom.",
+          {
+            "note": [
+              "Białko ma jeszcze dwie zalety, które w praktyce ważą tyle co teoria: **syci najmocniej ze wszystkich makroskładników** i ma najwyższy efekt termiczny — na jego strawienie organizm zużywa 20–30% dostarczonej energii, wobec 5–10% dla węglowodanów i 0–3% dla tłuszczu. Dieta wysokobiałkowa jest więc łatwiejsza do utrzymania przy tej samej liczbie kilokalorii."
+            ]
+          },
+          {
+            "h3": "Ile to jest w jedzeniu"
+          },
+          {
+            "list": [
+              "100 g piersi kurczaka — około 31 g białka",
+              "100 g twarogu chudego — około 19 g",
+              "Jedno jajko (M) — około 6,5 g",
+              "100 g soczewicy po ugotowaniu — około 9 g",
+              "150 g skyru — około 15 g",
+              "100 g łososia — około 20 g"
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Tłuszcz: ustaw minimum, nie maksimum",
+        "blocks": [
+          "Tłuszcz nie jest tym, co tuczy — tuczy nadwyżka energii. Jest natomiast niezbędny: bez niego nie powstają hormony płciowe i nie wchłaniają się witaminy rozpuszczalne w tłuszczach.",
+          "Rozsądne minimum to **0,8–1,0 g na kilogram masy ciała**, i nie warto schodzić poniżej 20% dziennych kalorii. Wszystko powyżej tego progu jest kwestią preferencji: są osoby, które lepiej czują się na diecie z większym udziałem tłuszczu i mniejszym węglowodanów, i odwrotnie. Nie ma tu jednej prawidłowej odpowiedzi, jest tylko ta, którą jesteś w stanie utrzymać przez miesiące.",
+          "Warto natomiast pilnować źródeł: oliwa, orzechy, awokado, tłuste ryby i jaja zamiast tłuszczów trans i smażenia na resztkach z poprzedniego dnia."
+        ]
+      },
+      {
+        "h2": "Węglowodany: cała reszta",
+        "blocks": [
+          "Węglowodany są jedynym makroskładnikiem, dla którego nie istnieje minimum żywieniowe — organizm potrafi wytworzyć glukozę z innych źródeł. To nie znaczy, że są zbędne. Znaczy tyle, że w kolejności ustalania celów idą na końcu: dostają to, co zostało po białku i tłuszczu.",
+          "Praktycznie zwykle wypada 2–5 g na kilogram masy ciała. Im więcej trenujesz i im wyższa intensywność, tym wyżej w tym przedziale — glikogen mięśniowy jest paliwem dla pracy, której tłuszcz nie jest w stanie zasilić dostatecznie szybko.",
+          "Osobno warto pilnować **błonnika: 25–35 g dziennie.** To on odpowiada za sytość, za pracę jelit i za to, że posiłek o tej samej kaloryczności może „starczyć” na cztery godziny albo na godzinę."
+        ]
+      },
+      {
+        "h2": "Przykład policzony do końca",
+        "blocks": [
+          "Kobieta, 70 kg, cel 1570 kcal (z [wyliczenia deficytu](/poradnik/deficyt-kaloryczny)), trzy treningi siłowe w tygodniu.",
+          {
+            "formula": [
+              "1. Białko:  1,8 g × 70 kg = 126 g  →  126 × 4 = 504 kcal",
+              "2. Tłuszcz: 0,9 g × 70 kg =  63 g  →   63 × 9 = 567 kcal",
+              "3. Zostaje: 1570 − 504 − 567       = 499 kcal",
+              "4. Węglowodany: 499 ÷ 4            = 125 g",
+              "",
+              "Cel dzienny: 126 g B / 63 g T / 125 g W  =  1570 kcal"
+            ]
+          },
+          "Zwróć uwagę na kolejność: **białko, tłuszcz, reszta.** Węglowodany nigdy nie są ustalane pierwsze, bo to one mają być zmienną dopasowującą — kiedy zmienia się cel kaloryczny, zmieniają się właśnie one, a białko zostaje tam, gdzie było.",
+          {
+            "note": [
+              "Jeśli w tym przykładzie węglowodanów wyszłoby bardzo mało — poniżej 100 g przy trzech treningach — to sygnał, że deficyt jest za głęboki albo tłuszcz ustawiony za wysoko. Wtedy najpierw obniża się tłuszcz do 0,8 g/kg, a dopiero potem rusza białko."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Co naprawdę ma znaczenie, a co jest szumem",
+        "blocks": [
+          "Wokół makroskładników narosło sporo zaleceń, które w praktyce niewiele zmieniają. Warto wiedzieć, na co przeznaczyć uwagę:",
+          {
+            "table": [
+              ["Ma duże znaczenie", "Ma małe znaczenie"],
+              ["Dobowa suma kalorii", "Pora dnia, o której jesz węglowodany"],
+              ["Dobowa suma białka", "Rozbicie białka na dokładnie sześć posiłków"],
+              ["Powtarzalność przez tygodnie", "Perfekcja pojedynczego dnia"],
+              ["Błonnik i objętość posiłku", "„Okno anaboliczne” po treningu"],
+              ["To, czy jesteś w stanie tak jeść", "Indeks glikemiczny przy mieszanym posiłku"]
+            ]
+          },
+          "Kolumna po prawej nie jest nieprawdziwa — po prostu jej efekty są o rząd wielkości mniejsze niż efekty kolumny po lewej. Ma sens dopiero wtedy, gdy lewa jest opanowana od miesięcy.",
+          "Jedna praktyczna uwaga na koniec: **cele makro traktuj jako widełki, nie jako liczby do trafienia co do grama.** ±10 g przy białku i ±15 g przy węglowodanach nie zmienia niczego. To, co zmienia wszystko, to czy średnia z tygodnia jest tam, gdzie miała być."
+        ]
+      }
+    ],
+
+    "faq": [
+      {
+        "q": "Ile białka dziennie na redukcji?",
+        "a": "1,6–2,2 g na kilogram masy ciała, jeśli trenujesz oporowo. Przy 70 kg to 112–154 g dziennie. Powyżej 2,2 g/kg nie widać dodatkowej korzyści u osób trenujących rekreacyjnie. Przy dużej nadwadze przelicznik stosuje się do masy należnej, a nie aktualnej."
+      },
+      {
+        "q": "Jak rozłożyć makroskładniki?",
+        "a": "W kolejności: najpierw białko (1,6–2,2 g/kg), potem tłuszcz (0,8–1,0 g/kg), a węglowodany dostają wszystko, co zostało z puli kalorii. Węglowodany są zmienną dopasowującą, więc to one zmieniają się przy korekcie celu kalorycznego, a nie białko."
+      },
+      {
+        "q": "Ile kalorii ma gram białka, tłuszczu i węglowodanów?",
+        "a": "Białko 4 kcal/g, węglowodany 4 kcal/g, tłuszcz 9 kcal/g, alkohol 7 kcal/g, błonnik około 2 kcal/g. Tłuszcz ma ponad dwa razy więcej kalorii na gram niż pozostałe makroskładniki, dlatego pominięcie oliwy czy masła w zapisie posiłku psuje bilans najmocniej."
+      },
+      {
+        "q": "Czy trzeba trafiać w makro co do grama?",
+        "a": "Nie. Odchylenie ±10 g przy białku i ±15 g przy węglowodanach nie ma znaczenia praktycznego. Liczy się średnia z tygodnia, nie precyzja pojedynczego dnia — pogoń za dokładnością co do grama zwykle kończy się porzuceniem dziennika."
+      },
+      {
+        "q": "Czy pora jedzenia węglowodanów ma znaczenie?",
+        "a": "Dla składu ciała praktycznie nie — decyduje suma dobowa. Rozkład posiłków w ciągu dnia warto natomiast dopasować do własnego apetytu i godzin treningu, bo to wpływa na to, czy dietę da się utrzymać, a to ma znaczenie dużo większe."
+      }
+    ]
+  },
+
+  "en": {
+    "slug": "macronutrients",
+    "title": "Macronutrients — how much protein, fat and carbohydrate per day",
+    "metaTitle": "Macronutrients — how much protein, fat and carbohydrate a day",
+    "metaDesc": "How to split calories into protein, fat and carbohydrate. Per-kilogram targets, a worked example carried through to the end, and the order to set them in.",
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "lead": "Calories decide whether you lose weight. Macronutrients decide what you lose and how you feel while losing it. Below: per-kilogram numbers, the order to set your targets in, and an example carried all the way through.",
+    "related": ["deficyt-kaloryczny", "liczenie-kalorii-ze-zdjecia", "dziennik-zywieniowy"],
+
+    "sections": [
+      {
+        "h2": "Three macronutrients and what they are worth",
+        "blocks": [
+          "Macronutrients are the nutrients the body needs in grams rather than milligrams — unlike vitamins and minerals. There are three of them, plus alcohol, which supplies energy but performs no nutritional function.",
+          {
+            "table": [
+              ["Macronutrient", "kcal / g", "Main role"],
+              ["Protein", "4", "building and repairing tissue, satiety"],
+              ["Carbohydrate", "4", "fuel, especially for high-intensity work"],
+              ["Fat", "9", "hormones, absorption of vitamins A, D, E and K"],
+              ["Alcohol", "7", "none — energy without nutritional value"],
+              ["Fibre", "about 2", "digestion, satiety, gut microbiota"]
+            ]
+          },
+          "One thing in that table surprises people most often: **fat carries more than twice the calories per gram of anything else.** A tablespoon of olive oil is about 120 kcal — the same as two large handfuls of vegetables or half a chicken breast. That is why leaving fat out of a logged meal wrecks the balance harder than leaving out anything else."
+        ]
+      },
+      {
+        "h2": "Protein: set this one first",
+        "blocks": [
+          "In a calorie deficit the body looks for energy anywhere it can, muscle included. Adequate protein alongside resistance training is what pushes that choice toward fat tissue instead.",
+          {
+            "table": [
+              ["Situation", "Protein per kg of body mass"],
+              ["Maintenance, no training", "1.2–1.6 g"],
+              ["Fat loss with resistance training", "1.6–2.2 g"],
+              ["Building muscle", "1.6–2.0 g"],
+              ["Significant excess weight (BMI > 30)", "1.2–1.5 g per kg of target mass"]
+            ]
+          },
+          "Above roughly 2.2 g/kg there is no further benefit for recreational trainees — it is not harmful, it simply occupies room that could have gone to carbohydrate.",
+          {
+            "note": [
+              "Protein has two more advantages that weigh as much in practice as the theory does: **it is the most satiating macronutrient**, and it has the highest thermic effect — digesting it consumes 20–30% of the energy it delivers, against 5–10% for carbohydrate and 0–3% for fat. A higher-protein diet is easier to hold at the same calorie count."
+            ]
+          },
+          {
+            "h3": "What that looks like in food"
+          },
+          {
+            "list": [
+              "100 g chicken breast — about 31 g protein",
+              "100 g low-fat cottage cheese — about 19 g",
+              "One medium egg — about 6.5 g",
+              "100 g cooked lentils — about 9 g",
+              "150 g skyr — about 15 g",
+              "100 g salmon — about 20 g"
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Fat: set a floor, not a ceiling",
+        "blocks": [
+          "Fat is not what makes you gain weight — an energy surplus does. It is, however, essential: without it sex hormones are not produced and fat-soluble vitamins are not absorbed.",
+          "A sensible floor is **0.8–1.0 g per kilogram of body mass**, and it is not worth dropping below 20% of daily calories. Everything above that floor is preference: some people feel better on a higher-fat, lower-carbohydrate split, and some the other way round. There is no single correct answer here, only the one you can hold for months.",
+          "The sources are worth watching, though: olive oil, nuts, avocado, oily fish and eggs rather than trans fats and yesterday's frying residue."
+        ]
+      },
+      {
+        "h2": "Carbohydrate: whatever is left",
+        "blocks": [
+          "Carbohydrate is the one macronutrient with no dietary minimum — the body can manufacture glucose from other sources. That does not make it optional in any useful sense. It means only that in the order of setting targets it comes last: it gets what remains after protein and fat.",
+          "In practice that usually lands at 2–5 g per kilogram of body mass. The more you train and the higher the intensity, the further up that range you sit — muscle glycogen fuels work that fat cannot supply quickly enough.",
+          "Worth tracking separately: **fibre, 25–35 g a day.** It is what drives satiety, gut function, and the difference between a meal of a given calorie count lasting four hours or one."
+        ]
+      },
+      {
+        "h2": "A worked example, all the way through",
+        "blocks": [
+          "A woman, 70 kg, target 1570 kcal (from the [deficit calculation](/guides/calorie-deficit)), three resistance sessions a week.",
+          {
+            "formula": [
+              "1. Protein: 1.8 g × 70 kg = 126 g  →  126 × 4 = 504 kcal",
+              "2. Fat:     0.9 g × 70 kg =  63 g  →   63 × 9 = 567 kcal",
+              "3. Remaining: 1570 − 504 − 567     = 499 kcal",
+              "4. Carbohydrate: 499 ÷ 4           = 125 g",
+              "",
+              "Daily target: 126 g P / 63 g F / 125 g C  =  1570 kcal"
+            ]
+          },
+          "Note the order: **protein, fat, remainder.** Carbohydrate is never set first, because it is meant to be the adjusting variable — when the calorie target changes, carbohydrate is what moves, and protein stays where it was.",
+          {
+            "note": [
+              "If carbohydrate had come out very low in this example — under 100 g on three training sessions — that is a signal the deficit is too deep or fat is set too high. Drop fat to 0.8 g/kg first, and only touch protein after that."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "What matters, and what is noise",
+        "blocks": [
+          "A lot of advice has accumulated around macronutrients that changes very little in practice. It is worth knowing where to spend your attention:",
+          {
+            "table": [
+              ["Matters a lot", "Matters little"],
+              ["Daily calorie total", "The time of day you eat carbohydrate"],
+              ["Daily protein total", "Splitting protein across exactly six meals"],
+              ["Repeating it across weeks", "Getting a single day perfect"],
+              ["Fibre and meal volume", "The post-workout “anabolic window”"],
+              ["Whether you can actually eat this way", "Glycaemic index within a mixed meal"]
+            ]
+          },
+          "The right-hand column is not false — its effects are simply an order of magnitude smaller than the left-hand one's. It starts to be worth attention once the left has been handled for months.",
+          "One closing practical note: **treat macro targets as ranges, not numbers to hit to the gram.** ±10 g on protein and ±15 g on carbohydrate changes nothing. What changes everything is whether the weekly average landed where it was supposed to."
+        ]
+      }
+    ],
+
+    "faq": [
+      {
+        "q": "How much protein per day when cutting?",
+        "a": "1.6–2.2 g per kilogram of body mass if you train with resistance. At 70 kg that is 112–154 g a day. Above 2.2 g/kg there is no further benefit for recreational trainees. With significant excess weight the multiplier is applied to target mass rather than current mass."
+      },
+      {
+        "q": "How do I split my macros?",
+        "a": "In this order: protein first (1.6–2.2 g/kg), then fat (0.8–1.0 g/kg), and carbohydrate takes whatever calories remain. Carbohydrate is the adjusting variable, so it is what moves when you correct your calorie target — not protein."
+      },
+      {
+        "q": "How many calories are in a gram of protein, fat and carbohydrate?",
+        "a": "Protein 4 kcal/g, carbohydrate 4 kcal/g, fat 9 kcal/g, alcohol 7 kcal/g, fibre about 2 kcal/g. Fat carries more than twice the calories per gram of the others, which is why missing the olive oil or butter in a logged meal distorts the balance most."
+      },
+      {
+        "q": "Do I need to hit my macros exactly?",
+        "a": "No. A deviation of ±10 g on protein and ±15 g on carbohydrate has no practical consequence. The weekly average is what counts, not the precision of any single day — chasing gram-level accuracy usually ends with the diary being abandoned."
+      },
+      {
+        "q": "Does the timing of carbohydrate matter?",
+        "a": "For body composition, essentially not — the daily total decides. It is worth arranging meals around your own appetite and training hours, because that affects whether the diet is sustainable, and that matters a great deal more."
+      }
+    ]
+  }
+}

@@ -1,0 +1,279 @@
+{
+  "key": "dziennik-zywieniowy",
+
+  "pl": {
+    "slug": "dziennik-zywieniowy",
+    "title": "Dziennik żywieniowy — jak go prowadzić i co zabrać do dietetyka",
+    "metaTitle": "Dziennik żywieniowy — jak prowadzić i co zabrać do dietetyka",
+    "metaDesc": "Co zapisywać, przez ile dni i w jakiej formie, żeby dziennik faktycznie coś pokazał. Plus lista rzeczy, które dietetyk chce zobaczyć na pierwszej wizycie.",
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "lead": "Dziennik żywieniowy jest najprostszym narzędziem diagnostycznym w dietetyce i jednocześnie tym, które najczęściej prowadzi się źle. Poniżej: co zapisywać, przez ile dni, i co konkretnie dietetyk chce z niego wyczytać.",
+    "related": ["liczenie-kalorii-ze-zdjecia", "deficyt-kaloryczny", "makroskladniki"],
+
+    "sections": [
+      {
+        "h2": "Dlaczego samo zapisywanie coś zmienia",
+        "blocks": [
+          "Zanim dziennik zostanie przez kogokolwiek przeanalizowany, robi już swoje. Zjawisko jest w psychologii zdrowia dobrze opisane pod nazwą **samoobserwacji**: świadomość, że czynność zostanie zapisana, zmienia samą czynność.",
+          "W praktyce wygląda to tak, że drugie ciastko przestaje być odruchem, a staje się decyzją — bo trzeba je będzie wpisać. Nie chodzi o poczucie winy. Chodzi o to, że część jedzenia odbywa się poza świadomą uwagą, a zapis tę uwagę przywraca.",
+          {
+            "note": [
+              "To jest też powód, dla którego dziennik prowadzony rzetelnie przez dwa tygodnie zwykle pokazuje spadek spożycia — nawet jeśli nikt nie zalecił żadnych zmian. Warto o tym pamiętać przy interpretacji: pierwszy tydzień bywa nietypowo „grzeczny”."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Co zapisywać, a czego nie trzeba",
+        "blocks": [
+          "Najczęstszy powód porzucenia dziennika to próba zapisywania wszystkiego z maksymalną dokładnością. Po czterech dniach robi się z tego druga praca. Sensowny podział wygląda tak:",
+          {
+            "table": [
+              ["Zapisuj zawsze", "Zapisuj, jeśli możesz", "Pomiń"],
+              ["Wszystkie posiłki", "Przybliżone gramatury", "Kalorie liczone ręcznie"],
+              ["Przekąski, także jedną kostkę czekolady", "Godzinę posiłku", "Marki i nazwy handlowe"],
+              ["Wszystkie napoje poza czystą wodą", "Głód przed i sytość po (1–5)", "Mikroskładniki"],
+              ["Tłuszcze dodane w kuchni", "Samopoczucie i sen", "Przepisy krok po kroku"],
+              ["Alkohol", "Aktywność fizyczną", "Idealną precyzję"]
+            ]
+          },
+          "Kolumna pierwsza jest obowiązkowa, bo bez niej dziennik nie opisuje rzeczywistości. Druga zamienia listę jedzenia w coś, z czego da się wyciągnąć wnioski — to godziny i poziom głodu tłumaczą, **dlaczego** o dwudziestej drugiej pojawia się ochota na słodkie. Trzecia nie wnosi nic, czego nie da się dodać później.",
+          {
+            "h3": "Zdjęcie zamiast opisu"
+          },
+          "Wpisywanie posiłku tekstem zajmuje minutę i wymaga oszacowania gramatur w momencie, w którym jesteś głodny i chcesz jeść. Zdjęcie zajmuje trzy sekundy. Dla kompletności dziennika ta różnica jest rozstrzygająca — [dokładność oszacowania ze zdjęcia](/poradnik/liczenie-kalorii-ze-zdjecia) jest niższa niż z wagi kuchennej, ale dziennik, który faktycznie powstał, bije dokładniejszy, którego nie ma."
+        ]
+      },
+      {
+        "h2": "Przez ile dni",
+        "blocks": [
+          "Zależy od celu, i to jest rozróżnienie, które oszczędza sporo niepotrzebnej pracy:",
+          {
+            "table": [
+              ["Cel", "Długość", "Uwaga"],
+              ["Diagnoza przed wizytą u dietetyka", "7 dni z rzędu", "musi zawierać sobotę i niedzielę"],
+              ["Ustalenie własnego zapotrzebowania", "14 dni", "równolegle z codziennym ważeniem"],
+              ["Prowadzenie redukcji", "codziennie, ale skrótowo", "kompletność ważniejsza od precyzji"],
+              ["Kontrola po zakończeniu diety", "2–3 dni w tygodniu", "wystarcza do wychwycenia dryfu"]
+            ]
+          },
+          {
+            "note": [
+              "**Weekend musi być w zapisie.** To jest najczęstszy błąd w dziennikach przynoszonych na wizytę: pięć dni roboczych wygląda wzorowo, a różnica między sobotą a wtorkiem sięga u wielu osób tysiąca kilokalorii. Tydzień bez weekendu opisuje kogoś, kto nie istnieje."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Co dietetyk naprawdę chce zobaczyć",
+        "blocks": [
+          "Wbrew intuicji nie chodzi o kalorie. Sumę kalorii dietetyk policzy sam w kilka minut. Z dziennika czyta rzeczy, których nie da się odtworzyć z wywiadu, bo nikt ich sobie nie przypomina:",
+          {
+            "list": [
+              "**Rytm dnia.** O której jest pierwszy posiłek, ile godzin dzieli posiłki, czy większość energii przypada na wieczór.",
+              "**Rozkład białka.** Czy jest rozłożone, czy całe siedzi w kolacji.",
+              "**Warzywa i owoce.** Liczba porcji dziennie, nie deklaracja „staram się jeść zdrowo”.",
+              "**Płyny.** Ile i jakie — to samo rozstrzyga sporo pytań o zmęczenie i bóle głowy.",
+              "**Wzorce, nie zdarzenia.** Czy podjadanie ma godzinę, czy pojawia się po konkretnych sytuacjach.",
+              "**Różnica dzień roboczy / weekend.** Zwykle największe pojedyncze źródło rozbieżności."
+            ]
+          },
+          {
+            "h3": "W jakiej formie przynieść"
+          },
+          "Najlepiej jako **jeden plik PDF albo wydruk**, ułożony chronologicznie, z datami i godzinami. Zrzuty ekranu z aplikacji też są w porządku, o ile widać na nich daty. Czego unikać: luźnych kartek, notatek w kilku miejscach i eksportu w formacie, którego nie da się otworzyć bez tej samej aplikacji.",
+          "Jeśli aplikacja umożliwia eksport dziennika, zrób go za pełny tydzień i sprawdź, czy w pliku są zdjęcia albo opisy posiłków — sama tabela kalorii jest dużo mniej użyteczna niż lista tego, co faktycznie było na talerzu."
+        ]
+      },
+      {
+        "h2": "Pięć błędów, które psują dziennik",
+        "blocks": [
+          {
+            "ordered": true,
+            "list": [
+              "**Zapisywanie wieczorem z pamięci.** Po ośmiu godzinach znika średnio 20–30% zjedzonego. Zapisuj w momencie jedzenia albo bezpośrednio po.",
+              "**Pomijanie napojów kalorycznych.** Sok, latte, piwo, napój izotoniczny — u wielu osób to 300–600 kcal dziennie, które nigdy nie trafiają do zapisu.",
+              "**Nieliczenie tłuszczów kuchennych.** Dwie łyżki oliwy to około 240 kcal. To najczęściej pomijana pojedyncza pozycja w całym dzienniku.",
+              "**„Ładniejszy” tydzień na potrzeby dziennika.** Jeśli przez siedem dni jesz inaczej niż zwykle, diagnozujesz kogoś innego. Dziennik ma opisać stan wyjściowy, a nie zrobić dobre wrażenie.",
+              "**Rezygnacja po nieudanym dniu.** Jeden dzień bez zapisu nie unieważnia tygodnia. Luka w danych jest znacznie mniej szkodliwa niż porzucony dziennik."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Kiedy przestać zapisywać",
+        "blocks": [
+          "Dziennik jest narzędziem, nie stylem życia. Ma sens tak długo, jak długo czegoś uczy.",
+          "Po kilku miesiącach większość osób szacuje własne posiłki wyraźnie lepiej niż na starcie — to jest umiejętność, którą dziennik buduje mimochodem i która zostaje po jego odstawieniu. W tym momencie sensowne jest zejście do zapisu **dwóch–trzech dni w tygodniu**: wystarczy, żeby wychwycić dryf, i nie zajmuje uwagi na co dzień.",
+          {
+            "note": [
+              "Jest jedna sytuacja, w której dziennik trzeba odstawić niezależnie od korzyści: jeśli zaczyna napędzać lęk wokół jedzenia, sprawia, że posiłek poza domem staje się problemem, albo pojawia się przymus „nadrobienia” gorszego dnia. To są sygnały, przy których narzędzie szkodzi bardziej, niż pomaga — i moment na rozmowę ze specjalistą, a nie na dokładniejsze liczenie."
+            ]
+          }
+        ]
+      }
+    ],
+
+    "faq": [
+      {
+        "q": "Jak prowadzić dziennik żywieniowy?",
+        "a": "Zapisuj wszystkie posiłki, przekąski, napoje inne niż woda i tłuszcze dodane w kuchni — w momencie jedzenia, nie wieczorem z pamięci. Godziny i poziom głodu warto dodać, jeśli się da, bo to one tłumaczą wzorce. Kalorii nie musisz liczyć ręcznie; ważniejsze jest, żeby zapis był kompletny."
+      },
+      {
+        "q": "Ile dni powinien obejmować dziennik żywieniowy dla dietetyka?",
+        "a": "Siedem dni z rzędu, koniecznie z sobotą i niedzielą. Pięć dni roboczych opisuje kogoś, kto nie istnieje — u wielu osób różnica między weekendem a dniem pracy sięga tysiąca kilokalorii, a to zwykle najważniejsza rzecz do omówienia na wizycie."
+      },
+      {
+        "q": "Co zabrać do dietetyka na pierwszą wizytę?",
+        "a": "Siedmiodniowy dziennik z datami i godzinami, najlepiej jako jeden PDF lub wydruk, aktualne wyniki badań, jeśli je masz, listę przyjmowanych leków i suplementów oraz historię masy ciała z ostatnich miesięcy. Sama suma kalorii jest mniej użyteczna niż lista tego, co faktycznie było na talerzu."
+      },
+      {
+        "q": "Czy dziennik żywieniowy pomaga schudnąć?",
+        "a": "Tak, i to zanim ktokolwiek go przeanalizuje. Zjawisko samoobserwacji sprawia, że świadomość zapisu zmienia samo zachowanie — część jedzenia odbywa się poza świadomą uwagą, a dziennik ją przywraca. Dlatego pierwszy tydzień zapisu bywa nietypowo „grzeczny”."
+      },
+      {
+        "q": "Czy muszę ważyć jedzenie, prowadząc dziennik?",
+        "a": "Nie na etapie diagnozy — wtedy liczy się kompletność, a nie precyzja. Waga przydaje się przez kilka dni przy ustalaniu własnego zapotrzebowania oraz przy produktach gęstych kalorycznie: orzechach, olejach i masłach orzechowych, gdzie błąd 20 g to błąd ponad 100 kcal."
+      }
+    ]
+  },
+
+  "en": {
+    "slug": "food-diary",
+    "title": "Food diary — how to keep one and what to bring to a dietitian",
+    "metaTitle": "Food diary — how to keep one and what to bring to a dietitian",
+    "metaDesc": "What to log, for how many days and in what form so the diary actually shows something. Plus what a dietitian wants to read from it at a first appointment.",
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "lead": "A food diary is the simplest diagnostic tool in nutrition and also the one most often kept badly. Below: what to log, for how long, and what specifically a dietitian is trying to read out of it.",
+    "related": ["liczenie-kalorii-ze-zdjecia", "deficyt-kaloryczny", "makroskladniki"],
+
+    "sections": [
+      {
+        "h2": "Why logging alone changes something",
+        "blocks": [
+          "Before anyone analyses the diary, it is already doing work. The phenomenon is well described in health psychology as **self-monitoring**: knowing an action will be recorded changes the action.",
+          "In practice that means the second biscuit stops being a reflex and becomes a decision — because it will have to be written down. This is not about guilt. It is that some eating happens outside conscious attention, and a record puts the attention back.",
+          {
+            "note": [
+              "It is also why a diary kept honestly for two weeks usually shows intake falling — even when nobody prescribed any change. Worth remembering when interpreting it: the first week tends to be unusually well behaved."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "What to log and what to skip",
+        "blocks": [
+          "The most common reason diaries get abandoned is trying to record everything at maximum precision. After four days it becomes a second job. A workable split looks like this:",
+          {
+            "table": [
+              ["Always log", "Log if you can", "Skip"],
+              ["Every meal", "Approximate weights", "Calories calculated by hand"],
+              ["Snacks, down to one square of chocolate", "The time of the meal", "Brand names"],
+              ["Every drink except plain water", "Hunger before, fullness after (1–5)", "Micronutrients"],
+              ["Fats added during cooking", "Mood and sleep", "Step-by-step recipes"],
+              ["Alcohol", "Physical activity", "Perfect precision"]
+            ]
+          },
+          "The first column is mandatory, because without it the diary does not describe reality. The second turns a list of food into something you can draw conclusions from — times and hunger levels are what explain **why** a craving for something sweet turns up at ten in the evening. The third adds nothing that cannot be filled in later.",
+          {
+            "h3": "A photo instead of a description"
+          },
+          "Typing a meal in takes a minute and requires estimating weights at the exact moment you are hungry and want to eat. A photo takes three seconds. For the completeness of a diary that difference is decisive — [estimating from a photo](/guides/photo-calorie-counting) is less accurate than a kitchen scale, but a diary that actually exists beats a more accurate one that does not."
+        ]
+      },
+      {
+        "h2": "For how many days",
+        "blocks": [
+          "It depends on the purpose, and that distinction saves a lot of unnecessary work:",
+          {
+            "table": [
+              ["Purpose", "Length", "Note"],
+              ["Diagnosis before seeing a dietitian", "7 consecutive days", "must include Saturday and Sunday"],
+              ["Establishing your own requirement", "14 days", "alongside daily weighing"],
+              ["Running a fat-loss phase", "daily, but briefly", "completeness beats precision"],
+              ["Checking in after a diet ends", "2–3 days a week", "enough to catch drift"]
+            ]
+          },
+          {
+            "note": [
+              "**The weekend has to be in there.** This is the most common flaw in diaries brought to an appointment: five working days look exemplary, while for many people the gap between Saturday and Tuesday runs to a thousand calories. A week without a weekend describes somebody who does not exist."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "What a dietitian actually wants to see",
+        "blocks": [
+          "Counter to intuition, it is not the calories. A dietitian can total those in a few minutes. What they read from the diary are the things an interview cannot recover, because nobody remembers them:",
+          {
+            "list": [
+              "**The rhythm of the day.** When the first meal happens, how many hours sit between meals, whether most of the energy lands in the evening.",
+              "**How protein is distributed.** Spread across the day, or all sitting in dinner.",
+              "**Fruit and vegetables.** The number of portions a day, not the claim that you “try to eat healthily”.",
+              "**Fluids.** How much and what kind — that alone settles a lot of questions about fatigue and headaches.",
+              "**Patterns, not events.** Whether snacking has a time of day, or follows particular situations.",
+              "**Weekday versus weekend.** Usually the single largest source of discrepancy."
+            ]
+          },
+          {
+            "h3": "What form to bring it in"
+          },
+          "Ideally as **one PDF or printout**, in chronological order, with dates and times. Screenshots from an app are fine too, as long as the dates are visible. What to avoid: loose sheets, notes spread across several places, and an export in a format nobody can open without that same app.",
+          "If your app supports exporting the diary, export a full week and check whether the file contains photos or meal descriptions — a table of calorie totals is far less useful than a list of what was actually on the plate."
+        ]
+      },
+      {
+        "h2": "Five mistakes that ruin a diary",
+        "blocks": [
+          {
+            "ordered": true,
+            "list": [
+              "**Writing it up in the evening from memory.** After eight hours, 20–30% of what was eaten has disappeared on average. Log at the moment of eating or immediately after.",
+              "**Leaving out caloric drinks.** Juice, a latte, a beer, a sports drink — for many people that is 300–600 kcal a day that never reaches the record.",
+              "**Not counting cooking fats.** Two tablespoons of olive oil is about 240 kcal. It is the single most frequently omitted item in any diary.",
+              "**Eating a “nicer” week for the diary's benefit.** If you eat differently for those seven days, you are diagnosing somebody else. The diary is there to describe the starting point, not to make a good impression.",
+              "**Quitting after a bad day.** One unlogged day does not invalidate the week. A gap in the data is far less damaging than an abandoned diary."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "When to stop logging",
+        "blocks": [
+          "A diary is a tool, not a lifestyle. It is worth keeping for as long as it is still teaching you something.",
+          "After a few months most people estimate their own meals markedly better than they did at the start — a skill the diary builds incidentally and which stays once you put it down. At that point it makes sense to drop to **two or three days a week**: enough to catch drift, without occupying attention day to day.",
+          {
+            "note": [
+              "There is one situation in which the diary should be put down regardless of benefit: if it starts driving anxiety around food, makes eating away from home a problem, or produces a compulsion to “make up for” a worse day. Those are signals that the tool is doing more harm than good — and a moment for a conversation with a professional, not for counting more carefully."
+            ]
+          }
+        ]
+      }
+    ],
+
+    "faq": [
+      {
+        "q": "How do I keep a food diary?",
+        "a": "Log every meal, snack, drink other than water, and any fat added during cooking — at the moment of eating, not in the evening from memory. Add times and hunger levels if you can, because those explain the patterns. You do not need to calculate calories by hand; completeness matters more."
+      },
+      {
+        "q": "How many days should a food diary cover for a dietitian?",
+        "a": "Seven consecutive days, and it must include Saturday and Sunday. Five working days describe somebody who does not exist — for many people the gap between weekend and weekday runs to a thousand calories, and that is usually the most important thing to discuss at the appointment."
+      },
+      {
+        "q": "What should I bring to a first dietitian appointment?",
+        "a": "A seven-day diary with dates and times, ideally as a single PDF or printout, any recent blood work you have, a list of medications and supplements, and your weight history over recent months. A calorie total is less useful than a list of what was actually on the plate."
+      },
+      {
+        "q": "Does keeping a food diary help you lose weight?",
+        "a": "Yes, and before anyone analyses it. Self-monitoring means that knowing something will be recorded changes the behaviour itself — some eating happens outside conscious attention, and the diary restores it. That is why the first week of logging tends to be unusually well behaved."
+      },
+      {
+        "q": "Do I have to weigh food to keep a diary?",
+        "a": "Not at the diagnostic stage — there, completeness matters, not precision. A scale earns its place for a few days when establishing your own requirement, and for calorie-dense foods such as nuts, oils and nut butters, where a 20 g error is an error of over 100 kcal."
+      }
+    ]
+  }
+}

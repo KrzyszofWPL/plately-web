@@ -862,6 +862,12 @@
         <h4 data-i18n="ftProduct">Produkt</h4>
         <a href="#klimat" data-i18n="navFeatures">Możliwości</a>
         <a href="#cennik" data-i18n="navPricing">Cennik</a>
+        <!-- Poradnik istnieje po polsku (/poradnik) i po angielsku (/guides).
+             data-guides-href mowi buildPage(), zeby podmienil adres na wlasciwy
+             dla jezyka; bez tego dziesiec stron linkowaloby do polskiej sekcji.
+             Ten link jest jedyna droga, ktora crawler dochodzi do poradnika poza
+             sitemapa — bez niego artykuly sa sierotami. -->
+        <a href="/poradnik" data-guides-href data-i18n="ftGuides">Poradnik</a>
         <a href="https://app.plately.eu/" data-i18n="ctaOpen">Otwórz aplikację</a>
       </div>
 

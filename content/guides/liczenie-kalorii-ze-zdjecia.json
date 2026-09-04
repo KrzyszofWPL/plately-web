@@ -1,0 +1,267 @@
+{
+  "key": "liczenie-kalorii-ze-zdjecia",
+
+  "pl": {
+    "slug": "liczenie-kalorii-ze-zdjecia",
+    "title": "Liczenie kalorii ze zdjęcia — jak to działa i na ile jest dokładne",
+    "metaTitle": "Liczenie kalorii ze zdjęcia — jak działa i jaka jest dokładność",
+    "metaDesc": "Skąd bierze się liczba pod zdjęciem posiłku, gdzie leży błąd, ile wynosi w praktyce i jak fotografować talerz, żeby oszacowanie było bliższe prawdy.",
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "lead": "Fotografujesz talerz, a po kilku sekundach widzisz kalorie i makroskładniki. Wygląda na magię, ale to trzy dające się opisać kroki — i trzy dające się nazwać źródła błędu. Poniżej co dokładnie się dzieje, ile taki pomiar jest wart i kiedy nie warto mu ufać.",
+    "related": ["deficyt-kaloryczny", "dziennik-zywieniowy", "makroskladniki"],
+
+    "sections": [
+      {
+        "h2": "Skąd bierze się liczba pod zdjęciem",
+        "blocks": [
+          "Analiza zdjęcia posiłku to nie jedna operacja, tylko łańcuch trzech. Każde ogniwo może się pomylić niezależnie od pozostałych, a błędy się kumulują — dlatego warto wiedzieć, gdzie który powstaje.",
+          {
+            "ordered": true,
+            "list": [
+              "**Identyfikacja składników.** Model rozpoznaje, co leży na talerzu: pierś kurczaka, ryż, brokuł, łyżka sosu. To jest ta część, która działa najlepiej — typowe, wyraźnie widoczne produkty są rozpoznawane trafnie.",
+              "**Oszacowanie porcji.** Ile gramów tego ryżu? Tu model korzysta z proporcji względem talerza, sztućców i pozostałych elementów kadru. To jest najsłabsze ogniwo całego łańcucha.",
+              "**Przeliczenie na wartości odżywcze.** Rozpoznane produkty i oszacowane gramatury idą do bazy danych żywieniowych, która zwraca kalorie, białko, węglowodany i tłuszcz."
+            ]
+          },
+          "Punkt trzeci jest w zasadzie deterministyczny — 100 g ugotowanego ryżu białego to około 130 kcal i tyle. Cała niepewność siedzi w punktach pierwszym i drugim, a w praktyce głównie w drugim."
+        ]
+      },
+      {
+        "h2": "Gdzie naprawdę leży błąd",
+        "blocks": [
+          {
+            "h3": "Objętość jest trudniejsza niż nazwa"
+          },
+          "Zdjęcie jest płaskie, a jedzenie nie. Kopiec ryżu widziany pod kątem 45 stopni może mieć 150 g albo 250 g — z góry wygląda podobnie. Modele radzą sobie z tym, szukając w kadrze punktów odniesienia o znanym rozmiarze: krawędzi talerza, widelca, dłoni. Im mniej takich punktów, tym większy rozrzut.",
+          {
+            "h3": "Tłuszcz jest niewidoczny"
+          },
+          "To jest największy pojedynczy problem. Łyżka oliwy na patelni to około 120 kcal, a na gotowej potrawie nie widać jej wcale. To samo dotyczy masła w jajecznicy, śmietany w zupie i majonezu wmieszanego w sałatkę. Zdjęcie nie ma jak tego wykryć, bo tego po prostu nie widać.",
+          {
+            "h3": "Ukryte warstwy"
+          },
+          "Kanapka pokazuje wierzchnią kromkę, a nie to, co jest pod nią. Zapiekanka pokazuje ser, a nie warstwę pod spodem. Gulasz pokazuje wierzch garnka. Model zgaduje na podstawie tego, co widzi, i tego, co statystycznie zwykle towarzyszy temu, co widzi.",
+          {
+            "note": [
+              "Praktyczny wniosek: im bardziej posiłek jest „rozłożony na talerzu”, tym dokładniejszy będzie odczyt. Kotlet, ziemniaki i surówka obok siebie — dobrze. Zapiekanka, gulasz, smoothie — słabiej."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Ile ten błąd wynosi w liczbach",
+        "blocks": [
+          "Warto zestawić to z punktem odniesienia, który zwykle umyka: **człowiek szacujący na oko również się myli, i to mocno.** Badania z użyciem wody podwójnie znakowanej — metody, która mierzy rzeczywisty wydatek energetyczny niezależnie od tego, co ktoś zapisał — od dekad pokazują to samo: ludzie zaniżają zapisane spożycie średnio o 20 do 50 procent. Nie dlatego, że kłamią, tylko dlatego, że nie pamiętają przekąsek i nie doceniają porcji.",
+          "Nawet ręczne wpisywanie do klasycznego licznika kalorii nie usuwa tego problemu. Wybierasz z listy „makaron, porcja” i dostajesz wartość dla porcji, którą ktoś zdefiniował za Ciebie — niekoniecznie tej, którą masz na talerzu.",
+          {
+            "table": [
+              ["Metoda", "Typowy błąd", "Główna przyczyna"],
+              ["Pamięć („co dziś jadłem”)", "30–50%", "pominięte przekąski i napoje"],
+              ["Ręczny wpis z listy produktów", "20–30%", "domyślne gramatury, zgadywana porcja"],
+              ["Zdjęcie", "15–25%", "objętość i niewidoczny tłuszcz"],
+              ["Waga kuchenna", "3–5%", "błąd bazy danych, nie pomiaru"]
+            ]
+          },
+          "To są rzędy wielkości, nie gwarancje — zależą od tego, co i jak jesz. Ale kierunek jest jednoznaczny: zdjęcie nie jest gorsze od tego, co robiłeś do tej pory. Jest gorsze wyłącznie od wagi kuchennej."
+        ]
+      },
+      {
+        "h2": "Dlaczego 20 procent błędu wystarcza",
+        "blocks": [
+          "Kluczowa rzecz, którą łatwo przeoczyć: **do prowadzenia diety nie jest potrzebna dokładna liczba, tylko powtarzalna.**",
+          "Jeśli licznik systematycznie zaniża Twoje spożycie o 15 procent, ale robi to konsekwentnie, to i tak zobaczysz, że w tygodniu, w którym zjadłeś więcej, liczba jest wyższa. Zobaczysz też, że gdy trzymasz się swojego celu, waga spada. Stały błąd znika w momencie, w którym zaczynasz porównywać dni ze sobą, zamiast każdy z osobna z tabelą.",
+          "Wynika z tego prosta zasada: **cel kaloryczny warto skalibrować do własnego licznika, nie do teorii.** Wzór podaje punkt startowy. Prawdziwy cel to ta liczba, przy której Twoja waga zachowuje się tak, jak chcesz — po dwóch, trzech tygodniach obserwacji.",
+          "Wtedy pytanie „czy ten obiad miał 620 czy 740 kcal” przestaje być ważne. Ważne jest, czy dzisiejszy dzień był podobny do wczorajszego, a tydzień do celu."
+        ]
+      },
+      {
+        "h2": "Jak fotografować, żeby było dokładniej",
+        "blocks": [
+          "Kilka nawyków zauważalnie zawęża rozrzut i nie kosztuje nic poza sekundą uwagi:",
+          {
+            "list": [
+              "**Zdjęcie pod kątem, nie z góry.** Kadr z około 45 stopni pokazuje wysokość jedzenia, a nie tylko jego obrys. Widok z góry gubi całą informację o objętości.",
+              "**Zostaw w kadrze punkt odniesienia.** Cały talerz, widelec obok, dłoń przy krawędzi. Cokolwiek o znanym rozmiarze.",
+              "**Fotografuj przed jedzeniem.** Naruszona porcja jest trudniejsza do oszacowania niż nienaruszona.",
+              "**Dopisz to, czego nie widać.** Dwie łyżki oliwy, śmietana w zupie, cukier w kawie — to jest jedyna informacja, której żadne zdjęcie nie odzyska.",
+              "**Rozdziel składniki, jeśli to możliwe.** Trzy rzeczy obok siebie szacują się lepiej niż jedna ich mieszanka.",
+              "**Światło dzienne albo mocne górne.** Cienie zlewają brzegi porcji i zabierają modelowi kontury, na których pracuje."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Kiedy lepiej sięgnąć po wagę",
+        "blocks": [
+          "Są sytuacje, w których zdjęcie jest po prostu złym narzędziem, i warto je znać, zamiast zakładać, że aplikacja poradzi sobie ze wszystkim:",
+          {
+            "list": [
+              "**Zupy i sosy** — proporcja wody do reszty jest nie do odczytania z powierzchni.",
+              "**Oleje i tłuszcze do smażenia** — niewidoczne, a to często największa pojedyncza pozycja w posiłku.",
+              "**Orzechy, nasiona, masła orzechowe** — bardzo gęste kalorycznie, więc błąd 20 g to błąd 120 kcal.",
+              "**Alkohol** — kalorii nie widać w kolorze płynu, a różnice między trunkami są duże.",
+              "**Przygotowanie do zawodów albo dieta lecznicza** — wszędzie tam, gdzie liczy się precyzja, a nie trend."
+            ]
+          },
+          "Rozsądny układ w praktyce: **zdjęcie na co dzień, waga tam, gdzie stawka jest wysoka.** Można też zważyć raz kilka posiłków, które jesz najczęściej, zapamiętać wynik i dalej używać zdjęcia — kalibracja własnych typowych porcji zabiera jeden wieczór i działa potem miesiącami."
+        ]
+      }
+    ],
+
+    "faq": [
+      {
+        "q": "Czy liczenie kalorii ze zdjęcia jest dokładne?",
+        "a": "W typowych warunkach mieści się w granicach 15–25% błędu, głównie z powodu szacowania objętości i niewidocznego tłuszczu. To mniej niż błąd pamięci (30–50%) i porównywalnie z ręcznym wpisem z listy produktów, ale wyraźnie gorzej niż waga kuchenna (3–5%). Do prowadzenia redukcji wystarcza, bo liczy się powtarzalność pomiaru, a nie jego bezwzględna trafność."
+      },
+      {
+        "q": "Co zrobić, żeby zdjęcie było dokładniejsze?",
+        "a": "Fotografuj pod kątem około 45 stopni zamiast z góry, zostaw w kadrze cały talerz albo sztućce jako punkt odniesienia, rób zdjęcie przed rozpoczęciem jedzenia i dopisz ręcznie to, czego nie widać — oliwę, masło, śmietanę czy cukier."
+      },
+      {
+        "q": "Czy aplikacja rozpozna polskie dania?",
+        "a": "Modele rozpoznają składniki, a nie nazwy dań, więc bigos jest odczytywany jako kapusta, mięso i tłuszcz, a nie jako pozycja z listy przepisów. Dla dań jednogarnkowych oznacza to większy rozrzut niż dla posiłków, w których składniki leżą osobno na talerzu."
+      },
+      {
+        "q": "Czy muszę fotografować każdy posiłek?",
+        "a": "Nie. Dziennik z trzech dni w tygodniu pokazuje trend wystarczająco dobrze, żeby wyciągać z niego wnioski. Kompletność ma znaczenie dopiero wtedy, gdy dostrajasz cel kaloryczny — wtedy warto przez dwa tygodnie zapisywać wszystko, łącznie z napojami i przekąskami."
+      },
+      {
+        "q": "Czy zdjęcie policzy kalorie napojów?",
+        "a": "Kawa, herbata i woda są przewidywalne. Problem zaczyna się przy napojach, których kaloryczności nie widać w wyglądzie — sokach, napojach słodzonych, mleku w kawie i alkoholu. Te warto dopisywać ręcznie, bo różnice między pozornie identycznymi szklankami sięgają setek kilokalorii."
+      }
+    ]
+  },
+
+  "en": {
+    "slug": "photo-calorie-counting",
+    "title": "Counting calories from a photo — how it works and how accurate it is",
+    "metaTitle": "Counting calories from a photo — how it works and how accurate",
+    "metaDesc": "Where the number under your meal photo comes from, where the error lives, how big it is in practice, and how to shoot a plate so the estimate lands closer.",
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "lead": "You photograph a plate and a few seconds later you have calories and macros. It looks like magic, but it is three describable steps — and three nameable sources of error. Here is what actually happens, what the number is worth, and when not to trust it.",
+    "related": ["deficyt-kaloryczny", "dziennik-zywieniowy", "makroskladniki"],
+
+    "sections": [
+      {
+        "h2": "Where the number comes from",
+        "blocks": [
+          "Analysing a meal photo is not one operation but a chain of three. Each link can fail independently of the others and the errors compound, which is why it helps to know where each one lives.",
+          {
+            "ordered": true,
+            "list": [
+              "**Identifying the ingredients.** The model works out what is on the plate: chicken breast, rice, broccoli, a spoonful of sauce. This is the part that works best — common, clearly visible foods are recognised reliably.",
+              "**Estimating the portion.** How many grams of that rice? Here the model works from proportions against the plate, the cutlery and everything else in frame. This is the weakest link in the whole chain.",
+              "**Converting to nutrition.** The recognised foods and estimated weights go to a nutrition database, which returns calories, protein, carbohydrate and fat."
+            ]
+          },
+          "Step three is essentially deterministic — 100 g of cooked white rice is about 130 kcal and that is that. All the uncertainty sits in steps one and two, and in practice mostly in step two."
+        ]
+      },
+      {
+        "h2": "Where the error actually lives",
+        "blocks": [
+          {
+            "h3": "Volume is harder than naming"
+          },
+          "A photograph is flat and food is not. A mound of rice seen at 45 degrees could be 150 g or 250 g — from directly above it looks much the same. Models handle this by looking for reference points of known size in frame: the rim of the plate, a fork, a hand. The fewer of those there are, the wider the spread.",
+          {
+            "h3": "Fat is invisible"
+          },
+          "This is the single biggest problem. A tablespoon of olive oil in the pan is about 120 kcal, and in the finished dish you cannot see it at all. The same goes for butter in scrambled eggs, cream in soup and mayonnaise folded into a salad. A photo has no way to detect it, because there is nothing to see.",
+          {
+            "h3": "Hidden layers"
+          },
+          "A sandwich shows you the top slice, not what is under it. A bake shows you cheese, not the layer beneath. A stew shows you the top of the pot. The model guesses from what it can see, plus what statistically tends to accompany what it can see.",
+          {
+            "note": [
+              "The practical takeaway: the more a meal is spread out across the plate, the more accurate the reading. Chicken, potatoes and salad side by side — good. A casserole, a stew, a smoothie — worse."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "How big the error is in numbers",
+        "blocks": [
+          "It is worth putting this next to the reference point people usually skip: **a human estimating by eye is also wrong, and badly so.** Doubly labelled water studies — which measure real energy expenditure independently of what anyone wrote down — have shown the same thing for decades: people under-report what they eat by 20 to 50 per cent on average. Not because they lie, but because they forget snacks and underestimate portions.",
+          "Typing entries into a conventional calorie counter does not remove the problem either. You pick “pasta, one serving” from a list and you get the value for a serving somebody else defined — not necessarily the one on your plate.",
+          {
+            "table": [
+              ["Method", "Typical error", "Main cause"],
+              ["Memory (“what did I eat today”)", "30–50%", "missed snacks and drinks"],
+              ["Manual entry from a food list", "20–30%", "default weights, guessed portions"],
+              ["Photo", "15–25%", "volume and invisible fat"],
+              ["Kitchen scale", "3–5%", "database error, not measurement error"]
+            ]
+          },
+          "These are orders of magnitude rather than guarantees — they depend on what and how you eat. But the direction is unambiguous: a photo is no worse than what you were doing before. It is worse only than a kitchen scale."
+        ]
+      },
+      {
+        "h2": "Why 20 per cent error is good enough",
+        "blocks": [
+          "The thing that is easy to miss: **running a diet does not need an accurate number, it needs a repeatable one.**",
+          "If your counter systematically under-reports by 15 per cent but does it consistently, you will still see that the week you ate more shows a higher number. You will still see that when you hold your target, the scale moves. A constant error cancels out the moment you start comparing days with each other instead of comparing each one against a table.",
+          "A simple rule falls out of this: **calibrate your calorie target to your own counter, not to theory.** A formula gives you a starting point. Your real target is the number at which your weight does what you want it to — after two or three weeks of watching.",
+          "At that point the question “was that dinner 620 or 740 kcal” stops mattering. What matters is whether today looked like yesterday, and whether the week looked like the target."
+        ]
+      },
+      {
+        "h2": "How to shoot so the estimate lands closer",
+        "blocks": [
+          "A handful of habits noticeably narrows the spread and costs nothing but a second of attention:",
+          {
+            "list": [
+              "**Shoot at an angle, not from overhead.** A frame from around 45 degrees shows the height of the food, not just its outline. Top-down throws away all the volume information.",
+              "**Leave a reference point in frame.** The whole plate, a fork beside it, a hand at the edge. Anything of known size.",
+              "**Photograph before eating.** A disturbed portion is harder to estimate than an intact one.",
+              "**Type in what cannot be seen.** Two tablespoons of oil, cream in the soup, sugar in the coffee — this is the one piece of information no photo can recover.",
+              "**Separate the components where you can.** Three things side by side estimate better than one mixture of them.",
+              "**Daylight, or strong light from above.** Shadows blur the edges of a portion and take away the contours the model works from."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "When to reach for the scale instead",
+        "blocks": [
+          "There are situations where a photo is simply the wrong tool, and it is worth knowing them rather than assuming the app will cope with everything:",
+          {
+            "list": [
+              "**Soups and sauces** — the ratio of water to everything else cannot be read off the surface.",
+              "**Cooking oils and fats** — invisible, and often the single largest item in the meal.",
+              "**Nuts, seeds and nut butters** — very calorie dense, so a 20 g error is a 120 kcal error.",
+              "**Alcohol** — the calories are not visible in the colour of the liquid, and drinks differ widely.",
+              "**Contest prep or a therapeutic diet** — anywhere precision matters more than trend."
+            ]
+          },
+          "A sensible arrangement in practice: **a photo day to day, the scale where the stakes are high.** You can also weigh a few of the meals you eat most often once, remember the result and keep using photos afterwards — calibrating your own typical portions takes one evening and then works for months."
+        ]
+      }
+    ],
+
+    "faq": [
+      {
+        "q": "Is counting calories from a photo accurate?",
+        "a": "Under typical conditions it lands within 15–25% error, mostly because of portion volume and invisible fat. That is better than memory (30–50%) and comparable to manual entry from a food list, but clearly worse than a kitchen scale (3–5%). For running a fat-loss phase it is enough, because what matters is that the measurement repeats, not that it is absolutely correct."
+      },
+      {
+        "q": "What makes a photo estimate more accurate?",
+        "a": "Shoot at roughly 45 degrees rather than straight down, keep the whole plate or your cutlery in frame as a size reference, take the photo before you start eating, and manually add what cannot be seen — oil, butter, cream or sugar."
+      },
+      {
+        "q": "Does it handle mixed dishes and stews?",
+        "a": "Models recognise ingredients rather than recipe names, so a stew is read as cabbage, meat and fat rather than as an entry from a recipe list. For one-pot dishes that means a wider spread than for meals whose components sit separately on the plate."
+      },
+      {
+        "q": "Do I have to photograph every meal?",
+        "a": "No. A diary covering three days a week shows the trend well enough to draw conclusions from. Completeness only starts to matter when you are tuning your calorie target — then it is worth logging everything for two weeks, drinks and snacks included."
+      },
+      {
+        "q": "Will a photo count the calories in drinks?",
+        "a": "Coffee, tea and water are predictable. The trouble starts with drinks whose calorie content is invisible in their appearance — juices, sweetened drinks, milk in coffee and alcohol. Those are worth entering by hand, because two apparently identical glasses can differ by hundreds of calories."
+      }
+    ]
+  }
+}

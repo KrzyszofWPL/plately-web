@@ -1,0 +1,321 @@
+{
+  "key": "deficyt-kaloryczny",
+
+  "pl": {
+    "slug": "deficyt-kaloryczny",
+    "title": "Deficyt kaloryczny — jak go obliczyć i ile powinien wynosić",
+    "metaTitle": "Deficyt kaloryczny — jak obliczyć i ile powinien wynosić",
+    "metaDesc": "Wzór Mifflina-St Jeora, współczynniki aktywności i rozsądny rozmiar deficytu. Plus to, czego kalkulator nie powie: dlaczego waga nie spada liniowo.",
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "lead": "Deficyt kaloryczny to jedyny mechanizm, przez który organizm traci tkankę tłuszczową — reszta to sposoby na to, żeby go osiągnąć i utrzymać. Poniżej wzór, liczby i trzy rzeczy, których żaden kalkulator Ci nie powie.",
+    "related": ["liczenie-kalorii-ze-zdjecia", "makroskladniki", "dziennik-zywieniowy"],
+
+    "sections": [
+      {
+        "h2": "Czym deficyt jest, a czym nie jest",
+        "blocks": [
+          "Deficyt to różnica między tym, ile energii wydajesz, a tym, ile dostarczasz. Jeśli wydajesz 2400 kcal, a jesz 1900, deficyt wynosi 500 kcal dziennie.",
+          "Krąży reguła, że kilogram tkanki tłuszczowej to około 7700 kcal, więc deficyt 500 kcal dziennie da pół kilograma tygodniowo. Jako punkt startowy jest w porządku, ale **jako prognoza na kilka miesięcy jest zawyżona** i warto wiedzieć dlaczego. Wraz ze spadkiem masy ciała maleje wydatek energetyczny — mniejsze ciało kosztuje mniej w spoczynku i mniej w ruchu. Dodatkowo organizm zmniejsza spontaniczną aktywność: mniej się wierci, mniej chodzi bez powodu, wolniej wchodzi po schodach. To nie jest siła woli, tylko regulacja, której się nie czuje.",
+          {
+            "note": [
+              "Praktyczna konsekwencja: cel kaloryczny nie jest liczbą ustawianą raz. To liczba, którą przelicza się co kilka kilogramów."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Krok 1: podstawowa przemiana materii",
+        "blocks": [
+          "BMR to energia, którą zużywasz leżąc bez ruchu — na pracę serca, oddychanie, utrzymanie temperatury. To zwykle 60–70% całego dziennego wydatku. Najlepiej sprawdzającym się wzorem dla populacji ogólnej jest równanie Mifflina-St Jeora:",
+          {
+            "formula": [
+              "Mężczyźni:",
+              "  BMR = 10 × masa[kg] + 6,25 × wzrost[cm] − 5 × wiek[lata] + 5",
+              "",
+              "Kobiety:",
+              "  BMR = 10 × masa[kg] + 6,25 × wzrost[cm] − 5 × wiek[lata] − 161"
+            ]
+          },
+          "Przykład: kobieta, 32 lata, 168 cm, 70 kg.",
+          {
+            "formula": [
+              "BMR = 10 × 70 + 6,25 × 168 − 5 × 32 − 161",
+              "    = 700 + 1050 − 160 − 161",
+              "    = 1429 kcal"
+            ]
+          },
+          "Wzór jest oszacowaniem populacyjnym z rozrzutem rzędu ±10% dla konkretnej osoby. Przy 1429 kcal to około 140 kcal w każdą stronę — dlatego dalsze kroki traktuj jako hipotezę do sprawdzenia, a nie jako wynik pomiaru."
+        ]
+      },
+      {
+        "h2": "Krok 2: całkowity wydatek energetyczny",
+        "blocks": [
+          "BMR mnożymy przez współczynnik aktywności, żeby dostać TDEE — całkowity dzienny wydatek:",
+          {
+            "table": [
+              ["Tryb życia", "Mnożnik", "Co to znaczy w praktyce"],
+              ["Siedzący", "1,2", "praca biurowa, brak treningów, poniżej 5 tys. kroków"],
+              ["Lekko aktywny", "1,375", "1–3 treningi tygodniowo albo dużo chodzenia"],
+              ["Umiarkowanie aktywny", "1,55", "3–5 treningów tygodniowo"],
+              ["Bardzo aktywny", "1,725", "6–7 treningów albo praca fizyczna"],
+              ["Wyjątkowo aktywny", "1,9", "dwa treningi dziennie, sport wyczynowy"]
+            ]
+          },
+          "Nasza przykładowa osoba trenuje trzy razy w tygodniu i ma pracę biurową, więc bierzemy 1,375:",
+          {
+            "formula": ["TDEE = 1429 × 1,375 = 1965 kcal"]
+          },
+          {
+            "note": [
+              "**Najczęstszy błąd na tym etapie: zawyżony mnożnik.** Trzy godziny na siłowni tygodniowo to około 900 kcal rozłożone na siedem dni, czyli mniej niż 130 kcal dziennie. Jeśli wahasz się między dwoma poziomami, wybierz niższy. Zbyt wysoki mnożnik daje cel, przy którym waga stoi, i wrażenie, że „deficyt nie działa”."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Krok 3: rozmiar deficytu",
+        "blocks": [
+          "Deficyt określa się jako procent TDEE, nie jako stałą liczbę — 500 kcal dla osoby o wydatku 3200 to zupełnie inna sytuacja niż dla osoby o wydatku 1800.",
+          {
+            "table": [
+              ["Deficyt", "Tempo", "Dla kogo"],
+              ["10% TDEE", "0,25–0,4% masy ciała / tydzień", "ostatnie kilogramy, ochrona mięśni"],
+              ["15–20% TDEE", "0,5–0,7% masy ciała / tydzień", "domyślny wybór dla większości"],
+              ["25% TDEE", "ok. 1% masy ciała / tydzień", "wyższa masa startowa, krótkie okresy"]
+            ]
+          },
+          "Dla naszego przykładu 20% z 1965 to 393 kcal, czyli cel około **1570 kcal dziennie**.",
+          {
+            "h3": "Dlaczego nie więcej"
+          },
+          "Bardzo duży deficyt wygląda atrakcyjnie na papierze, ale kosztuje w trzech miejscach jednocześnie: rośnie udział masy mięśniowej w tym, co tracisz, spada jakość treningów, i — najważniejsze — rośnie prawdopodobieństwo, że diety nie dokończysz. Dieta, którą porzucasz w czwartym tygodniu, przegrywa z wolniejszą, którą prowadzisz przez pół roku.",
+          {
+            "h3": "Dolna granica"
+          },
+          "Poniżej mniej więcej 1200 kcal u kobiet i 1500 u mężczyzn trudno pokryć zapotrzebowanie na białko, witaminy i składniki mineralne z samego jedzenia. To nie jest granica bezpieczeństwa wyryta w kamieniu, ale poniżej niej dieta powinna być prowadzona pod opieką, a nie z kalkulatora."
+        ]
+      },
+      {
+        "h2": "Dlaczego waga nie spada liniowo",
+        "blocks": [
+          "To jest miejsce, w którym najwięcej osób rezygnuje — i najczęściej niepotrzebnie, bo problemem jest interpretacja pomiaru, a nie sama dieta.",
+          "Masa ciała rano to tkanka tłuszczowa, mięśnie, kości, woda, zawartość jelit i glikogen. Zmienia się z dnia na dzień o 1–2 kg z powodów, które nie mają nic wspólnego z bilansem energii:",
+          {
+            "list": [
+              "**Glikogen.** Każdy gram glikogenu wiąże około 3 g wody. Dzień z większą ilością węglowodanów potrafi dodać kilogram na wadze, nie dodając ani grama tłuszczu.",
+              "**Sód.** Słony obiad zatrzymuje wodę na dobę albo dwie.",
+              "**Cykl menstruacyjny.** Wahania wody w drugiej fazie cyklu sięgają 1–2 kg.",
+              "**Nowy bodziec treningowy.** Stan zapalny po nietypowej sesji to woda w mięśniach.",
+              "**Zawartość przewodu pokarmowego.** Trywialne, ale realne — kilkaset gramów w każdą stronę."
+            ]
+          },
+          "Wniosek praktyczny: **patrz na średnią tygodniową, nie na pojedynczy odczyt.** Waż się codziennie rano, po toalecie, przed śniadaniem — i porównuj średnią z tego tygodnia ze średnią z poprzedniego. Codzienny pomiar nie służy do oceniania dnia. Służy do tego, żeby średnia miała z czego powstać."
+        ]
+      },
+      {
+        "h2": "Kiedy i jak korygować cel",
+        "blocks": [
+          "Wzór dał hipotezę. Rzeczywistość ją zweryfikuje w dwa–trzy tygodnie.",
+          {
+            "ordered": true,
+            "list": [
+              "**Trzymaj cel przez pełne dwa tygodnie**, zapisując wszystko. Krótszy okres to zbyt duży szum, żeby cokolwiek z niego wyczytać.",
+              "**Porównaj średnie tygodniowe.** Jeśli spadek mieści się w 0,5–0,7% masy ciała na tydzień — cel jest dobry, nie ruszaj go.",
+              "**Jeśli waga stoi trzeci tydzień** — zejdź o 100–150 kcal albo dołóż ruchu. Nie schodź od razu o 400.",
+              "**Jeśli spadek jest szybszy niż 1% tygodniowo** — dołóż 100–150 kcal. To nie jest sukces, tylko sygnał, że tracisz też mięśnie.",
+              "**Przelicz TDEE co 4–5 kg.** Wzór dla 70 kg nie opisuje już osoby ważącej 63 kg."
+            ]
+          },
+          {
+            "note": [
+              "Kalkulator jest punktem wyjścia, nie odpowiedzią. Jedyna liczba, która naprawdę opisuje Twój wydatek energetyczny, to ta, którą wyliczysz z własnych danych: co jadłeś i co zrobiła waga. Dlatego dwa tygodnie rzetelnego dziennika są warte więcej niż dowolnie dokładny wzór."
+            ]
+          }
+        ]
+      }
+    ],
+
+    "faq": [
+      {
+        "q": "Jak obliczyć deficyt kaloryczny?",
+        "a": "Policz BMR ze wzoru Mifflina-St Jeora, pomnóż przez współczynnik aktywności (1,2 przy pracy siedzącej, 1,375 przy 1–3 treningach tygodniowo, 1,55 przy 3–5), a od wyniku odejmij 15–20%. Dla kobiety 32 lata, 168 cm, 70 kg, trenującej trzy razy w tygodniu daje to cel około 1570 kcal dziennie."
+      },
+      {
+        "q": "Ile powinien wynosić deficyt kaloryczny?",
+        "a": "Dla większości osób 15–20% całkowitego wydatku energetycznego, co odpowiada spadkowi 0,5–0,7% masy ciała tygodniowo. Większy deficyt przyspiesza efekt kosztem masy mięśniowej, jakości treningów i szansy na dokończenie diety."
+      },
+      {
+        "q": "Dlaczego waga nie spada mimo deficytu?",
+        "a": "Najczęściej z trzech powodów: zawyżony współczynnik aktywności przy liczeniu TDEE, niedoszacowane spożycie (pominięte napoje, tłuszcze do smażenia, przekąski) albo wahania wody maskujące realny spadek. Zanim zmienisz cel, porównaj średnie tygodniowe z dwóch pełnych tygodni, a nie pojedyncze odczyty."
+      },
+      {
+        "q": "Czy można być w deficycie i nie chudnąć?",
+        "a": "Nie w dłuższym okresie — jeśli waga stoi przez trzy tygodnie przy stabilnym pomiarze, rzeczywisty deficyt nie istnieje. Zwykle oznacza to, że spożycie jest wyższe, niż wynika z zapisów, albo że wydatek jest niższy, niż założył wzór. Obie rzeczy sprawdza rzetelny dziennik, a nie kolejny kalkulator."
+      },
+      {
+        "q": "Jak często ważyć się na redukcji?",
+        "a": "Codziennie rano, po skorzystaniu z toalety, przed śniadaniem i piciem. Pojedynczego odczytu się nie interpretuje — służy tylko do policzenia średniej tygodniowej, i to średnie porównuje się między sobą."
+      }
+    ]
+  },
+
+  "en": {
+    "slug": "calorie-deficit",
+    "title": "Calorie deficit — how to calculate it and how large it should be",
+    "metaTitle": "Calorie deficit — how to calculate it and how large it should be",
+    "metaDesc": "The Mifflin-St Jeor equation, activity multipliers and a sensible deficit size. Plus what the calculator will not tell you: why the scale does not fall in a line.",
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "lead": "A calorie deficit is the only mechanism by which the body loses fat tissue — everything else is a way of reaching one and staying there. Below: the formula, the numbers, and three things no calculator will tell you.",
+    "related": ["liczenie-kalorii-ze-zdjecia", "makroskladniki", "dziennik-zywieniowy"],
+
+    "sections": [
+      {
+        "h2": "What a deficit is, and what it is not",
+        "blocks": [
+          "A deficit is the gap between the energy you spend and the energy you take in. Spend 2400 kcal, eat 1900, and the deficit is 500 kcal a day.",
+          "A rule of thumb says a kilogram of fat tissue is about 7700 kcal, so a 500 kcal daily deficit should give half a kilo a week. As a starting point that is fine, but **as a forecast over several months it overshoots**, and it is worth knowing why. As body mass falls, energy expenditure falls with it — a smaller body costs less at rest and less in motion. On top of that the body dials down spontaneous activity: less fidgeting, less walking for no reason, slower up the stairs. That is not willpower, it is regulation you cannot feel happening.",
+          {
+            "note": [
+              "The practical consequence: a calorie target is not a number you set once. It is a number you recalculate every few kilograms."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Step 1: basal metabolic rate",
+        "blocks": [
+          "BMR is the energy you burn lying still — heartbeat, breathing, holding your temperature. It is usually 60–70% of total daily expenditure. The equation that performs best across a general population is Mifflin-St Jeor:",
+          {
+            "formula": [
+              "Men:",
+              "  BMR = 10 × weight[kg] + 6.25 × height[cm] − 5 × age[years] + 5",
+              "",
+              "Women:",
+              "  BMR = 10 × weight[kg] + 6.25 × height[cm] − 5 × age[years] − 161"
+            ]
+          },
+          "Worked example: a woman, 32 years old, 168 cm, 70 kg.",
+          {
+            "formula": [
+              "BMR = 10 × 70 + 6.25 × 168 − 5 × 32 − 161",
+              "    = 700 + 1050 − 160 − 161",
+              "    = 1429 kcal"
+            ]
+          },
+          "The formula is a population estimate with a spread of roughly ±10% for any individual. At 1429 kcal that is about 140 kcal either way — so treat the steps that follow as a hypothesis to test, not as the result of a measurement."
+        ]
+      },
+      {
+        "h2": "Step 2: total daily energy expenditure",
+        "blocks": [
+          "Multiply BMR by an activity factor to get TDEE:",
+          {
+            "table": [
+              ["Lifestyle", "Multiplier", "What it means in practice"],
+              ["Sedentary", "1.2", "desk job, no training, under 5,000 steps"],
+              ["Lightly active", "1.375", "1–3 sessions a week, or a lot of walking"],
+              ["Moderately active", "1.55", "3–5 sessions a week"],
+              ["Very active", "1.725", "6–7 sessions, or physical work"],
+              ["Extremely active", "1.9", "two sessions a day, competitive sport"]
+            ]
+          },
+          "Our example trains three times a week and has a desk job, so 1.375:",
+          {
+            "formula": ["TDEE = 1429 × 1.375 = 1965 kcal"]
+          },
+          {
+            "note": [
+              "**The most common mistake here is an inflated multiplier.** Three hours in the gym a week is about 900 kcal spread across seven days — under 130 kcal a day. If you are torn between two levels, take the lower one. Too high a multiplier gives you a target at which the scale does not move, and the impression that “the deficit is not working”."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Step 3: how large the deficit should be",
+        "blocks": [
+          "Set the deficit as a percentage of TDEE, not as a fixed number — 500 kcal for someone spending 3200 is a completely different situation from 500 kcal for someone spending 1800.",
+          {
+            "table": [
+              ["Deficit", "Rate", "Who it suits"],
+              ["10% of TDEE", "0.25–0.4% of body mass / week", "the last few kilos, protecting muscle"],
+              ["15–20% of TDEE", "0.5–0.7% of body mass / week", "the default for most people"],
+              ["25% of TDEE", "about 1% of body mass / week", "higher starting mass, short blocks"]
+            ]
+          },
+          "For our example, 20% of 1965 is 393 kcal, so a target of roughly **1570 kcal a day**.",
+          {
+            "h3": "Why not go deeper"
+          },
+          "A very large deficit looks attractive on paper but costs you in three places at once: more of what you lose is muscle, training quality drops, and — most importantly — the odds of not finishing go up. A diet you abandon in week four loses to a slower one you run for six months.",
+          {
+            "h3": "The floor"
+          },
+          "Below roughly 1200 kcal for women and 1500 for men it becomes hard to cover protein, vitamin and mineral requirements from food alone. That is not a safety line carved in stone, but underneath it a diet belongs under supervision rather than under a calculator."
+        ]
+      },
+      {
+        "h2": "Why the scale does not fall in a line",
+        "blocks": [
+          "This is where most people quit — usually needlessly, because the problem is how the measurement is read, not the diet.",
+          "Morning body mass is fat, muscle, bone, water, gut contents and glycogen. It swings 1–2 kg day to day for reasons that have nothing to do with energy balance:",
+          {
+            "list": [
+              "**Glycogen.** Each gram of glycogen binds about 3 g of water. A higher-carbohydrate day can add a kilo on the scale without adding a gram of fat.",
+              "**Sodium.** A salty dinner holds water for a day or two.",
+              "**The menstrual cycle.** Water swings in the luteal phase reach 1–2 kg.",
+              "**A new training stimulus.** Inflammation after an unusual session is water in the muscle.",
+              "**Gut contents.** Trivial, but real — a few hundred grams either way."
+            ]
+          },
+          "The practical conclusion: **read the weekly average, not a single reading.** Weigh yourself every morning, after the bathroom, before breakfast — and compare this week's average with last week's. The daily number is not there to judge the day. It is there so the average has something to be made of."
+        ]
+      },
+      {
+        "h2": "When and how to adjust the target",
+        "blocks": [
+          "The formula gave you a hypothesis. Reality will test it in two or three weeks.",
+          {
+            "ordered": true,
+            "list": [
+              "**Hold the target for two full weeks**, logging everything. Anything shorter is too noisy to read.",
+              "**Compare weekly averages.** If the drop sits between 0.5% and 0.7% of body mass per week, the target is right — leave it alone.",
+              "**If the scale has been flat for three weeks**, take off 100–150 kcal or add movement. Do not cut 400 at once.",
+              "**If you are losing faster than 1% a week**, add 100–150 kcal back. That is not success, it is a signal that muscle is going too.",
+              "**Recalculate TDEE every 4–5 kg.** The equation for 70 kg no longer describes someone at 63 kg."
+            ]
+          },
+          {
+            "note": [
+              "A calculator is a starting point, not an answer. The only number that genuinely describes your expenditure is the one you derive from your own data: what you ate and what the scale did. Two weeks of an honest diary are worth more than an arbitrarily precise formula."
+            ]
+          }
+        ]
+      }
+    ],
+
+    "faq": [
+      {
+        "q": "How do I calculate a calorie deficit?",
+        "a": "Work out BMR with the Mifflin-St Jeor equation, multiply by an activity factor (1.2 for a desk job, 1.375 for 1–3 sessions a week, 1.55 for 3–5), then subtract 15–20%. For a woman of 32, 168 cm and 70 kg training three times a week, that comes to a target of roughly 1570 kcal a day."
+      },
+      {
+        "q": "How big should a calorie deficit be?",
+        "a": "For most people 15–20% of total daily energy expenditure, which corresponds to losing 0.5–0.7% of body mass per week. A larger deficit buys speed at the cost of muscle mass, training quality and the odds of finishing the diet at all."
+      },
+      {
+        "q": "Why am I not losing weight in a deficit?",
+        "a": "Usually one of three things: an inflated activity multiplier in the TDEE calculation, under-reported intake (missed drinks, cooking fats, snacks), or water fluctuations masking a real loss. Before changing the target, compare the weekly averages of two full weeks rather than individual readings."
+      },
+      {
+        "q": "Can you be in a deficit and not lose fat?",
+        "a": "Not over any length of time — if the scale is flat for three weeks with consistent measurement, the deficit is not actually there. It usually means intake is higher than the log says, or expenditure is lower than the formula assumed. An honest diary settles both questions; another calculator will not."
+      },
+      {
+        "q": "How often should I weigh myself while cutting?",
+        "a": "Every morning, after the bathroom, before food and drink. A single reading is not interpreted at all — it exists only to feed the weekly average, and it is averages that get compared with each other."
+      }
+    ]
+  }
+}

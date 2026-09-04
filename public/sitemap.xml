@@ -230,6 +230,114 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.plately.eu/poradnik/deficyt-kaloryczny</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik/deficyt-kaloryczny"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides/calorie-deficit"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides/calorie-deficit"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/poradnik/dziennik-zywieniowy</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik/dziennik-zywieniowy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides/food-diary"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides/food-diary"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/poradnik/ile-pic-wody-dziennie</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik/ile-pic-wody-dziennie"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides/how-much-water-per-day"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides/how-much-water-per-day"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/poradnik/liczenie-kalorii-ze-zdjecia</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik/liczenie-kalorii-ze-zdjecia"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides/photo-calorie-counting"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides/photo-calorie-counting"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/poradnik/makroskladniki</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik/makroskladniki"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides/macronutrients"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides/macronutrients"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/poradnik</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/guides/calorie-deficit</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik/deficyt-kaloryczny"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides/calorie-deficit"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides/calorie-deficit"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/guides/food-diary</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik/dziennik-zywieniowy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides/food-diary"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides/food-diary"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/guides/how-much-water-per-day</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik/ile-pic-wody-dziennie"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides/how-much-water-per-day"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides/how-much-water-per-day"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/guides/photo-calorie-counting</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik/liczenie-kalorii-ze-zdjecia"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides/photo-calorie-counting"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides/photo-calorie-counting"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/guides/macronutrients</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik/makroskladniki"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides/macronutrients"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides/macronutrients"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.plately.eu/guides</loc>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://www.plately.eu/poradnik"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.plately.eu/guides"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.plately.eu/guides"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.plately.eu/terms</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>yearly</changefreq>

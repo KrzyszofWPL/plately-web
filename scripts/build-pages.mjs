@@ -33,6 +33,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { buildGuides } from './build-guides.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ORIGIN = 'https://www.plately.eu';
@@ -512,6 +513,14 @@ function buildPage(template, lang, t) {
     `$1${escText(t.skipToContent)}$2`
   );
 
+  // Poradnik istnieje w dwóch językach, landing w dwunastu. Każdy język bez
+  // własnej wersji poradnika dostaje angielską, bo to ona jest x-default całej
+  // witryny. Znacznik musi zniknąć: atrybut bez wartości zostałby w dokumencie.
+  const guidesHref = lang === DEFAULT_LANG ? '/poradnik' : '/guides';
+  const guidesRe = /<a href="\/poradnik" data-guides-href /;
+  if (!guidesRe.test(html)) throw new Error(`[${lang}] nie znaleziono linku data-guides-href`);
+  html = html.replace(guidesRe, `<a href="${guidesHref}" `);
+
   // After the doctype, not before it: a comment ahead of the doctype is legal
   // but puts older engines into quirks mode, and there is nothing to gain by
   // risking it.
@@ -543,7 +552,24 @@ const SHARED_SOURCES = [
   'content/landing-web.js',
 ];
 
-function buildSitemap() {
+// Wpisy sekcji poradnikowej. Ksztalt taki sam jak stron jezykowych — wlasny
+// zestaw alternatywnych adresow, bo poradnik istnieje w dwoch jezykach, a nie
+// w dwunastu, wiec nie moze dziedziczyc bloku hreflang landingu.
+function guideEntry({ loc, lastmod, changefreq, priority, alternates }) {
+  const links = alternates
+    .map((a) => `    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${a.href}"/>`)
+    .join('\n');
+
+  return `  <url>
+    <loc>${loc}</loc>
+${links}
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`;
+}
+
+function buildSitemap(guides) {
   const alternates = LANGS.map(
     (l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${urlFor(l)}"/>`
   )
@@ -593,6 +619,7 @@ ${alternates}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${langEntries}
+${guides.map(guideEntry).join('\n')}
 ${standalone}
 </urlset>
 `;
@@ -656,6 +683,11 @@ function assertNoRedirectLoops() {
 function main() {
   assertNoRedirectLoops();
 
+  // Najpierw poradnik: buildSitemap() potrzebuje listy jego adresow, a strona
+  // glowna linkuje do /poradnik, wiec ten katalog musi juz istniec.
+  const guides = buildGuides();
+  console.log('');
+
   const template = fs.readFileSync(path.join(ROOT, 'content', 'index.template.html'), 'utf8');
   const dict = loadDictionary();
 
@@ -671,7 +703,7 @@ function main() {
     console.log(`  ${pathFor(lang).padEnd(6)} -> ${path.relative(ROOT, outFile).padEnd(20)} ${(html.length / 1024).toFixed(1)} kB`);
   }
 
-  fs.writeFileSync(path.join(ROOT, 'public', 'sitemap.xml'), buildSitemap(), 'utf8');
+  fs.writeFileSync(path.join(ROOT, 'public', 'sitemap.xml'), buildSitemap(guides), 'utf8');
   // Counted from the file rather than from a total kept in step by hand, which
   // is how it came to be reporting one fewer URL than it had just written.
   const sitemap = fs.readFileSync(path.join(ROOT, 'public', 'sitemap.xml'), 'utf8');

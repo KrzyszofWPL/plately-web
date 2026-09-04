@@ -1,0 +1,269 @@
+{
+  "key": "ile-pic-wody-dziennie",
+
+  "pl": {
+    "slug": "ile-pic-wody-dziennie",
+    "title": "Ile pić wody dziennie — wzór na masę ciała zamiast ośmiu szklanek",
+    "metaTitle": "Ile pić wody dziennie — wzór na masę ciała, nie osiem szklanek",
+    "metaDesc": "Skąd wzięło się osiem szklanek, ile wody potrzebujesz naprawdę według masy ciała, co się wlicza do bilansu i jak sprawdzić nawodnienie bez aplikacji.",
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "lead": "„Osiem szklanek dziennie” to jedna z najtrwalszych zasad żywieniowych, która nigdy nie miała porządnego uzasadnienia. Potrzeba wodna zależy od masy ciała, aktywności i temperatury — i da się ją policzyć.",
+    "related": ["deficyt-kaloryczny", "dziennik-zywieniowy", "makroskladniki"],
+
+    "sections": [
+      {
+        "h2": "Skąd wzięło się osiem szklanek",
+        "blocks": [
+          "Reguła prawdopodobnie wywodzi się z amerykańskich zaleceń z lat czterdziestych, które mówiły o około 2,5 litra wody dziennie dla dorosłego — z dopiskiem, że **większość tej ilości znajduje się w spożywanym jedzeniu.** Dopisek zgubił się po drodze, a została okrągła liczba szklanek do wypicia ponad wszystko inne.",
+          "Problem z regułą nie polega na tym, że jest szkodliwa. Polega na tym, że nie uwzględnia niczego, co ma znaczenie: **osoba ważąca 55 kg i osoba ważąca 95 kg dostają tę samą liczbę**, tak samo jak dzień w biurze i dzień z dwugodzinnym treningiem w upale."
+        ]
+      },
+      {
+        "h2": "Ile naprawdę potrzebujesz",
+        "blocks": [
+          "Praktyczny przelicznik, który dobrze sprawdza się jako punkt startowy:",
+          {
+            "formula": [
+              "Zapotrzebowanie na płyny = 30–35 ml × masa ciała [kg]",
+              "",
+              "Przykład, 70 kg:",
+              "  70 × 30 = 2100 ml",
+              "  70 × 35 = 2450 ml",
+              "  →  około 2,1–2,5 litra na dobę, ze wszystkich źródeł"
+            ]
+          },
+          "Europejskie zalecenia (EFSA) podają zbliżone wartości wyrażone inaczej: **2,0 litra dla kobiet i 2,5 litra dla mężczyzn** — również jako całkowitą podaż wody, a więc łącznie z tą zawartą w jedzeniu.",
+          {
+            "note": [
+              "Zwróć uwagę na słowa „ze wszystkich źródeł”. To jest miejsce, w którym reguła ośmiu szklanek myli najbardziej: **jedzenie dostarcza zwykle 20–30% dobowej wody.** Zupa, owoce, warzywa, jogurt, nawet ugotowany makaron — to wszystko wchodzi do bilansu."
+            ]
+          },
+          "Dla osoby ważącej 70 kg oznacza to zwykle **około 1,6–1,9 litra do wypicia**, a resztę pokrywa dieta. Jeśli jesz dużo warzyw i owoców, będzie bliżej dolnej granicy; jeśli żywisz się głównie produktami suchymi, bliżej górnej."
+        ]
+      },
+      {
+        "h2": "Co się wlicza, a co nie",
+        "blocks": [
+          {
+            "table": [
+              ["Napój", "Czy się liczy", "Uwaga"],
+              ["Woda", "Tak, w pełni", "punkt odniesienia"],
+              ["Herbata, napary", "Tak, w pełni", "efekt moczopędny jest marginalny"],
+              ["Kawa", "Tak", "do 4 filiżanek dziennie nawadnia netto"],
+              ["Mleko, kefir", "Tak", "pamiętaj o kaloriach"],
+              ["Soki, napoje słodzone", "Tak, ale", "cukier bywa liczony na setki kcal"],
+              ["Alkohol", "Nie", "działa moczopędnie, odwadnia netto"]
+            ]
+          },
+          {
+            "h3": "Kawa nie odwadnia"
+          },
+          "To jest najczęstsze nieporozumienie w tym temacie. Kofeina ma łagodne działanie moczopędne, ale **przy spożyciu do około 400 mg dziennie — czyli mniej więcej czterech filiżanek — bilans wodny kawy pozostaje dodatni.** Filiżanka kawy to filiżanka płynu, z której zostaje więcej, niż ubywa. Osoby pijące kawę regularnie rozwijają zresztą tolerancję na ten efekt.",
+          {
+            "h3": "Alkohol to jedyny wyjątek"
+          },
+          "Etanol hamuje wydzielanie wazopresyny, hormonu odpowiadającego za zatrzymywanie wody przez nerki. Efekt jest na tyle wyraźny, że napoje alkoholowe wychodzą na minus: piwo o objętości 500 ml zostawia w organizmie mniej wody, niż wniosło."
+        ]
+      },
+      {
+        "h2": "Jak sprawdzić, czy pijesz dosyć",
+        "blocks": [
+          "Nie potrzebujesz do tego żadnego urządzenia. Trzy wskaźniki wystarczają i są zaskakująco wiarygodne:",
+          {
+            "ordered": true,
+            "list": [
+              "**Kolor moczu.** Jasnosłomkowy oznacza dobre nawodnienie. Ciemnożółty albo bursztynowy — za mało płynów. Zupełnie przezroczysty przez cały dzień może oznaczać, że pijesz więcej, niż potrzebujesz. Uwaga: witaminy z grupy B i niektóre leki barwią mocz niezależnie od nawodnienia.",
+              "**Częstotliwość.** Cztery do siedmiu wizyt w toalecie w ciągu dnia to typowy zakres.",
+              "**Pragnienie.** U zdrowej osoby dorosłej to działający mechanizm i można mu ufać. Traci czułość dopiero u osób starszych, w czasie intensywnego wysiłku i przy niektórych chorobach."
+            ]
+          },
+          {
+            "note": [
+              "Uczucie pragnienia bywa mylone z głodem — nie dlatego, że mechanizmy są wspólne, ale dlatego, że oba są niewyraźnymi sygnałami z tego samego rejonu. Szklanka wody na dwadzieścia minut przed posiłkiem rozstrzyga to pytanie i przy okazji zmniejsza objętość posiłku."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Kiedy potrzeba wyraźnie więcej",
+        "blocks": [
+          {
+            "list": [
+              "**Trening.** Około 400–800 ml na każdą godzinę wysiłku, w zależności od intensywności i potliwości. Przy wysiłku dłuższym niż 90 minut warto uzupełniać też elektrolity, nie samą wodę.",
+              "**Upał i wysoka wilgotność.** Utrata przez skórę rośnie wielokrotnie, a przy dużej wilgotności pot gorzej odparowuje, więc organizm produkuje go więcej.",
+              "**Gorączka, wymioty, biegunka.** Straty rosną gwałtownie i szybko wymagają uzupełnienia elektrolitów.",
+              "**Wysokość powyżej 2500 m.** Szybszy oddech i suche powietrze zwiększają utratę wody przez płuca.",
+              "**Dieta wysokobiałkowa.** Wydalanie mocznika obciąża nerki wodą — przy 2 g białka na kilogram warto celować w górną granicę przelicznika.",
+              "**Ciąża i karmienie piersią.** Zapotrzebowanie rośnie o około 300 ml i 700 ml dziennie."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Czy można wypić za dużo",
+        "blocks": [
+          "Tak, choć jest to rzadkie. **Hiponatremia** to rozcieńczenie sodu we krwi poniżej bezpiecznego poziomu — zdarza się głównie maratończykom i uczestnikom zawodów wytrzymałościowych, którzy przez wiele godzin piją samą wodę, uzupełniając objętość, ale nie elektrolity. Objawy — ból głowy, nudności, splątanie — łatwo pomylić z odwodnieniem, co bywa niebezpieczne, bo prowadzi do picia jeszcze większej ilości wody.",
+          "W codziennym życiu nerki zdrowej osoby radzą sobie z bardzo szerokim zakresem podaży. Rozsądna górna granica przy normalnej aktywności to około **jeden litr na godzinę** i nie ma powodu, żeby się do niej zbliżać.",
+          "Praktycznie: rozłóż picie na cały dzień zamiast nadrabiać wieczorem. Litr wypity naraz w większości przechodzi przez organizm bez zatrzymania — a przy okazji rujnuje sen."
+        ]
+      }
+    ],
+
+    "faq": [
+      {
+        "q": "Ile wody pić dziennie?",
+        "a": "Około 30–35 ml na kilogram masy ciała ze wszystkich źródeł, czyli przy 70 kg mniej więcej 2,1–2,5 litra. Ponieważ jedzenie dostarcza zwykle 20–30% tej ilości, do wypicia zostaje około 1,6–1,9 litra. Zalecenia EFSA podają zbliżone wartości: 2,0 litra dla kobiet i 2,5 dla mężczyzn."
+      },
+      {
+        "q": "Czy kawa i herbata się liczą do nawodnienia?",
+        "a": "Tak. Efekt moczopędny kofeiny jest łagodny i przy spożyciu do około 400 mg dziennie, czyli mniej więcej czterech filiżanek, bilans wodny kawy pozostaje dodatni. Osoby pijące ją regularnie rozwijają dodatkowo tolerancję na ten efekt. Jedynym napojem, który odwadnia netto, jest alkohol."
+      },
+      {
+        "q": "Jak sprawdzić, czy jestem odwodniony?",
+        "a": "Najprostszym wskaźnikiem jest kolor moczu: jasnosłomkowy oznacza dobre nawodnienie, ciemnożółty lub bursztynowy — niedobór płynów. Drugim jest częstotliwość, typowo cztery do siedmiu razy dziennie. Uwaga: witaminy z grupy B barwią mocz niezależnie od nawodnienia."
+      },
+      {
+        "q": "Czy osiem szklanek wody dziennie to prawda?",
+        "a": "To uproszczenie bez mocnych podstaw. Reguła prawdopodobnie wywodzi się z zaleceń mówiących o 2,5 litra wody dziennie łącznie z tą zawartą w jedzeniu — druga część zdania zginęła po drodze. Zapotrzebowanie zależy od masy ciała, aktywności i temperatury, więc jedna liczba dla wszystkich nie ma sensu."
+      },
+      {
+        "q": "Ile pić wody podczas treningu?",
+        "a": "Około 400–800 ml na godzinę wysiłku, zależnie od intensywności, temperatury i tego, jak mocno się pocisz. Przy wysiłku dłuższym niż 90 minut warto uzupełniać także elektrolity, bo sama woda przy dużych stratach potu rozcieńcza sód."
+      }
+    ]
+  },
+
+  "en": {
+    "slug": "how-much-water-per-day",
+    "title": "How much water per day — a body-weight formula instead of eight glasses",
+    "metaTitle": "How much water per day — a body-weight formula, not eight glasses",
+    "metaDesc": "Where eight glasses came from, how much water you actually need by body weight, what counts toward the total, and how to check hydration without an app.",
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "lead": "“Eight glasses a day” is one of the most durable pieces of nutrition advice that never had a solid basis. Fluid requirement depends on body mass, activity and temperature — and it can be calculated.",
+    "related": ["deficyt-kaloryczny", "dziennik-zywieniowy", "makroskladniki"],
+
+    "sections": [
+      {
+        "h2": "Where eight glasses came from",
+        "blocks": [
+          "The rule most likely traces back to American recommendations from the 1940s, which suggested around 2.5 litres of water a day for an adult — with a note that **most of that quantity is present in the food you eat.** The note got lost along the way, and what survived was a round number of glasses to be drunk on top of everything else.",
+          "The problem with the rule is not that it is harmful. It is that it accounts for nothing that matters: **a person of 55 kg and a person of 95 kg get the same number**, and so does a day at a desk and a day with two hours of training in the heat."
+        ]
+      },
+      {
+        "h2": "How much you actually need",
+        "blocks": [
+          "A practical conversion that works well as a starting point:",
+          {
+            "formula": [
+              "Fluid requirement = 30–35 ml × body mass [kg]",
+              "",
+              "Example, 70 kg:",
+              "  70 × 30 = 2100 ml",
+              "  70 × 35 = 2450 ml",
+              "  →  about 2.1–2.5 litres a day, from all sources"
+            ]
+          },
+          "European recommendations (EFSA) give similar figures expressed differently: **2.0 litres for women and 2.5 litres for men** — also as total water intake, and therefore including what comes from food.",
+          {
+            "note": [
+              "Note the phrase “from all sources”. This is where the eight-glasses rule misleads most: **food typically supplies 20–30% of daily water.** Soup, fruit, vegetables, yoghurt, even cooked pasta — all of it counts."
+            ]
+          },
+          "For someone of 70 kg that usually means **about 1.6–1.9 litres to drink**, with diet covering the rest. Eat a lot of fruit and vegetables and you will sit near the lower end; live mostly on dry foods and you will sit near the upper."
+        ]
+      },
+      {
+        "h2": "What counts and what does not",
+        "blocks": [
+          {
+            "table": [
+              ["Drink", "Does it count", "Note"],
+              ["Water", "Yes, fully", "the reference point"],
+              ["Tea, herbal infusions", "Yes, fully", "the diuretic effect is marginal"],
+              ["Coffee", "Yes", "hydrating on net up to 4 cups a day"],
+              ["Milk, kefir", "Yes", "mind the calories"],
+              ["Juice, sweetened drinks", "Yes, but", "sugar can run to hundreds of kcal"],
+              ["Alcohol", "No", "diuretic, dehydrating on net"]
+            ]
+          },
+          {
+            "h3": "Coffee does not dehydrate you"
+          },
+          "This is the most common misconception on the subject. Caffeine has a mild diuretic effect, but **at intakes up to around 400 mg a day — roughly four cups — coffee's water balance stays positive.** A cup of coffee is a cup of fluid, and more of it stays than leaves. Regular coffee drinkers also develop tolerance to the effect.",
+          {
+            "h3": "Alcohol is the one exception"
+          },
+          "Ethanol suppresses vasopressin, the hormone responsible for water retention by the kidneys. The effect is pronounced enough that alcoholic drinks come out net negative: a 500 ml beer leaves less water in the body than it brought in."
+        ]
+      },
+      {
+        "h2": "How to tell whether you are drinking enough",
+        "blocks": [
+          "You do not need a device for this. Three indicators are enough and are surprisingly reliable:",
+          {
+            "ordered": true,
+            "list": [
+              "**Urine colour.** Pale straw means well hydrated. Dark yellow or amber means too little fluid. Completely clear all day may mean you are drinking more than you need. Note that B vitamins and some medications colour urine regardless of hydration.",
+              "**Frequency.** Four to seven trips during the day is the typical range.",
+              "**Thirst.** In a healthy adult this mechanism works and can be trusted. It only loses sensitivity in older people, during hard exercise and in certain medical conditions."
+            ]
+          },
+          {
+            "note": [
+              "Thirst is sometimes mistaken for hunger — not because the mechanisms are shared, but because both are vague signals from the same region. A glass of water twenty minutes before a meal settles the question and reduces the size of the meal as a side effect."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "When you clearly need more",
+        "blocks": [
+          {
+            "list": [
+              "**Training.** Around 400–800 ml per hour of exercise, depending on intensity and how much you sweat. Beyond 90 minutes it is worth replacing electrolytes too, not water alone.",
+              "**Heat and humidity.** Losses through the skin rise several-fold, and in high humidity sweat evaporates poorly, so the body produces more of it.",
+              "**Fever, vomiting, diarrhoea.** Losses climb sharply and quickly call for electrolyte replacement.",
+              "**Altitude above 2,500 m.** Faster breathing and dry air increase water lost through the lungs.",
+              "**A high-protein diet.** Excreting urea costs the kidneys water — at 2 g of protein per kilogram, aim for the upper end of the range.",
+              "**Pregnancy and breastfeeding.** Requirements rise by roughly 300 ml and 700 ml a day."
+            ]
+          }
+        ]
+      },
+      {
+        "h2": "Can you drink too much",
+        "blocks": [
+          "Yes, though it is rare. **Hyponatraemia** is the dilution of blood sodium below a safe level — it happens mainly to marathon runners and endurance competitors who drink plain water for hours, replacing volume but not electrolytes. The symptoms — headache, nausea, confusion — are easily mistaken for dehydration, which is dangerous, because it leads to drinking even more water.",
+          "In ordinary life the kidneys of a healthy person handle a very wide range of intakes. A sensible upper limit at normal activity is about **one litre per hour**, and there is no reason to approach it.",
+          "Practically: spread your drinking across the day rather than catching up in the evening. A litre downed at once mostly passes straight through — and ruins your sleep on the way."
+        ]
+      }
+    ],
+
+    "faq": [
+      {
+        "q": "How much water should I drink a day?",
+        "a": "About 30–35 ml per kilogram of body mass from all sources, so roughly 2.1–2.5 litres at 70 kg. Since food typically supplies 20–30% of that, around 1.6–1.9 litres is left to drink. EFSA recommendations give similar figures: 2.0 litres for women and 2.5 for men."
+      },
+      {
+        "q": "Do coffee and tea count toward hydration?",
+        "a": "Yes. Caffeine's diuretic effect is mild, and at intakes up to around 400 mg a day — roughly four cups — coffee's water balance stays positive. Regular drinkers also develop tolerance to the effect. The only drink that dehydrates on net is alcohol."
+      },
+      {
+        "q": "How do I know if I am dehydrated?",
+        "a": "The simplest indicator is urine colour: pale straw means well hydrated, dark yellow or amber means a fluid deficit. The second is frequency, typically four to seven times a day. Note that B vitamins colour urine regardless of hydration status."
+      },
+      {
+        "q": "Is eight glasses of water a day true?",
+        "a": "It is a simplification without strong support. The rule most likely comes from advice suggesting 2.5 litres of water a day including what is present in food — the second half of that sentence got lost. Requirements depend on body mass, activity and temperature, so a single number for everyone makes little sense."
+      },
+      {
+        "q": "How much should I drink during training?",
+        "a": "Around 400–800 ml per hour of exercise, depending on intensity, temperature and how heavily you sweat. Past 90 minutes it is worth replacing electrolytes as well, because plain water against large sweat losses dilutes sodium."
+      }
+    ]
+  }
+}

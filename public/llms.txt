@@ -84,6 +84,33 @@ announced but not switched on, and is not part of any plan.
 
 Other translations follow the same pattern: /de, /uk, /ru, /fr, /it, /es, /pt, /ja, /zh, /ko.
 
+## Guides
+
+Reference articles on the subjects the app deals with. Published in Polish at /poradnik
+and in English at /guides; the two are translations of the same five pieces, not
+separate material. They carry formulas and figures rather than product copy, and each
+one states its own limits.
+
+- [Counting calories from a photo](https://www.plately.eu/guides/photo-calorie-counting):
+  the three steps behind the number, where the error comes from (portion volume,
+  invisible cooking fat, hidden layers), typical error ranges compared against memory,
+  manual entry and a kitchen scale, and how to shoot a plate so the estimate lands closer.
+  Polish: /poradnik/liczenie-kalorii-ze-zdjecia
+- [Calorie deficit](https://www.plately.eu/guides/calorie-deficit): the Mifflin-St Jeor
+  equation worked through with numbers, activity multipliers, deficit sizing as a
+  percentage of expenditure, why the scale does not fall in a straight line, and when to
+  adjust the target. Polish: /poradnik/deficyt-kaloryczny
+- [Macronutrients](https://www.plately.eu/guides/macronutrients): energy per gram,
+  per-kilogram protein and fat targets, carbohydrate as the adjusting variable, and a
+  split calculated end to end. Polish: /poradnik/makroskladniki
+- [How much water per day](https://www.plately.eu/guides/how-much-water-per-day): the
+  30–35 ml per kilogram rule, EFSA reference values, what counts toward the total
+  (coffee does; alcohol does not), and how to check hydration without a device.
+  Polish: /poradnik/ile-pic-wody-dziennie
+- [Food diary](https://www.plately.eu/guides/food-diary): what to log and what to skip,
+  how many days for what purpose, what a dietitian reads from one, and the five mistakes
+  that make a diary useless. Polish: /poradnik/dziennik-zywieniowy
+
 ## Support
 
 The only support channel is e-mail. Write through the form at
