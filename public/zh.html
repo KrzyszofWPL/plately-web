@@ -428,7 +428,7 @@
           "name": "付费方案多少钱？",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Premium 为每月 6.99 美元或每年 59 美元，取消餐食分析和教练对话的次数限制。Ultra 为每月 12.99 美元或每年 119 美元，另外提供分析队列的最高优先级、每天 8 份报告和每天 6 小时的烹饪助手。方案可在账户设置中更改。"
+            "text": "Premium 为每月 6.99 美元或每年 59 美元：取消餐食分析与教练对话的每日上限，提供每天 4 份不限时间的活动 AI 报告，并可自定义强调色。Ultra 为每月 12.99 美元或每年 119 美元，将报告从 4 份提高到 8 份。方案可在账户设置中更改。"
           }
         },
         {
@@ -476,7 +476,7 @@
           "name": "Plately 能与手表同步吗？",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "实时手表同步在 Premium 和 Ultra 方案中提供。"
+            "text": "不能。活动数据（步数、心率、睡眠）在所有方案中都需手动输入。Plately 在浏览器中运行，而浏览器无法访问 Health Connect、Apple Health 或 Huawei Health。各方案的差别只在于 AI 每天解读这些数据的次数。"
           }
         }
       ]
@@ -1159,8 +1159,8 @@
           <p class="pl-plansub" data-i18n="prPremSub">或每年 $59。</p>
           <ul class="pl-planlist">
             <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF1">餐食分析与教练不限次数</span></li>
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF2">进阶统计与每天 4 份报告</span></li>
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF3">手表实时同步</span></li>
+            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF2">活动 AI 报告：每天 4 份，不限时间</span></li>
+            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF3">自定义主题强调色</span></li>
           </ul>
           <a href="https://app.plately.eu/" class="pl-planbtn pl-planbtn--solid" data-i18n="prCta">选择方案</a>
         </div>
@@ -1177,15 +1177,14 @@
           <p class="pl-plansub" data-i18n="prUltraSub">或每年 $119。</p>
           <ul class="pl-planlist">
             <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prUltraF1">包含 Premium 的全部内容</span></li>
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prUltraF2">分析队列中的最高优先级</span></li>
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prUltraF3">每天 8 份报告与 6 小时烹饪助手</span></li>
+            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prUltraF2">活动 AI 报告：每天 8 份（而非 4 份）</span></li>
           </ul>
           <a href="https://app.plately.eu/" class="pl-planbtn" data-i18n="prCta">选择方案</a>
         </div>
 
       </div>
 
-      <p class="pl-reveal" style="margin:22px 0 0; font-size:12px; line-height:1.6; color:#8a8a92;" data-i18n="prNote">价格以美元计价。方案可在账户设置中更改。</p>
+      <p class="pl-reveal" style="margin:22px 0 0; font-size:12px; line-height:1.6; color:#8a8a92;" data-i18n="prNote">价格以美元计价。方案可在账户设置中更改。活动数据（步数、心率、睡眠）需手动输入 —— Plately 不与手表连接。</p>
     </div>
   </section>
 
@@ -1216,7 +1215,7 @@
         </details>
         <details class="pl-faq">
           <summary><span data-i18n="q5">付费方案多少钱？</span></summary>
-          <p data-i18n="a5">Premium 为每月 6.99 美元或每年 59 美元，取消餐食分析和教练对话的次数限制。Ultra 为每月 12.99 美元或每年 119 美元，另外提供分析队列的最高优先级、每天 8 份报告和每天 6 小时的烹饪助手。方案可在账户设置中更改。</p>
+          <p data-i18n="a5">Premium 为每月 6.99 美元或每年 59 美元：取消餐食分析与教练对话的每日上限，提供每天 4 份不限时间的活动 AI 报告，并可自定义强调色。Ultra 为每月 12.99 美元或每年 119 美元，将报告从 4 份提高到 8 份。方案可在账户设置中更改。</p>
         </details>
         <details class="pl-faq">
           <summary><span data-i18n="q6">Plately 里的教练是什么？</span></summary>
@@ -1240,7 +1239,7 @@
         </details>
         <details class="pl-faq">
           <summary><span data-i18n="q11">Plately 能与手表同步吗？</span></summary>
-          <p data-i18n="a11">实时手表同步在 Premium 和 Ultra 方案中提供。</p>
+          <p data-i18n="a11">不能。活动数据（步数、心率、睡眠）在所有方案中都需手动输入。Plately 在浏览器中运行，而浏览器无法访问 Health Connect、Apple Health 或 Huawei Health。各方案的差别只在于 AI 每天解读这些数据的次数。</p>
         </details>
       </div>
     </div>

@@ -57,10 +57,14 @@ Billing is in USD. Plans are changed in account settings. No plan carries advert
 - **Start — 0 USD.** No payment card, no commitment. 5 meal analyses per day,
   3 coach messages per day, unlimited hydration and weight tracking.
 - **Premium — 6.99 USD per month, or 59 USD per year.** Unlimited meal analyses and
-  coach conversations, advanced statistics, 4 reports per day, real-time watch sync.
-- **Ultra — 12.99 USD per month, or 119 USD per year.** Everything in Premium, plus
-  top priority in the analysis queue, 8 reports per day and 6 hours per day of the
-  cooking assistant.
+  coach conversations, 4 AI activity reports per day at any hour, custom accent colour.
+- **Ultra — 12.99 USD per month, or 119 USD per year.** Everything in Premium, with the
+  AI activity reports raised from 4 per day to 8.
+
+Activity figures (steps, heart rate, sleep) are entered by hand on every plan. Plately
+runs in the browser, which has no access to Health Connect, Apple Health or Huawei
+Health, so there is no watch synchronisation on any tier. The AI Cooking Teacher is
+announced but not switched on, and is not part of any plan.
 
 ## Pages
 
