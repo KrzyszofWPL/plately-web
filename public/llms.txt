@@ -54,12 +54,17 @@ The whole flow usually takes under two minutes.
 
 Billing is in USD. Plans are changed in account settings. No plan carries advertising.
 
-- **Start — 0 USD.** No payment card, no commitment. 5 meal analyses per day,
-  3 coach messages per day, unlimited hydration and weight tracking.
-- **Premium — 6.99 USD per month, or 59 USD per year.** Unlimited meal analyses and
-  coach conversations, 4 AI activity reports per day at any hour, custom accent colour.
-- **Ultra — 12.99 USD per month, or 119 USD per year.** Everything in Premium, with the
-  AI activity reports raised from 4 per day to 8.
+- **Start — 0 USD.** No payment card, no commitment. 4 meal analyses per day,
+  2 coach messages per day, 1 AI activity report per day, unlimited hydration and
+  weight tracking. AI answers arrive after about 20 seconds of queueing.
+- **Premium — 6.99 USD per month, or 59 USD per year.** 8 meal analyses, 6 coach
+  messages and 4 AI activity reports per day, answers with no queue, a custom accent
+  colour, and a reserved share of the AI pool.
+- **Ultra — 12.99 USD per month, or 119 USD per year.** Everything in Premium, with
+  16 analyses, 18 coach messages and 8 reports per day.
+
+Every plan uses the same AI model and the same prompts. The paid plans buy more
+answers and no waiting, not more accurate ones.
 
 Activity figures (steps, heart rate, sleep) are entered by hand on every plan. Plately
 runs in the browser, which has no access to Health Connect, Apple Health or Huawei

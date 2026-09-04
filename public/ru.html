@@ -302,7 +302,7 @@
           {
             "@type": "Offer",
             "name": "Ultra",
-            "description": "Максимальные лимиты и приоритет обработки.",
+            "description": "Максимальные лимиты — для дневника, который ведут интенсивно.",
             "price": "12.99",
             "priceCurrency": "USD",
             "availability": "https://schema.org/InStock",
@@ -420,7 +420,7 @@
           "name": "Plately бесплатный?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Да. Тариф Start стоит 0 USD и не требует ни платёжной карты, ни обязательств. Он включает 5 анализов блюд в день, 3 сообщения тренеру в день, а также неограниченное отслеживание питьевого режима и веса. Рекламы нет ни в одном тарифе."
+            "text": "Да. Тариф Start стоит 0 USD и не требует ни платёжной карты, ни обязательств. В него входят 4 анализа блюд в день, 2 сообщения тренеру в день, 1 ежедневный отчёт ИИ об активности и неограниченное отслеживание гидратации и веса. Ответы ИИ приходят примерно через 20 секунд. Ни в одном тарифе нет рекламы."
           }
         },
         {
@@ -428,7 +428,7 @@
           "name": "Сколько стоят платные тарифы?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Premium — 6,99 USD в месяц или 59 USD в год: снимает дневные лимиты на анализы блюд и разговоры с тренером, даёт 4 отчёта ИИ об активности в день в любое время и свой цвет акцента. Ultra — 12,99 USD в месяц или 119 USD в год, повышает число отчётов с 4 до 8. Тариф меняется в настройках аккаунта."
+            "text": "Premium — 6,99 USD в месяц или 59 USD в год: 8 анализов блюд, 6 сообщений тренеру и 4 отчёта ИИ об активности в день, ответы без очереди, свой цвет акцента и зарезервированная доля лимита ИИ. Ultra — 12,99 USD в месяц или 119 USD в год: 16 анализов, 18 сообщений тренеру и 8 отчётов в день. Все тарифы используют одну и ту же модель — платные дают больше ответов и без ожидания, а не более точные. Тариф меняется в настройках аккаунта."
           }
         },
         {
@@ -1139,9 +1139,9 @@
           </div>
           <p class="pl-plansub" data-i18n="prFreeSub">Без карты и без срока.</p>
           <ul class="pl-planlist">
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prFreeF1">5 анализов блюд в день</span></li>
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prFreeF2">3 сообщения тренеру в день</span></li>
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prFreeF3">Вода и вес без ограничений</span></li>
+            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prFreeF1">4 анализа блюд в день</span></li>
+            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prFreeF2">2 сообщения тренеру в день</span></li>
+            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prFreeF3">Ответы ИИ после ~20 с очереди</span></li>
           </ul>
           <a href="https://app.plately.eu/" class="pl-planbtn" data-i18n="prCtaFree">Создать аккаунт</a>
         </div>
@@ -1158,9 +1158,9 @@
           </div>
           <p class="pl-plansub" data-i18n="prPremSub">Или $59 в год.</p>
           <ul class="pl-planlist">
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF1">Анализы блюд и тренер без ограничений</span></li>
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF2">Отчёты ИИ об активности: 4 в день, в любое время</span></li>
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF3">Свой цвет акцента</span></li>
+            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF1">8 анализов и 6 сообщений тренеру в день</span></li>
+            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF2">Ответы ИИ без очереди</span></li>
+            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prPremF3">4 отчёта ИИ об активности в день и свой цвет акцента</span></li>
           </ul>
           <a href="https://app.plately.eu/" class="pl-planbtn pl-planbtn--solid" data-i18n="prCta">Выбрать тариф</a>
         </div>
@@ -1168,7 +1168,7 @@
         <div class="pl-reveal pl-plan">
           <div class="pl-planhead">
             <h3 data-i18n="prUltraName">Ultra</h3>
-            <p data-i18n="prUltraDesc">Максимальные лимиты и приоритет обработки.</p>
+            <p data-i18n="prUltraDesc">Максимальные лимиты — для дневника, который ведут интенсивно.</p>
           </div>
           <div class="pl-price">
             <span class="pl-amount" data-i18n="prUltraPrice">$12.99</span>
@@ -1177,14 +1177,14 @@
           <p class="pl-plansub" data-i18n="prUltraSub">Или $119 в год.</p>
           <ul class="pl-planlist">
             <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prUltraF1">Всё из тарифа Premium</span></li>
-            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prUltraF2">Отчёты ИИ об активности: 8 в день вместо 4</span></li>
+            <li><svg class="i" style="width:15px; height:15px;" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="prUltraF2">16 анализов и 18 сообщений тренеру в день</span></li>
           </ul>
           <a href="https://app.plately.eu/" class="pl-planbtn" data-i18n="prCta">Выбрать тариф</a>
         </div>
 
       </div>
 
-      <p class="pl-reveal" style="margin:22px 0 0; font-size:12px; line-height:1.6; color:#8a8a92;" data-i18n="prNote">Цены в долларах США. Тариф меняется в настройках аккаунта. Данные об активности (шаги, пульс, сон) вы вводите вручную — Plately не подключается к часам.</p>
+      <p class="pl-reveal" style="margin:22px 0 0; font-size:12px; line-height:1.6; color:#8a8a92;" data-i18n="prNote">Цены в долларах США. Тариф меняется в настройках аккаунта. Все тарифы используют одну и ту же модель ИИ — платные дают больше ответов и без ожидания, а не более точные. Данные об активности (шаги, пульс, сон) вы вводите вручную; Plately не подключается к часам.</p>
     </div>
   </section>
 
@@ -1211,11 +1211,11 @@
         </details>
         <details class="pl-faq">
           <summary><span data-i18n="q4">Plately бесплатный?</span></summary>
-          <p data-i18n="a4">Да. Тариф Start стоит 0 USD и не требует ни платёжной карты, ни обязательств. Он включает 5 анализов блюд в день, 3 сообщения тренеру в день, а также неограниченное отслеживание питьевого режима и веса. Рекламы нет ни в одном тарифе.</p>
+          <p data-i18n="a4">Да. Тариф Start стоит 0 USD и не требует ни платёжной карты, ни обязательств. В него входят 4 анализа блюд в день, 2 сообщения тренеру в день, 1 ежедневный отчёт ИИ об активности и неограниченное отслеживание гидратации и веса. Ответы ИИ приходят примерно через 20 секунд. Ни в одном тарифе нет рекламы.</p>
         </details>
         <details class="pl-faq">
           <summary><span data-i18n="q5">Сколько стоят платные тарифы?</span></summary>
-          <p data-i18n="a5">Premium — 6,99 USD в месяц или 59 USD в год: снимает дневные лимиты на анализы блюд и разговоры с тренером, даёт 4 отчёта ИИ об активности в день в любое время и свой цвет акцента. Ultra — 12,99 USD в месяц или 119 USD в год, повышает число отчётов с 4 до 8. Тариф меняется в настройках аккаунта.</p>
+          <p data-i18n="a5">Premium — 6,99 USD в месяц или 59 USD в год: 8 анализов блюд, 6 сообщений тренеру и 4 отчёта ИИ об активности в день, ответы без очереди, свой цвет акцента и зарезервированная доля лимита ИИ. Ultra — 12,99 USD в месяц или 119 USD в год: 16 анализов, 18 сообщений тренеру и 8 отчётов в день. Все тарифы используют одну и ту же модель — платные дают больше ответов и без ожидания, а не более точные. Тариф меняется в настройках аккаунта.</p>
         </details>
         <details class="pl-faq">
           <summary><span data-i18n="q6">Что такое тренер в Plately?</span></summary>
