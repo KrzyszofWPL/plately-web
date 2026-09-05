@@ -158,13 +158,38 @@
     return new Date(iso).toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" });
   }
 
-  function money(pln) {
-    var value = Number(pln || 0);
+  // One amount, in the currency it was actually billed in.
+  //
+  // Everything here used to be PLN and the formatter said so in its parameter
+  // name. Billing moved to USD and the old rows stayed PLN, so a single
+  // hard-coded currency now mislabels one half of the ledger or the other.
+  function amount(value, currency) {
+    var n = Number(value || 0);
+    var code = String(currency || "pln").toUpperCase();
     try {
-      return value.toLocaleString("pl-PL", { style: "currency", currency: "PLN", maximumFractionDigits: 0 });
+      return n.toLocaleString(code === "PLN" ? "pl-PL" : "en-US", {
+        style: "currency",
+        currency: code,
+        maximumFractionDigits: 0
+      });
     } catch (err) {
-      return value.toFixed(0) + " zł";
+      // An unknown ISO code (a provider settling in something exotic) is worth
+      // printing plainly rather than throwing the whole panel away.
+      return n.toFixed(0) + " " + code;
     }
+  }
+
+  // Lifetime value arrives as one row per currency — see support_customer_context
+  // in supabase/support-schema.sql. Summing them would invent a number, so they
+  // are printed side by side; an empty ledger reads as a zero, not a blank.
+  function money(ltv) {
+    if (Array.isArray(ltv)) {
+      if (!ltv.length) return amount(0, "usd");
+      return ltv.map(function (row) { return amount(row.amount, row.currency); }).join(" + ");
+    }
+    // A number is a response from an older deployment of the schema, when the
+    // only currency was PLN.
+    return amount(ltv, "pln");
   }
 
   function priorityClass(priority) {
@@ -1206,7 +1231,7 @@
           '<div class="kv"><span>Plan</span><strong>' + esc(ctx.plan || "free") + "</strong></div>" +
           '<div class="kv"><span>Account</span><strong>' + (ctx.has_account ? "Registered" : "No app account") + "</strong></div>" +
           '<div class="kv"><span>Known since</span><strong>' + esc(longDate(ctx.since)) + "</strong></div>" +
-          '<div class="kv"><span>Lifetime value</span><strong class="mono">' + esc(money(ctx.ltv_pln)) + "</strong></div>" +
+          '<div class="kv"><span>Lifetime value</span><strong class="mono">' + esc(money(ctx.ltv)) + "</strong></div>" +
         "</div>" +
         '<button type="button" class="btn" style="width:100%;margin-top:14px" data-act="nav" data-screen="customers">Open customer list</button>' +
       "</div>" +
@@ -1214,7 +1239,7 @@
         (orders.length ? orders.map(function (o) {
           return '<div style="display:flex;align-items:center;gap:12px">' +
             '<div style="min-width:0;flex:1"><div style="font-size:13px;font-weight:600">' + esc(o.plan) + " " + esc(o.period) + "</div>" +
-            '<div style="font-size:11px;color:var(--m3-on-surface-variant)" class="mono">' + esc(o.id || "") + " · " + esc(longDate(o.created_at)) + "</div></div>" +
+            '<div style="font-size:11px;color:var(--m3-on-surface-variant)" class="mono">' + esc(amount(o.amount, o.currency)) + " · " + esc(longDate(o.created_at)) + "</div></div>" +
             '<span class="chip ' + (o.status === "paid" ? "chip-ok" : "") + '">' + esc(o.status) + "</span></div>";
         }).join("") : '<p style="font-size:13px;color:var(--m3-on-surface-variant);margin:0">No payments on this address.</p>') +
       "</div></div>" +
@@ -1271,7 +1296,7 @@
           '<span class="chip ' + (c.plan !== "free" ? "chip-ok" : "") + '" style="margin-left:auto">' + esc(c.plan) + "</span>" +
         "</div>" +
         '<div style="display:flex;gap:24px">' +
-          statBlock("Tickets", c.tickets) + statBlock("Open", c.open_tickets) + statBlock("Value", money(c.ltv_pln)) +
+          statBlock("Tickets", c.tickets) + statBlock("Open", c.open_tickets) + statBlock("Value", money(c.ltv)) +
         "</div>" +
         (c.notes ? '<p style="font-size:13px;line-height:20px;color:var(--m3-on-surface-variant);margin:0">' + esc(c.notes) + "</p>" : "") +
       "</div>";

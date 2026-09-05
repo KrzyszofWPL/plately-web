@@ -34,7 +34,18 @@
 import { select, insert, rpc, DbError } from "./_lib/db.js";
 import { getSiteMode } from "../lib/site-mode.js";
 
-export const config = { runtime: "edge" };
+// Pinned to one region, deliberately.
+//
+// An unpinned edge function runs nearest the *visitor*, so the same check took
+// 90 ms from Warsaw and 340 ms from São Paulo — and both were written into the
+// same history table as if they measured the same thing. The seven-day average
+// was then a measure of where the readers were, not of how the service was
+// doing, and a quiet night in Europe made the graph look like a regression.
+//
+// fra1 is Frankfurt: closest Vercel region to a Supabase EU project, so it also
+// takes the longest hop out of the number that dominates the database check.
+// If the database moves, this moves with it.
+export const config = { runtime: "edge", regions: ["fra1"] };
 
 const DAYS = 7;
 const RETENTION_DAYS = 30;
@@ -119,11 +130,46 @@ async function timed(url, init = {}) {
   const started = Date.now();
   try {
     const res = await fetch(url, {
+      // HEAD unless a caller asks for otherwise.
+      //
+      // Every check here asks one question — "does this answer, and how fast"
+      // — and none of them reads the response. Downloading the body to throw
+      // it away added the app shell's ~40 kB and the site's robots.txt to a
+      // measurement that is supposed to be about reachability, which on a slow
+      // connection is most of the number the status page prints.
+      //
+      // Time to first byte is also the honest thing to report: it is what a
+      // visitor waits for before anything happens, and it is what every other
+      // status page in the world means by "response time".
+      method: "HEAD",
       ...init,
       redirect: "follow",
       cache: "no-store",
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
+
+    // A host that refuses HEAD (405, or 501) has not told us anything about
+    // whether it is up, so the check is repeated properly rather than filed as
+    // an outage. Rare, and worth one extra round trip on the hosts it happens
+    // to — the alternative is a red square for a service that is fine.
+    if (res.status === 405 || res.status === 501) {
+      // Timed from here, not from the rejected HEAD: the number is meant to be
+      // what a visitor waits for, and no visitor pays for our probe choice.
+      const retryStarted = Date.now();
+      const retried = await fetch(url, {
+        ...init,
+        method: "GET",
+        redirect: "follow",
+        cache: "no-store",
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+      return {
+        configured: true,
+        ok: retried.status < 500,
+        ms: Date.now() - retryStarted,
+        httpStatus: retried.status,
+      };
+    }
     return {
       configured: true,
       ok: res.status < 500,
@@ -243,9 +289,20 @@ export default async function handler() {
 
   // All four at once. Sequentially this would take as long as the sum of the
   // four, and the slowest of them is the number the page is about.
+  //
+  // The history roll-up and the site mode start here too rather than after,
+  // for the same reason: they are two more independent round trips to the same
+  // database, and waiting for the checks first simply added their duration to
+  // the page. Neither is allowed to fail the request — see below.
+  const historyPromise = history().then(
+    (lookup) => ({ lookup, error: null }),
+    (error) => ({ lookup: null, error })
+  );
+  const modePromise = getSiteMode().catch(() => "live");
+
   const settled = await Promise.all(defs.map(async (c) => ({ ...c, result: await c.run() })));
 
-  const mode = await getSiteMode().catch(() => "live");
+  const mode = await modePromise;
 
   // Everything below is optional. A deployment with no database still gets a
   // working status page — live checks, no graph — which matters, because "the
@@ -256,7 +313,9 @@ export default async function handler() {
   let recorded = false;
 
   try {
-    lookup = await history();
+    const settledHistory = await historyPromise;
+    if (settledHistory.error) throw settledHistory.error;
+    lookup = settledHistory.lookup;
     historyAvailable = true;
     recorded = await recordIfDue(settled);
   } catch (err) {

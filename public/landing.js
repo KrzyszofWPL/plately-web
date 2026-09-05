@@ -26,6 +26,51 @@
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // --------------------------------------------------------------------------
+  // Flags, drawn rather than typed.
+  //
+  // The switcher showed the two-letter code in a monospace face because the
+  // obvious alternative -- a regional-indicator emoji pair -- is not rendered
+  // by Windows at all: Segoe UI Emoji has never carried flag glyphs, and the
+  // browser falls back to drawing the pair as its two letters. So both options
+  // put "PL" on screen, and the one that at least looked deliberate won.
+  // Drawing them is the third option, and the only one that looks the same in
+  // every browser.
+  //
+  // Deliberately simplified: at 18 pixels wide, the American stars and the
+  // Korean trigrams are a smudge. Each flag keeps the marks that identify it
+  // at a glance and drops the rest -- and every one sits beside the language's
+  // own name, which is what actually labels it.
+  // --------------------------------------------------------------------------
+  var FLAGS = {
+    pl: '<rect width="24" height="16" fill="#fff"/><rect y="8" width="24" height="8" fill="#dc143c"/>',
+    en: '<rect width="24" height="16" fill="#fff"/><g fill="#b22234"><rect y="0" width="24" height="1.23"/><rect y="2.46" width="24" height="1.23"/><rect y="4.92" width="24" height="1.23"/><rect y="7.38" width="24" height="1.23"/><rect y="9.85" width="24" height="1.23"/><rect y="12.31" width="24" height="1.23"/><rect y="14.77" width="24" height="1.23"/></g><rect width="10" height="8.61" fill="#3c3b6e"/><g fill="#fff"><circle cx="2.6" cy="2.3" r=".75"/><circle cx="5.6" cy="2.3" r=".75"/><circle cx="7.9" cy="4.4" r=".75"/><circle cx="2.6" cy="6.4" r=".75"/><circle cx="5.6" cy="6.4" r=".75"/></g>',
+    de: '<rect width="24" height="5.34" fill="#000"/><rect y="5.34" width="24" height="5.33" fill="#dd0000"/><rect y="10.67" width="24" height="5.33" fill="#ffce00"/>',
+    uk: '<rect width="24" height="8" fill="#0057b7"/><rect y="8" width="24" height="8" fill="#ffd700"/>',
+    ru: '<rect width="24" height="5.34" fill="#fff"/><rect y="5.34" width="24" height="5.33" fill="#0039a6"/><rect y="10.67" width="24" height="5.33" fill="#d52b1e"/>',
+    fr: '<rect width="8" height="16" fill="#002395"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ed2939"/>',
+    it: '<rect width="8" height="16" fill="#009246"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ce2b37"/>',
+    es: '<rect width="24" height="16" fill="#aa151b"/><rect y="4" width="24" height="8" fill="#f1bf00"/>',
+    pt: '<rect width="24" height="16" fill="#da291c"/><rect width="9.6" height="16" fill="#046a38"/><circle cx="9.6" cy="8" r="3.4" fill="#ffe900" stroke="#046a38" stroke-width=".6"/><circle cx="9.6" cy="8" r="2" fill="#da291c"/>',
+    ja: '<rect width="24" height="16" fill="#fff"/><circle cx="12" cy="8" r="4.6" fill="#bc002d"/>',
+    zh: '<rect width="24" height="16" fill="#ee1c25"/><g fill="#ffde00"><circle cx="5" cy="4.4" r="2.1"/><circle cx="9.4" cy="1.9" r=".8"/><circle cx="11.3" cy="4" r=".8"/><circle cx="11.1" cy="6.9" r=".8"/><circle cx="9" cy="8.7" r=".8"/></g>',
+    ko: '<rect width="24" height="16" fill="#fff"/><path d="M12 3.6a4.4 4.4 0 0 1 0 8.8 2.2 2.2 0 0 1 0-4.4 2.2 2.2 0 0 0 0-4.4z" fill="#cd2e3a"/><path d="M12 3.6a4.4 4.4 0 0 0 0 8.8 2.2 2.2 0 0 0 0-4.4 2.2 2.2 0 0 1 0-4.4z" fill="#0047a0"/><g fill="#111" opacity=".85"><rect x="2.4" y="3.4" width="3.4" height=".9"/><rect x="2.4" y="11.7" width="3.4" height=".9"/><rect x="18.2" y="3.4" width="3.4" height=".9"/><rect x="18.2" y="11.7" width="3.4" height=".9"/></g>'
+  };
+
+  // Built from the fixed table above. No input reaches this, and nothing that
+  // does not appear in FLAGS can be drawn by it.
+  function flagNode(code, width) {
+    var span = document.createElement('span');
+    span.setAttribute('aria-hidden', 'true');
+    span.style.cssText =
+      'display:inline-block; flex:none; width:' + width + 'px; height:' + Math.round(width * 2 / 3) +
+      'px; border-radius:2px; overflow:hidden; box-shadow:0 0 0 1px rgba(255,255,255,.22);';
+    span.innerHTML =
+      '<svg viewBox="0 0 24 16" width="100%" height="100%" focusable="false" role="presentation">' +
+      (FLAGS[code] || '<rect width="24" height="16" fill="#3f3f46"/>') + '</svg>';
+    return span;
+  }
+
   // Kept here rather than in a dictionary file: twelve labels are cheaper to
   // inline than another request, and this is all the switcher needs.
   var LANGS = [
@@ -89,15 +134,18 @@
       a.setAttribute('hreflang', l.code);
       a.setAttribute('aria-current', l.code === currentLang ? 'true' : 'false');
 
-      var code = document.createElement('span');
-      code.style.cssText = "font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.08em; text-transform:uppercase; opacity:.65;";
-      code.textContent = l.code;
-
-      a.appendChild(code);
-      a.appendChild(document.createTextNode(' ' + l.label));
+      a.appendChild(flagNode(l.code, 18));
+      a.appendChild(document.createTextNode(l.label));
       list.appendChild(a);
     });
   }
+
+  // The button gets the current language's flag beside its code. Both, not one:
+  // the flag is recognised faster, the code is unambiguous, and together they
+  // survive the case where a reader does not associate a country with a
+  // language they speak.
+  var flagSlot = document.getElementById('pl-langflag');
+  if (flagSlot) flagSlot.appendChild(flagNode(currentLang, 16));
 
   if (btn) {
     btn.addEventListener('click', function (e) {

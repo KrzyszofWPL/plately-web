@@ -921,6 +921,47 @@ $$;
 
 
 -- ============================================================================
+-- public.payments, as this file needs to see it
+--
+-- The two functions below read the *app's* payments table, which lives in the
+-- same Supabase project but is owned by the app's supabase/schema.sql. That
+-- table renamed `amount_pln` to `amount` + `currency` when billing moved from
+-- PLN to USD, and this file still asked for the old column — so on a project
+-- where only one of the two files had been re-run, every Customers screen and
+-- every ticket sidebar failed with `column p.amount_pln does not exist`.
+--
+-- Two schemas that must agree, deployed separately, will disagree. Rather than
+-- depending on the order somebody runs them in, this reconciles the columns it
+-- reads: the same idempotent rename the app performs, repeated here. Whichever
+-- file runs second is a no-op, and running either one alone leaves a database
+-- both can work against.
+--
+-- Skipped entirely when `public.payments` does not exist. The app's schema is
+-- a prerequisite for this file (see SUPPORT-SETUP.md) and always has been —
+-- what changed is that a *stale* app schema no longer breaks the desk.
+-- ============================================================================
+do $$
+begin
+  if to_regclass('public.payments') is null then
+    return;
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'payments' and column_name = 'amount_pln'
+  ) and not exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'payments' and column_name = 'amount'
+  ) then
+    alter table public.payments rename column amount_pln to amount;
+  end if;
+
+  alter table public.payments add column if not exists amount numeric(10, 2);
+  alter table public.payments add column if not exists currency text;
+  update public.payments set currency = 'pln' where currency is null;
+end $$;
+
+-- ============================================================================
 -- support_customer_context — the right-hand panel of a ticket
 --
 -- Joins the helpdesk's own record of a person to whatever the *app* knows
@@ -940,11 +981,23 @@ as $$
     'plan_expires_at', (select e.expires_at from public.entitlements e where e.user_id = c.app_user_id),
     'since', coalesce((select u.created_at from auth.users u where u.id = c.app_user_id), c.first_seen_at),
     'has_account', c.app_user_id is not null,
-    'ltv_pln', coalesce((select sum(p.amount_pln) from public.payments p
-                          where p.user_id = c.app_user_id and p.status = 'paid'), 0),
+    -- Lifetime value, per currency.
+    --
+    -- Billing moved from PLN to USD (see the note on public.payments in the
+    -- app's supabase/schema.sql), and the column that used to be `amount_pln`
+    -- is now `amount` + `currency`. Summing the two together would have
+    -- invented a number: 199 PLN and 199 USD are not 398 of anything. So the
+    -- desk gets one row per currency and the panel prints them side by side.
+    'ltv', coalesce((select jsonb_agg(jsonb_build_object('currency', x.currency, 'amount', x.total)
+                              order by x.total desc)
+                     from (select coalesce(p.currency, 'pln') as currency, sum(p.amount) as total
+                             from public.payments p
+                            where p.user_id = c.app_user_id and p.status = 'paid'
+                            group by 1) x), '[]'::jsonb),
     'orders', coalesce((select jsonb_agg(jsonb_build_object(
                           'id', p.provider_payment_id, 'plan', p.plan, 'period', p.period,
-                          'amount_pln', p.amount_pln, 'status', p.status, 'created_at', p.created_at)
+                          'amount', p.amount, 'currency', coalesce(p.currency, 'pln'),
+                          'status', p.status, 'created_at', p.created_at)
                           order by p.created_at desc)
                         from (select * from public.payments p2
                               where p2.user_id = c.app_user_id
@@ -981,7 +1034,11 @@ as $$
            coalesce((select e.plan from public.entitlements e where e.user_id = c.app_user_id), 'free') as plan,
            (select count(*) from public.support_tickets t where t.customer_id = c.id) as tickets,
            (select count(*) from public.support_tickets t where t.customer_id = c.id and t.status in ('open','pending')) as open_tickets,
-           coalesce((select sum(p.amount_pln) from public.payments p where p.user_id = c.app_user_id and p.status = 'paid'), 0) as ltv_pln,
+           coalesce((select jsonb_agg(jsonb_build_object('currency', y.currency, 'amount', y.total) order by y.total desc)
+                     from (select coalesce(p.currency, 'pln') as currency, sum(p.amount) as total
+                             from public.payments p
+                            where p.user_id = c.app_user_id and p.status = 'paid'
+                            group by 1) y), '[]'::jsonb) as ltv,
            c.notes
     from public.support_customers c
     where p_search is null or p_search = ''

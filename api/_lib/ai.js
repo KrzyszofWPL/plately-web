@@ -169,7 +169,13 @@ export function buildDraftPrompt({ ticket, messages, articles, examples, custome
         ? [
             `Plan: ${customer.plan || "free"}`,
             `Has an app account: ${customer.has_account ? "yes" : "no"}`,
-            customer.ltv_pln ? `Has paid: ${customer.ltv_pln} PLN lifetime` : null,
+            // One line per currency: billing moved PLN -> USD and the old rows
+            // kept their currency, so a single figure would mislabel one half.
+            Array.isArray(customer.ltv) && customer.ltv.length
+              ? `Has paid: ${customer.ltv
+                  .map((row) => `${row.amount} ${String(row.currency || "pln").toUpperCase()}`)
+                  .join(" + ")} lifetime`
+              : null,
           ].filter(Boolean).join("\n")
         : ""
     ) +

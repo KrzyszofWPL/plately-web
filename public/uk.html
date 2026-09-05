@@ -696,6 +696,7 @@
           <button type="button" id="pl-langbtn" class="pl-langbtn" aria-haspopup="true" aria-expanded="false" aria-controls="pl-langmenu">
             <svg class="i" style="width:15px; height:15px; color:#34d399;" aria-hidden="true"><use href="#i-globe"/></svg>
             <span class="pl-sr" data-i18n="langLabel">Мова</span>
+            <span id="pl-langflag" style="display:inline-flex;"></span>
             <span id="pl-langcode" style="text-transform:uppercase; font-family:'JetBrains Mono',monospace;">uk</span>
             <svg class="i" style="width:13px; height:13px; color:#8a8a92;" aria-hidden="true"><use href="#i-chevron-down"/></svg>
           </button>
@@ -1343,6 +1344,11 @@
         <!-- The one link in this column somebody might actually be looking for
              in a hurry, so it is not buried under the small print elsewhere. -->
         <a href="/help" data-i18n="ftSupport">Підтримка</a>
+        <!-- /status existed for months with nothing anywhere pointing at it, so
+             the only way to reach it was to already know it was there. A status
+             page nobody can find is a status page nobody reads during the one
+             hour it is worth reading. -->
+        <a href="/status" data-i18n="ftStatus">Стан сервісів</a>
       </div>
 
     </div>
@@ -1369,6 +1375,6 @@
 
 <!-- Deferred scripts run in order, so the dictionary is always complete before
      landing.js reads it. -->
-<script src="/landing.js?v=70ed58d9" defer></script>
+<script src="/landing.js?v=39e4b3d1" defer></script>
 </body>
 </html>
