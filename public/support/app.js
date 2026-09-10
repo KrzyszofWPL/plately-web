@@ -53,6 +53,10 @@
     articles: null,
     staffList: null,
     maintenance: null,
+    appStatus: null,
+    metrics: null,
+    metricsDays: 90,
+    metricsBusy: false,
     mailConfigured: true,
     aiConfigured: false,
     // The draft currently on screen, per ticket: { id, text, model, articlesUsed,
@@ -90,6 +94,7 @@
     tickets: ["All tickets", "Everything the desk has ever seen"],
     customers: ["Customers", "Who writes in, and what they pay for"],
     reports: ["Reports", "Volume, speed and where the load sits"],
+    metrics: ["Product", "Who signs up, who stays, and what it costs"],
     kb: ["Knowledge base", "Articles agents link to in replies"],
     settings: ["Settings", "Your profile, the desk, the site"],
   };
@@ -526,9 +531,15 @@
     if (screen === "kb" && !S.articles) {
       api("/api/support/kb").then(function (d) { S.articles = d.articles || []; render(); });
     }
+    if (screen === "metrics" && !S.metrics && S.perms.settings) {
+      loadMetrics();
+    }
     if (screen === "settings") {
       if (!S.staffList) {
         api("/api/staff/list").then(function (d) { S.staffList = d.staff || []; render(); });
+      }
+      if (S.perms.maintenance && S.appStatus === null) {
+        api("/api/support/app-status").then(function (d) { S.appStatus = d.status || {}; render(); });
       }
       if (S.perms.maintenance && S.maintenance === null) {
         api("/api/support/maintenance").then(function (d) { S.maintenance = d.mode; render(); });
@@ -936,6 +947,12 @@
         ICON.chart + "<span>Reports</span></button>" +
       '<button type="button" class="nav-item ' + (S.screen === "kb" ? "active" : "") + '" data-act="nav" data-screen="kb">' +
         ICON.book + "<span>Knowledge base</span></button>" +
+      // Only for admins: the screen behind it is revenue and cohorts, which is
+      // not what a tier-1 agent needs to answer a ticket about a lost password.
+      (S.perms.settings
+        ? '<button type="button" class="nav-item ' + (S.screen === "metrics" ? "active" : "") + '" data-act="nav" data-screen="metrics">' +
+          ICON.spark + "<span>Product</span></button>"
+        : "") +
       '<div class="nav-foot">' +
         '<div class="nav-queue">' +
           '<div class="h">' + ICON.clock + " Your queue</div>" +
@@ -980,6 +997,7 @@
       case "tickets": return renderAllTickets();
       case "customers": return renderCustomers();
       case "reports": return renderReports();
+      case "metrics": return renderMetrics();
       case "kb": return renderKb();
       case "settings": return renderSettings();
       default: return "";
@@ -1358,6 +1376,226 @@
     "</div>";
   }
 
+  // --- product metrics ------------------------------------------------------
+  //
+  // Everything on this screen comes from four Postgres functions (ops_* in the
+  // app's supabase/schema.sql) read through the service-role key. None of it is
+  // collected: there is no analytics SDK anywhere in Plately and no last_seen
+  // column, so "active" here means the person wrote something down - a meal,
+  // water, a weight, a night. That is a narrower number than any competitor
+  // would quote, and it is the honest one.
+
+  function loadMetrics() {
+    if (S.metricsBusy) return;
+    S.metricsBusy = true;
+    api("/api/support/metrics?days=" + S.metricsDays + "&weeks=12")
+      .then(function (d) { S.metrics = d; S.metricsBusy = false; render(); })
+      .catch(function (err) { S.metricsBusy = false; toast(err.message, true); });
+  }
+
+  function fmt(n) {
+    var v = Number(n) || 0;
+    if (Math.abs(v) >= 1000000) return (v / 1000000).toFixed(1) + "M";
+    if (Math.abs(v) >= 10000) return Math.round(v / 1000) + "k";
+    return String(Math.round(v));
+  }
+
+  /** Micro-dollars are the ledger's unit; nobody reads money in millionths. */
+  function dollars(micro) { return "$" + ((Number(micro) || 0) / 1000000).toFixed(2); }
+  function money(n) { return "$" + (Number(n) || 0).toFixed(2); }
+
+  function share(a, b) {
+    var top = Number(a) || 0, bottom = Number(b) || 0;
+    if (!bottom) return "—";
+    return Math.round((top / bottom) * 100) + "%";
+  }
+
+  /** Change against the previous window, as a signed percentage. */
+  function trend(now, prev) {
+    var a = Number(now) || 0, b = Number(prev) || 0;
+    if (!b) return a ? "new" : "flat";
+    var d = Math.round(((a - b) / b) * 100);
+    return (d > 0 ? "+" : "") + d + "% vs previous";
+  }
+
+  /**
+   * Bars. One or two series, and the label row thins out on long ranges so a
+   * year of days does not turn the axis into a grey smear.
+   */
+  function bars(rows, keyA, keyB) {
+    if (!rows.length) return '<p style="font-size:13px;color:var(--m3-on-surface-variant);margin:0">Nothing yet.</p>';
+    var peak = rows.reduce(function (max, d) {
+      return Math.max(max, Number(d[keyA]) || 0, keyB ? Number(d[keyB]) || 0 : 0);
+    }, 1);
+    var every = Math.ceil(rows.length / 12);
+    return '<div class="chart' + (rows.length > 40 ? " dense" : "") + '">' + rows.map(function (d, i) {
+      var a = Math.round(((Number(d[keyA]) || 0) / peak) * 100);
+      var b = keyB ? Math.round(((Number(d[keyB]) || 0) / peak) * 100) : null;
+      return '<div class="col" title="' + attr(String(d.day) + ": " + (d[keyA] || 0)) + '"><div class="bars">' +
+        '<i class="in" style="height:' + a + '%"></i>' +
+        (b === null ? "" : '<i class="out" style="height:' + b + '%"></i>') +
+        '</div><span class="day">' + (i % every === 0 ? esc(String(d.day).slice(5)) : "") + "</span></div>";
+    }).join("") + "</div>";
+  }
+
+  function legend(a, b) {
+    return '<div class="legend"><span><i style="background:var(--m3-primary)"></i>' + esc(a) + "</span>" +
+      (b ? '<span><i style="background:var(--m3-surface-container-highest)"></i>' + esc(b) + "</span>" : "") + "</div>";
+  }
+
+  /** A labelled proportion bar - used for every "which of these is biggest". */
+  function ranked(rows, labelOf, valueOf, noteOf) {
+    if (!rows || !rows.length) {
+      return '<p style="font-size:13px;color:var(--m3-on-surface-variant);margin:0">Nothing yet.</p>';
+    }
+    var top = rows.reduce(function (m, r) { return Math.max(m, Number(valueOf(r)) || 0); }, 1);
+    return '<div style="display:flex;flex-direction:column;gap:16px">' + rows.map(function (r) {
+      return '<div><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:12px">' +
+        '<span style="font-size:14px;font-weight:500">' + esc(labelOf(r)) + "</span>" +
+        '<span class="mono" style="font-size:13px;color:var(--m3-on-surface-variant)">' + esc(noteOf(r)) + "</span></div>" +
+        '<div class="meter"><i style="width:' + Math.round(((Number(valueOf(r)) || 0) / top) * 100) + '%"></i></div></div>';
+    }).join("") + "</div>";
+  }
+
+  /**
+   * Cohort retention. Rows are the week somebody signed up, columns are weeks
+   * since. This is the only table here that says anything about the future:
+   * signups can be bought, but a product nobody opens in week two has no
+   * acquisition problem to fix.
+   */
+  function cohorts(rows) {
+    if (!rows || !rows.length) {
+      return '<p style="font-size:13px;color:var(--m3-on-surface-variant);margin:0">No cohorts yet.</p>';
+    }
+    var span = 8;
+    var head = "";
+    for (var w = 0; w < span; w++) head += "<th>W" + w + "</th>";
+    var body = rows.map(function (r) {
+      var cells = "";
+      for (var w = 0; w < span; w++) {
+        var n = (r.weeks || {})[String(w)] || 0;
+        var pctv = r.size ? n / r.size : 0;
+        cells += n
+          ? '<td style="background:color-mix(in srgb, var(--m3-primary) ' + Math.round(pctv * 70) +
+            '%, transparent);text-align:center">' + Math.round(pctv * 100) + "%</td>"
+          : '<td style="text-align:center;color:var(--m3-on-surface-variant)">·</td>';
+      }
+      return "<tr><th style=\"text-align:left;white-space:nowrap\">" + esc(String(r.cohort)) +
+        '</th><td class="mono" style="text-align:right">' + esc(r.size) + "</td>" + cells + "</tr>";
+    }).join("");
+    return '<div style="overflow-x:auto"><table class="cohort"><thead><tr><th style="text-align:left">Signed up</th>' +
+      "<th>Size</th>" + head + "</tr></thead><tbody>" + body + "</tbody></table></div>";
+  }
+
+  function renderMetrics() {
+    var m = S.metrics;
+    if (!m) return '<div class="screen"><div class="empty"><span class="spinner"></span></div></div>';
+
+    var o = m.overview || {};
+    var u = o.users || {}, act = o.active || {}, eng = o.engagement || {}, money_ = o.money || {}, ai = o.ai || {}, health = o.health || {};
+    var series = m.timeseries || [];
+    var bd = m.breakdowns || {};
+
+    var ranges = [30, 90, 365].map(function (d) {
+      return '<button type="button" class="btn btn-sm ' + (S.metricsDays === d ? "btn-primary" : "") +
+        '" data-act="metrics-range" data-days="' + d + '">' + d + "d</button>";
+    }).join("");
+
+    return '<div class="screen" style="display:flex;flex-direction:column;gap:24px">' +
+
+      '<div style="display:flex;gap:8px;justify-content:flex-end">' + ranges + "</div>" +
+
+      // ---- the four numbers that decide whether this is working ----------
+      '<div class="stats">' +
+        statCard("Registered", fmt(u.total), "+" + fmt(u.new_7d) + " in 7 days · " + trend(u.new_30d, u.prev_30d)) +
+        statCard("Active monthly", fmt(act.mau), fmt(act.dau) + " today · " + fmt(act.wau) + " this week") +
+        statCard("Paying", fmt(money_.paid_active), fmt(money_.trials_active) + " on trial · " + fmt(money_.lapsed) + " lapsed") +
+        statCard("Revenue 30d", money(money_.revenue_30d), money(money_.revenue_total) + " all time") +
+      "</div>" +
+
+      // ---- the four that decide whether it can keep working --------------
+      '<div class="stats">' +
+        statCard("Activation", share(u.activated, u.total), fmt(u.activated) + " ever logged anything") +
+        statCard("Stickiness", share(act.dau, act.mau), "daily over monthly actives") +
+        statCard("AI this month", dollars(ai.spend_month), "of " + dollars(ai.budget_month) + " budget · " + share(ai.spend_month, ai.budget_month)) +
+        statCard("Projected month", dollars(ai.projected_month),
+          (Number(ai.projected_month) > Number(ai.budget_month) ? "over budget at this rate" : "inside budget at this rate")) +
+      "</div>" +
+
+      '<div class="card">' +
+        "<h3>Signups and active people</h3>" +
+        '<p style="font-size:13px;line-height:20px;color:var(--m3-on-surface-variant);margin:-6px 0 22px">' +
+          "Last " + esc(m.days) + " days. Active means wrote something down that day, not opened the app.</p>" +
+        bars(series, "active", "signups") + legend("Active", "Signups") +
+      "</div>" +
+
+      '<div class="split">' +
+        '<div class="card">' +
+          "<h3>AI cost per day</h3>" +
+          '<p style="font-size:13px;line-height:20px;color:var(--m3-on-surface-variant);margin:-6px 0 22px">' +
+            "Total against the part spent by free accounts. " +
+            esc(dollars(ai.cost_per_active)) + " per active person this month.</p>" +
+          bars(series, "ai_micro_usd", "ai_micro_usd_free") + legend("All spend", "Free tier") +
+        "</div>" +
+        '<div class="card">' +
+          "<h3>Where the allowance goes</h3>" +
+          '<p style="font-size:13px;line-height:20px;color:var(--m3-on-surface-variant);margin:-6px 0 22px">' +
+            "Metered calls in the last 30 days.</p>" +
+          ranked(bd.features_30d || [], function (r) { return r.feature; },
+            function (r) { return r.used; },
+            function (r) { return fmt(r.used) + " · " + fmt(r.users) + " people"; }) +
+        "</div>" +
+      "</div>" +
+
+      '<div class="card">' +
+        "<h3>Retention by signup week</h3>" +
+        '<p style="font-size:13px;line-height:20px;color:var(--m3-on-surface-variant);margin:-6px 0 22px">' +
+          "Share of each week's signups still writing things down, N weeks later.</p>" +
+        cohorts(m.retention) +
+      "</div>" +
+
+      '<div class="split">' +
+        '<div class="card">' +
+          "<h3>Subscriptions</h3>" +
+          ranked(bd.plans || [], function (r) { return r.plan + " · " + r.source; },
+            function (r) { return r.count; }, function (r) { return String(r.count); }) +
+          '<h3 style="margin-top:26px">Checkout, last 30 days</h3>' +
+          '<p style="font-size:13px;line-height:20px;color:var(--m3-on-surface-variant);margin:-6px 0 14px">' +
+            "Invoices raised, by what became of them. Plenty of pending against no paid means the " +
+            "checkout works and the webhook does not.</p>" +
+          ranked(Object.keys(money_.checkout || {}).map(function (k) { return { k: k, n: money_.checkout[k] }; }),
+            function (r) { return r.k; }, function (r) { return r.n; }, function (r) { return String(r.n); }) +
+        "</div>" +
+        '<div class="card">' +
+          "<h3>Habit</h3>" +
+          '<div style="display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:20px">' +
+            '<div style="display:flex;justify-content:space-between"><span>Longest streak on record</span><b class="mono">' + esc(eng.streak_max || 0) + " days</b></div>" +
+            '<div style="display:flex;justify-content:space-between"><span>People on a 7-day streak</span><b class="mono">' + esc(eng.streak_7plus || 0) + "</b></div>" +
+            '<div style="display:flex;justify-content:space-between"><span>Meals logged, 30 days</span><b class="mono">' + esc(fmt(eng.meals_30d)) + "</b></div>" +
+            '<div style="display:flex;justify-content:space-between"><span>Nights of sleep, 30 days</span><b class="mono">' + esc(fmt(eng.sleep_30d)) + "</b></div>" +
+            '<div style="display:flex;justify-content:space-between"><span>Accepted friendships</span><b class="mono">' + esc(fmt(eng.friends_links)) + "</b></div>" +
+            '<div style="display:flex;justify-content:space-between"><span>Watches connected</span><b class="mono">' + esc(fmt(health.connected_users)) + "</b></div>" +
+            (Number(health.failing) ? '<div style="display:flex;justify-content:space-between;color:var(--m3-error)"><span>Connections failing</span><b class="mono">' + esc(health.failing) + "</b></div>" : "") +
+          "</div>" +
+          '<h3 style="margin-top:26px">Devices</h3>' +
+          ranked(bd.providers || [], function (r) { return r.provider; },
+            function (r) { return r.count; },
+            function (r) { return r.count + (Number(r.failing) ? " · " + r.failing + " failing" : ""); }) +
+        "</div>" +
+      "</div>" +
+
+      '<div class="split">' +
+        '<div class="card"><h3>Languages</h3>' +
+          ranked(bd.languages || [], function (r) { return r.language; },
+            function (r) { return r.count; }, function (r) { return String(r.count); }) + "</div>" +
+        '<div class="card"><h3>Goals</h3>' +
+          ranked(bd.goals || [], function (r) { return r.goal; },
+            function (r) { return r.count; }, function (r) { return String(r.count); }) + "</div>" +
+      "</div>" +
+
+    "</div>";
+  }
+
   function statCard(label, value, note) {
     return '<div class="card stat"><div class="label">' + esc(label) + '</div><div class="value">' + esc(value) +
       '</div><div class="note">' + esc(note) + "</div></div>";
@@ -1463,7 +1701,8 @@
       cards.push('<div class="card">' +
         "<h3>Site control</h3>" +
         '<p style="font-size:13px;line-height:21px;color:var(--m3-on-surface-variant);margin:-6px 0 14px">' +
-          "plately.eu answers 503 with the maintenance page while this is on. The app at app.plately.eu is unaffected, and the switch takes effect immediately — no redeploy.</p>" +
+          "plately.eu answers 503 with the maintenance page while this is on. It takes effect immediately — no redeploy. " +
+          "The app at app.plately.eu has its own switch below, on purpose: the usual shape of a bad afternoon is the app down and the site up, because the site is then the only place left to explain why.</p>" +
         '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">' +
           '<span style="font-size:13px;color:var(--m3-on-surface-variant)">Current mode</span>' +
           (mode === null
@@ -1474,6 +1713,44 @@
         '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
           '<button type="button" class="btn btn-primary btn-sm" data-act="site-mode" data-mode="live">Put the site live</button>' +
           '<button type="button" class="btn btn-danger btn-sm" data-act="site-mode" data-mode="maintenance">Take the site down</button>' +
+        "</div>" +
+      "</div>");
+    }
+
+    if (S.perms.maintenance) {
+      var app = S.appStatus;
+      var appOn = app && app.maintenance;
+      cards.push('<div class="card">' +
+        "<h3>App control</h3>" +
+        '<p style="font-size:13px;line-height:21px;color:var(--m3-on-surface-variant);margin:-6px 0 14px">' +
+          "app.plately.eu shows a maintenance screen instead of itself, and the AI proxy refuses to spend anything " +
+          "while this is on. The second half matters: the app is a bundle held in a service worker cache, so a " +
+          "browser that never reloads would otherwise keep working and keep costing money.</p>" +
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">' +
+          '<span style="font-size:13px;color:var(--m3-on-surface-variant)">Current mode</span>' +
+          (app === null
+            ? '<span class="spinner"></span>'
+            : '<span class="mode-badge ' + (appOn ? "mode-maintenance" : "mode-live") + '">' +
+              (appOn ? "MAINTENANCE" : "LIVE") + "</span>") +
+        "</div>" +
+        '<textarea id="app-message" rows="2" placeholder="What the maintenance screen says (optional)" ' +
+          'style="width:100%;margin-bottom:14px">' + esc((app && app.maintenance_message) || "") + "</textarea>" +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+          '<button type="button" class="btn btn-primary btn-sm" data-act="app-mode" data-on="0">Put the app live</button>' +
+          '<button type="button" class="btn btn-danger btn-sm" data-act="app-mode" data-on="1">Take the app down</button>' +
+        "</div>" +
+        '<h3 style="margin-top:26px">In-app notice</h3>' +
+        '<p style="font-size:13px;line-height:21px;color:var(--m3-on-surface-variant);margin:-6px 0 14px">' +
+          "A banner at the top of the app for people who are not locked out. Empty text clears it.</p>" +
+        '<textarea id="app-notice" rows="2" placeholder="e.g. Saturday 10:00-11:00, planned downtime." ' +
+          'style="width:100%;margin-bottom:14px">' + esc((app && app.notice) || "") + "</textarea>" +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">' +
+          '<select id="app-notice-level" style="max-width:180px">' +
+            ["info", "warn", "critical"].map(function (lv) {
+              return '<option value="' + lv + '"' + ((app && app.notice_level) === lv ? " selected" : "") + ">" + lv + "</option>";
+            }).join("") +
+          "</select>" +
+          '<button type="button" class="btn btn-primary btn-sm" data-act="app-notice">Save notice</button>' +
         "</div>" +
       "</div>");
     }
@@ -2035,6 +2312,43 @@
         busy(el, false);
         toast("Desk settings saved");
       }).catch(function (err) { busy(el, false); toast(err.message, true); });
+    },
+
+    "metrics-range": function (el) {
+      S.metricsDays = parseInt(el.dataset.days, 10) || 90;
+      S.metrics = null;
+      render();
+      loadMetrics();
+    },
+
+    "app-mode": function (el) {
+      var on = el.dataset.on === "1";
+      if (on && !confirm("Take app.plately.eu offline for everyone? AI stops spending too.")) return;
+      busy(el, true);
+      api("/api/support/app-mode", { method: "POST", body: { on: on, message: value("app-message") } })
+        .then(function () {
+          busy(el, false);
+          S.appStatus = null;
+          api("/api/support/app-status").then(function (d) { S.appStatus = d.status || {}; render(); });
+          toast(on ? "App is down" : "App is live");
+        })
+        .catch(function (err) { busy(el, false); toast(err.message, true); });
+    },
+
+    "app-notice": function (el) {
+      busy(el, true);
+      var level = document.getElementById("app-notice-level");
+      api("/api/support/app-notice", {
+        method: "POST",
+        body: { text: value("app-notice"), level: level ? level.value : "info" },
+      })
+        .then(function () {
+          busy(el, false);
+          S.appStatus = null;
+          api("/api/support/app-status").then(function (d) { S.appStatus = d.status || {}; render(); });
+          toast("Notice saved");
+        })
+        .catch(function (err) { busy(el, false); toast(err.message, true); });
     },
 
     "site-mode": function (el) {

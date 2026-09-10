@@ -94,6 +94,10 @@ export default async function handler(request) {
         return await listEvents(url, session);
       case "GET maintenance":
         return await readMaintenance(session);
+      case "GET app-status":
+        return await readAppStatus(session);
+      case "GET metrics":
+        return await appMetrics(url, session);
 
       case "POST message":
         return await postMessage(request, session, staff);
@@ -119,6 +123,10 @@ export default async function handler(request) {
         return await saveProfile(request, staff);
       case "POST maintenance":
         return await writeMaintenance(request, session, staff);
+      case "POST app-mode":
+        return await writeAppMode(request, session, staff);
+      case "POST app-notice":
+        return await writeAppNotice(request, session, staff);
 
       default:
         return json({ error: "Unknown route" }, 404);
@@ -708,6 +716,80 @@ async function writeMaintenance(request, session, staff) {
   }
   await logEvent({ staff_id: staff.id, actor: staff.email, action: "site.mode", detail: { mode } });
   return json({ ok: true, mode });
+}
+
+// ---------------------------------------------------------------------------
+// the app itself - app.plately.eu
+//
+// The site switch above lives in Vercel Edge Config and stops at plately.eu.
+// This one lives in `app_control` in Postgres, the same database the app
+// already reads on every screen - so it reaches the app, and the AI proxy
+// checks the same flag before it spends anything.
+//
+// Two switches rather than one is deliberate: the common case is the app down
+// and the site up, because the site is then the only place left to say why.
+//
+// Everything here runs on the service-role key, which bypasses RLS. That is
+// what lets `is_operator()` in Postgres accept the call without anybody
+// holding an admin session inside the app - the panel *is* the operator.
+// ---------------------------------------------------------------------------
+
+async function readAppStatus(session) {
+  if (!can(session, "maintenance")) return json({ error: "Not allowed" }, 403);
+  // Straight off the table rather than through app_status(): that function is
+  // the public projection and deliberately hides a drafted message and the
+  // audit columns, both of which the panel wants to show.
+  const row = await selectOne("app_control", "select=*&id=is.true");
+  return json({ status: row });
+}
+
+async function writeAppMode(request, session, staff) {
+  if (!can(session, "maintenance")) return json({ error: "Only an owner or admin can take the app offline" }, 403);
+  const { on, message } = await request.json().catch(() => ({}));
+  if (typeof on !== "boolean") return json({ error: "Invalid mode" }, 400);
+  await rpc("set_maintenance", { p_on: on, p_message: message ?? null });
+  await logEvent({ staff_id: staff.id, actor: staff.email, action: "app.mode", detail: { on } });
+  return json({ ok: true, on });
+}
+
+async function writeAppNotice(request, session, staff) {
+  if (!can(session, "maintenance")) return json({ error: "Only an owner or admin can post a notice" }, 403);
+  const { text, level, until } = await request.json().catch(() => ({}));
+  if (level && !["info", "warn", "critical"].includes(level)) {
+    return json({ error: "Invalid level" }, 400);
+  }
+  await rpc("set_notice", { p_text: text ?? "", p_level: level || "info", p_until: until || null });
+  await logEvent({ staff_id: staff.id, actor: staff.email, action: "app.notice", detail: { level: level || "info" } });
+  return json({ ok: true });
+}
+
+// ---------------------------------------------------------------------------
+// metrics - the numbers about the product, not about the desk
+//
+// Four Postgres functions in one response. They are separate down there
+// because they answer different questions and ops_timeseries is the only
+// expensive one; they arrive together because the panel draws them on one
+// screen, and four round trips to render one screen is three too many.
+//
+// Gated on "settings" rather than "maintenance": this is revenue and cohort
+// data, a different thing to trust somebody with than a kill switch, even
+// though both resolve to admin today.
+// ---------------------------------------------------------------------------
+
+async function appMetrics(url, session) {
+  if (!can(session, "settings")) return json({ error: "Not allowed" }, 403);
+
+  const days = Math.min(Math.max(parseInt(url.searchParams.get("days") || "90", 10) || 90, 7), 730);
+  const weeks = Math.min(Math.max(parseInt(url.searchParams.get("weeks") || "12", 10) || 12, 4), 52);
+
+  const [overview, timeseries, retention, breakdowns] = await Promise.all([
+    rpc("ops_overview"),
+    rpc("ops_timeseries", { p_days: days }),
+    rpc("ops_retention", { p_weeks: weeks }),
+    rpc("ops_breakdowns"),
+  ]);
+
+  return json({ overview, timeseries, retention, breakdowns, days, weeks });
 }
 
 // ---------------------------------------------------------------------------

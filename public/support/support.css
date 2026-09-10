@@ -1015,3 +1015,15 @@ html[data-theme="dark"] .kind { background: rgba(255, 255, 255, .1); }
   .topbar { min-height: 56px; }
   .nav-brand span { display: none; }
 }
+
+/* Dense day-by-day charts. The reports chart shows fourteen columns; the
+   product screen shows up to a year, and a 10px gap turns that into a smear. */
+.chart.dense { gap: 2px; }
+.chart.dense .bars i { border-radius: 3px 3px 0 0; }
+.chart.dense .day { font-size: 10px; white-space: nowrap; }
+
+/* Cohort retention grid. */
+.cohort { border-collapse: collapse; width: 100%; font-size: 13px; }
+.cohort th, .cohort td { padding: 7px 10px; border-bottom: 1px solid var(--m3-outline-variant); font-weight: 400; }
+.cohort thead th { font-size: 12px; color: var(--m3-on-surface-variant); white-space: nowrap; }
+.cohort tbody th { font-weight: 500; }
