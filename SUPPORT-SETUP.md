@@ -367,7 +367,10 @@ Po tym kroku dalej będzie je miał, więc przekierowanie `contact@plately.eu` n
 działa jak działało. Nie ma tu żadnego przełączania z ryzykiem.
 
 Każda subdomena to osobna „domena" w Resend, z własnymi rekordami DNS. **Darmowy plan
-dopuszcza trzy**, więc obie mieszczą się bez płacenia.
+dopuszcza jedną** (stan na wrzesień 2026 — kiedyś było więcej). Bez płacenia: weryfikujesz
+tylko `help.plately.eu`, a trójkę `INFO_*` ustawiasz na tę samą domenę (tabela w kroku 7).
+Maile cyklu życia idą wtedy z domeny help desku — tracisz rozdział reputacji, nic się nie
+psuje. Drugą subdomenę dokładasz na planie Pro, gdy będzie po co.
 
 DNS plately.eu jest na **Spaceship** (`launch1/launch2.spaceship.net`) i tam zostaje.
 
@@ -393,9 +396,9 @@ DNS plately.eu jest na **Spaceship** (`launch1/launch2.spaceship.net`) i tam zos
    dwa rekordy SPF na tej samej nazwie to błąd konfiguracji.)
 
 4. Wróć do Resend → **Verify**. Propagacja to zwykle kilka minut, czasem godzina.
-5. **Powtórz kroki 2–4 dla `info.plately.eu`** — te same trzy rekordy, tylko z `info`
-   zamiast `help` w hoście (`send.info`, `resend._domainkey.info`). Możesz to zrobić
-   później; bez tego działa wszystko poza mailami cyklu życia.
+5. **Tylko na planie Pro:** powtórz kroki 2–4 dla `info.plately.eu` — te same trzy
+   rekordy, tylko z `info` zamiast `help` w hoście (`send.info`, `resend._domainkey.info`).
+   Na darmowym planie pomiń ten krok i w tabeli niżej wpisz wariant „free".
 6. **API Keys → Create API Key**, uprawnienia **Full access** (panel i wysyła, i czyta
    przychodzące). Skopiuj — pokazuje się raz.
 7. Vercel → dodaj `RESEND_API_KEY` oraz adresy nadawców:
@@ -405,8 +408,8 @@ DNS plately.eu jest na **Spaceship** (`launch1/launch2.spaceship.net`) i tam zos
    | `SUPPORT_MAIL_DOMAIN` | `help.plately.eu` |
    | `SUPPORT_FROM_EMAIL` | `contact@help.plately.eu` |
    | `SUPPORT_NOREPLY_EMAIL` | `noreply@help.plately.eu` |
-   | `INFO_MAIL_DOMAIN` | `info.plately.eu` |
-   | `INFO_FROM_EMAIL` | `noreply@info.plately.eu` |
+   | `INFO_MAIL_DOMAIN` | `info.plately.eu` — free: `help.plately.eu` |
+   | `INFO_FROM_EMAIL` | `noreply@info.plately.eu` — free: `noreply@help.plately.eu` |
 
    → **Redeploy**.
 
@@ -820,7 +823,8 @@ curl -s https://www.plately.eu/api/staff/health
 
 ## 15. Limity, o których warto pamiętać
 
-- **Resend free: 3 000 maili/miesiąc, 100/dzień**, i **odbiór liczy się do tej samej puli**.
+- **Resend free: 3 000 maili/miesiąc, 100/dzień, jedna zweryfikowana domena**, i **odbiór
+  liczy się do tej samej puli**.
   Jeden ticket to zwykle 1 (przychodzący) + 1 (auto-potwierdzenie) + 1 (odpowiedź) = 3 sztuki.
   W praktyce ~30 ticketów dziennie. Auto-potwierdzenie można wyłączyć w *Settings*.
 - **Vercel Hobby: 12 funkcji na deployment.** Teraz jest 7 (4 stare `api/admin/*` +
