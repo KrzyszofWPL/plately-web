@@ -1041,6 +1041,11 @@ revoke all on function public.support_customer_context(uuid) from public;
 -- rather than pile up in the inbox. A second call adds a note to the existing
 -- thread instead.
 -- ============================================================================
+-- The first shape took an app user id; the practice is a site-side identity
+-- now and this file keys it by e-mail. Drop the old overload or it lingers
+-- beside the new one with a body that no longer resolves.
+drop function if exists public.support_file_verification_ticket(uuid, jsonb);
+
 create or replace function public.support_file_verification_ticket(p_email text, p_name text, p_summary jsonb)
 returns jsonb
 language plpgsql
