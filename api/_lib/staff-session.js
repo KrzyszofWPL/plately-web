@@ -1,5 +1,5 @@
 // ============================================================================
-// Who is signed in to /support, and what are they allowed to do.
+// Who is signed in to /staff, and what are they allowed to do.
 //
 // Four gates guard the panel, and they are deliberately of different kinds:
 //
@@ -136,7 +136,7 @@ async function unsign(token) {
 }
 
 function cookieHeader(name, value, maxAgeSeconds) {
-  // Strict rather than Lax: nothing on this site ever links into /support
+  // Strict rather than Lax: nothing on this site ever links into /staff
   // from the outside, so there is no flow for Strict to break — and it is the
   // cheapest CSRF defence there is.
   const attrs = [

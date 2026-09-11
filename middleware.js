@@ -6,12 +6,13 @@ export const config = {
   // because during maintenance the *status code* matters more than the body and
   // that decision cannot be expressed in a matcher.
   //
-  // `admin` is still listed even though the panel moved to /support: the old
-  // path is a permanent redirect in vercel.json, and whether a redirect or the
-  // middleware sees a request first depends on Vercel's routing order. Leaving
-  // it out would mean the one URL the team has bookmarked answers 503 during a
-  // maintenance window — which is exactly when they need it.
-  matcher: ["/((?!api/|admin|support|_vercel/).*)"],
+  // `admin` and `support` are still listed even though the panel moved on —
+  // first to /support, now to /staff. Both old paths are permanent redirects in
+  // vercel.json, and whether a redirect or the middleware sees a request first
+  // depends on Vercel's routing order. Leaving one out would mean a URL the
+  // team has bookmarked answers 503 during a maintenance window — which is
+  // exactly when they need it.
+  matcher: ["/((?!api/|admin|support|staff|_vercel/).*)"],
 };
 
 // Files that must answer 200 in every mode.

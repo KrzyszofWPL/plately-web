@@ -264,7 +264,7 @@ async function startSignIn(request) {
 async function handleCallback(request) {
   const url = new URL(request.url);
   const drop = clearCookie(OAUTH_COOKIE);
-  const fail = (reason) => redirect(`/support?error=${reason}`, { "Set-Cookie": drop });
+  const fail = (reason) => redirect(`/staff?error=${reason}`, { "Set-Cookie": drop });
 
   if (url.searchParams.get("error")) return fail("google_denied");
 
@@ -335,7 +335,7 @@ async function handleCallback(request) {
   const preCookie = await issuePreSession(staff);
   await logEvent({ staff_id: staff.id, actor: email, action: "signin.google" });
 
-  return withCookies(null, [drop, preCookie], 302, { Location: "/support" });
+  return withCookies(null, [drop, preCookie], 302, { Location: "/staff" });
 }
 
 // --- 3. session -------------------------------------------------------------

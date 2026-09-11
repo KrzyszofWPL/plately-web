@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Plately Support — the panel behind /support.
+   Plately Support — the panel behind /staff (formerly /support).
 
    Plain DOM on purpose. The rest of this site is static HTML built by a Node
    script and served with a tight Content-Security-Policy; adding a framework
@@ -575,8 +575,8 @@
       '<div class="auth-hero">' +
         '<img class="auth-mark" src="/logo.png" alt="Plately">' +
         '<div class="auth-copy">' +
-          "<h1>Every customer e-mail, one shared inbox</h1>" +
-          "<p>Ticket list and full conversation side by side, with the customer's history and their actual plan. No tab switching, no lost threads.</p>" +
+          "<h1>Plately for the team — and for practices</h1>" +
+          "<p>One door, two rooms. Plately staff sign in here to the help desk. Dietitians and clinics register their practice in the app and get the patient panel — this page just points the way.</p>" +
         "</div>" +
       "</div>";
   }
@@ -603,23 +603,48 @@
     var code = params.get("error");
     var message = code ? (AUTH_ERRORS[code] || "Sign-in failed (" + code + ").") : S.error;
 
+    // Two audiences share this address, and they must not be confused for one
+    // another. Staff sign in HERE; a dietitian's account lives in the app and
+    // is created by signing in there — this page can only explain and link.
+    // The e-mail hint is the whole point of the practice card: a Google account
+    // on the practice's own domain proves control of that domain on the spot,
+    // which is what the app's verification needs before it will skip the TXT
+    // record. Gmail proves nothing about any domain.
     root.innerHTML =
       '<div class="auth">' +
         heroSide() +
-        '<div class="auth-panel"><div class="auth-box">' +
-          "<h2>Sign in to Plately Help Desk</h2>" +
-          '<p class="lede">Please do not log in unless you are a Plately employee. Access is restricted to verified accounts only and is intended solely for providing customer support.</p>' +
-          (S.auth.googleConfigured === false
-            ? '<div class="auth-error">Google sign-in is not configured yet. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel.</div>'
-            : "") +
-          '<button type="button" class="google-btn" data-act="google">' +
-            '<svg width="18" height="18" viewBox="0 0 48 48" style="flex:none;display:block"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"></path><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C39.9 37.4 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"></path></svg>' +
-            "Continue with Google" +
-          "</button>" +
-          (message ? '<div class="auth-error">' + esc(message) + "</div>" : "") +
+        '<div class="auth-panel"><div class="auth-box auth-box-wide">' +
+
+          '<div class="gate-card">' +
+            '<span class="gate-kicker">Plately team</span>' +
+            "<h2>Sign in to the help desk</h2>" +
+            '<p class="lede">Verified staff accounts only. Use your <strong>@plately.eu</strong> Google account — a personal Gmail is not on the team list and will be refused.</p>' +
+            (S.auth.googleConfigured === false
+              ? '<div class="auth-error">Google sign-in is not configured yet. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel.</div>'
+              : "") +
+            '<button type="button" class="google-btn" data-act="google">' +
+              '<svg width="18" height="18" viewBox="0 0 48 48" style="flex:none;display:block"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"></path><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C39.9 37.4 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"></path></svg>' +
+              "Continue with Google" +
+            "</button>" +
+            (message ? '<div class="auth-error">' + esc(message) + "</div>" : "") +
+          "</div>" +
+
+          '<div class="gate-card gate-card-alt">' +
+            '<span class="gate-kicker">Dietitians &amp; clinics</span>' +
+            "<h2>Open or register your practice</h2>" +
+            '<p class="lede">The practice panel lives in the app: your patients\u2019 meal logs, macro targets you set for them, and a queue of who needs attention today. Fourteen days free, three patients, no card.</p>' +
+            '<div class="gate-tip">' + ICON.info +
+              "<p><strong style=\"color:var(--m3-on-surface)\">Sign in with your practice\u2019s Google account, not Gmail.</strong><br>" +
+              "An address on your own domain \u2014 <code>anna@your-practice.com</code> \u2014 proves you control that domain, so verification skips the DNS step and usually completes on the spot. " +
+              "With a Gmail address you will be asked to add a TXT record to your domain instead.</p>" +
+            "</div>" +
+            '<a class="gate-btn" href="https://app.plately.eu/pro">Continue to the app \u2192</a>' +
+            '<p class="gate-fine">No account yet? The same link creates one \u2014 signing in with Google is the whole sign-up.</p>' +
+          "</div>" +
+
           '<div class="auth-note">' + ICON.info +
             "<p><strong style=\"color:var(--m3-on-surface)\">Looking for help with Plately?</strong><br>" +
-            "This page is not intended as customer support. If you need assistance, " +
+            "Neither of these is customer support. If you need assistance, " +
             'please write to us at <a class="auth-link" href="/help">plately.eu/help</a>.</p>' +
           "</div>" +
         "</div></div>" +
@@ -1999,7 +2024,7 @@
     showModal(
       '<div class="modal-head"><h2>Add an agent</h2><button type="button" class="btn btn-icon x" data-act="close">✕</button></div>' +
       '<p style="font-size:13px;line-height:20px;color:var(--m3-on-surface-variant);margin:0">' +
-      "The address must be the Google account they will sign in with. Nothing is e-mailed — they just open /support and sign in.</p>" +
+      "The address must be the Google account they will sign in with. Nothing is e-mailed — they just open /staff and sign in.</p>" +
       '<input class="field" id="i-email" placeholder="agent@gmail.com">' +
       '<input class="field" id="i-name" placeholder="Name (optional)">' +
       '<div style="display:flex;gap:10px">' +
@@ -2084,7 +2109,7 @@
           S.staff = data.staff;
           S.perms = data.permissions || {};
           S.error = "";
-          history.replaceState(null, "", "/support");
+          history.replaceState(null, "", "/staff");
           loadDesk();
         })
         .catch(function (err) {
@@ -2109,7 +2134,7 @@
           S.showSecret = false;
           S.turnstile.token = null;
           S.phase = data.state || "pin_required";
-          history.replaceState(null, "", "/support");
+          history.replaceState(null, "", "/staff");
           render();
         })
         .catch(function (err) {
@@ -2183,7 +2208,7 @@
     },
 
     signout: function () {
-      api("/api/staff/logout", { method: "POST" }).then(function () { location.href = "/support"; });
+      api("/api/staff/logout", { method: "POST" }).then(function () { location.href = "/staff"; });
     },
 
     nav: function (el) { closeOverlay(); loadScreen(el.dataset.screen); },

@@ -1,7 +1,7 @@
 # Plately Support — uruchomienie krok po kroku
 
-Panel supportu żyje pod `https://plately.eu/support` (stary adres `/admin` przekierowuje
-tam na stałe). Logowanie ma teraz **trzy kroki**: **Google → 6-cyfrowy kod z aplikacji
+Panel supportu żyje pod `https://plately.eu/staff` (stare adresy `/admin` i `/support`
+przekierowują tam na stałe). Logowanie ma teraz **trzy kroki**: **Google → 6-cyfrowy kod z aplikacji
 uwierzytelniającej → 4-cyfrowy PIN**, z **Cloudflare Turnstile** przed dwoma ostatnimi.
 
 Dwa pierwsze kroki dzieją się na tej samej stronie logowania — po Google przycisk zamienia
@@ -37,10 +37,10 @@ Showcase WEB/
   api/staff/[...path].js           ← Google, PIN, aplikacja uwierzytelniająca, zespół
   api/support/[...path].js         ← tickety, wiadomości, raporty, KB, webhook poczty
   api/help/[...path].js            ← publiczny formularz pomocy (bez sesji)
-  public/support/index.html        ← panel, przeniesiony z /admin
-  public/support/app.js
-  public/support/support.css
-  public/support/legacy.html       ← stary panel maintenance, jako wyjście awaryjne
+  public/staff/index.html        ← panel, przeniesiony z /admin
+  public/staff/app.js
+  public/staff/support.css
+  public/staff/legacy.html       ← stary panel maintenance, jako wyjście awaryjne
   public/help.html                 ← strona pomocy dla klientów (PL/EN, jeden plik)
   public/status.html               ← publiczna strona statusu (PL/EN, jeden plik)
   api/status.js                    ← cztery sprawdzenia na żywo + historia 7 dni
@@ -49,7 +49,7 @@ Showcase WEB/
   api/_lib/email-templates.js      ← co każdy z nich mówi i od kogo przychodzi
   scripts/build-email-previews.mjs ← renderuje te maile do email-templates/ (npm run emails)
   .env.example                     ← opis każdej zmiennej środowiskowej
-  vercel.json                      ← przekierowanie /admin → /support, CSP dla obu stron
+  vercel.json                      ← przekierowania /admin i /support → /staff, CSP dla obu stron
 
 Application APK/
   src/lib/staff.ts                 ← useStaff() / can() — te same role w aplikacji
@@ -208,7 +208,7 @@ zmiennej o tej samej nazwie („A variable with the name … already exists"), i
 
 - `SESSION_SECRET` — zostaw istniejący. Nowy panel podpisze nim swoje ciasteczka tak samo.
 - `PEPPER` — **zostaw istniejący, nie podmieniaj.** Na nim policzony jest
-  `ADMIN_PASSWORD_HASH` do `/support/legacy`; nowa wartość zabija to wejście awaryjne.
+  `ADMIN_PASSWORD_HASH` do `/staff/legacy`; nowa wartość zabija to wejście awaryjne.
   (Gdybyś kiedyś musiał go zmienić: wygeneruj nowy hash hasła tym samym pepperem —
   polecenie jest w `.env.example` — i zresetuj wszystkie PIN-y.)
 
@@ -301,7 +301,7 @@ I że stary adres panelu przekierowuje:
 curl -sI https://www.plately.eu/admin | head -3
 ```
 
-Oczekiwane: `HTTP/2 308` i `location: /support`.
+Oczekiwane: `HTTP/2 308` i `location: /staff`.
 
 ---
 
@@ -311,7 +311,7 @@ Oczekiwane: `HTTP/2 308` i `location: /support`.
 darmowa: Google Authenticator, Aegis, 2FAS, albo menedżer haseł, którego już używasz
 (1Password, Bitwarden). Nie zakładasz nigdzie konta i nic nie płacisz.
 
-1. Wejdź na `https://plately.eu/support`.
+1. Wejdź na `https://plately.eu/staff`.
 2. **Continue with Google** → wybierz adres z kroku 1.
 3. Wracasz na tę samą stronę, ale zamiast przycisku Google jest teraz **kod QR**, a u góry
    widać Twój awatar, adres i plakietkę *Half signed in*. Zeskanuj kod aplikacją z telefonu
@@ -513,7 +513,7 @@ Sprawdź, że jest tam wszystko, czego oczekujesz:
 3. Powinno się wydarzyć trzy rzeczy naraz:
    - na stronie pojawia się numer zgłoszenia (`SUP-…`),
    - na Twój adres przychodzi potwierdzenie **od `Plately Support <contact@plately.eu>`**,
-   - w panelu `/support` ląduje nowy ticket z kanałem `form` i kategorią, którą wybrałeś.
+   - w panelu `/staff` ląduje nowy ticket z kanałem `form` i kategorią, którą wybrałeś.
 4. Odpowiedz na to potwierdzenie ze swojej skrzynki — musi dokleić się do **tego samego**
    ticketu, a nie założyć nowy. (Numer `[SUP-…]` w temacie jest tym, co je łączy.)
 
@@ -716,7 +716,7 @@ uprawnień działa natychmiast**, a nie po wygaśnięciu ciasteczka.
 | Dodawanie ludzi, zmiana ról, reset PIN-u i aplikacji | ✅ | — | — | — | — | — |
 
 Dodanie agenta: *Settings → Team and roles → Add agent*. Wpisujesz adres Google, rolę i tier —
-i to cała „rejestracja": osoba wchodzi na `/support`, loguje się tym adresem, ustawia własny
+i to cała „rejestracja": osoba wchodzi na `/staff`, loguje się tym adresem, ustawia własny
 PIN i podpina własną aplikację uwierzytelniającą. Nic nie jest wysyłane mailem, a Ty nigdy
 nie widzisz ani jej PIN-u, ani jej sekretu TOTP.
 
@@ -766,7 +766,7 @@ też własne *Ustawienia → Korekta czasu dla kodów → Zsynchronizuj*. Panel 
 Każdy kod działa raz. Poczekaj, aż aplikacja pokaże następny.
 
 **Google w ogóle nie działa, a muszę wyłączyć stronę.**
-`https://plately.eu/support/legacy` — stary formularz login/hasło (`ADMIN_USERNAME`,
+`https://plately.eu/staff/legacy` — stary formularz login/hasło (`ADMIN_USERNAME`,
 `ADMIN_PASSWORD_HASH`), robi dokładnie to, co robił wcześniej, i nie przechodzi ani przez
 PIN, ani przez aplikację uwierzytelniającą. Gdy nowe logowanie się sprawdzi, skasuj te
 zmienne w Vercelu — strona przestanie działać i o to chodzi.
@@ -814,7 +814,7 @@ curl -s https://www.plately.eu/api/staff/health
 ```
 
 **Panel wygląda jak sprzed zmian.** `support.css` i `app.js` mają godzinny cache — podbij
-`?v=` w `public/support/index.html`.
+`?v=` w `public/staff/index.html`.
 
 ---
 
