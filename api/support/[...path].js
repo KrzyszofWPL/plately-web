@@ -15,7 +15,7 @@
 
 import { requireStaff, can, logEvent } from "../_lib/staff-session.js";
 import { explainSetupFailure } from "../_lib/setup-error.js";
-import { agentReplyEmail, inboundAckEmail, identities } from "../_lib/email-templates.js";
+import { agentReplyEmail, inboundAckEmail, lifecycleEmail, identities } from "../_lib/email-templates.js";
 import { complete, buildDraftPrompt, lastCustomerMessage, isAiConfigured } from "../_lib/ai.js";
 import { select, selectOne, insert, update, remove, rpc, q } from "../_lib/db.js";
 import { getSiteMode, setSiteMode } from "../../lib/site-mode.js";
@@ -34,7 +34,11 @@ import {
 
 export const config = { runtime: "edge" };
 
-const TAGS = ["Billing", "Bug", "Feature request", "How-to", "Account", "Other"];
+// "Verification" is filed by the app itself when a dietitian's practice needs a
+// human look (support_file_verification_ticket in support-schema.sql);
+// "Business" is what a reseller or a practice picks on /help. Both kept in
+// step with CATEGORIES in api/help/[...path].js.
+const TAGS = ["Billing", "Bug", "Feature request", "How-to", "Account", "Business", "Verification", "Other"];
 const STATUSES = ["open", "pending", "solved", "closed", "spam"];
 const PRIORITIES = ["urgent", "high", "normal", "low"];
 
@@ -127,6 +131,8 @@ export default async function handler(request) {
         return await writeAppMode(request, session, staff);
       case "POST app-notice":
         return await writeAppNotice(request, session, staff);
+      case "POST verify-practice":
+        return await verifyPractice(request, session, staff);
 
       default:
         return json({ error: "Unknown route" }, 404);
@@ -750,6 +756,101 @@ async function writeAppMode(request, session, staff) {
   await rpc("set_maintenance", { p_on: on, p_message: message ?? null });
   await logEvent({ staff_id: staff.id, actor: staff.email, action: "app.mode", detail: { on } });
   return json({ ok: true, on });
+}
+
+// ---------------------------------------------------------------------------
+// Practice verification — the human half of Plately Pro's sign-up
+//
+// The app files a ticket tagged "Verification" when its automatic checks
+// (e-mail domain, TXT record, Google Places) did not clear a practice on their
+// own. This route is the decision. It calls ONE function on the app side,
+// admin_set_dietitian_verification(), which is also what the app's auto-pass
+// calls — so "what does verified grant" (a 14-day trial, three seats) is
+// written in exactly one place and this file never learns it.
+//
+// The mail is best-effort. The row in `dietitians` is the truth; the e-mail is
+// a courtesy, and a mail outage must not turn an approval into a 500.
+// ---------------------------------------------------------------------------
+async function verifyPractice(request, session, staff) {
+  if (!can(session, "verify_practice")) {
+    return json({ error: "Only an owner or admin can verify a practice" }, 403);
+  }
+  const { ticketId, customerId, decision, note } = await request.json().catch(() => ({}));
+  if (!ticketId || !customerId) return json({ error: "ticketId and customerId are required" }, 400);
+  if (decision !== "approve" && decision !== "reject") return json({ error: "Invalid decision" }, 400);
+
+  const customer = await selectOne("support_customers", `select=id,email,name,app_user_id,locale&id=eq.${q(customerId)}`);
+  if (!customer?.app_user_id) return json({ error: "This customer has no app account" }, 404);
+
+  const state = decision === "approve" ? "verified" : "rejected";
+  const cleanNote = typeof note === "string" ? note.trim().slice(0, 1000) : null;
+
+  const result = await rpc("admin_set_dietitian_verification", {
+    p_user_id: customer.app_user_id,
+    p_state: state,
+    p_method: "manual",
+    p_note: cleanNote,
+    p_evidence: null,
+  });
+  if (!result?.ok) return json({ error: result?.error === "not_found" ? "No practice registered for this account" : "Could not update the practice" }, 409);
+
+  // Close the loop in the thread: a system line, solved, and an event.
+  const line = decision === "approve"
+    ? `Practice verified by ${staff.display_name || staff.email}${cleanNote ? ` — ${cleanNote}` : ""}`
+    : `Practice rejected by ${staff.display_name || staff.email}${cleanNote ? ` — ${cleanNote}` : ""}`;
+  await insert("support_messages", { ticket_id: ticketId, kind: "system", author_name: "system", body: line }, { returning: false });
+  await update("support_tickets", `id=eq.${q(ticketId)}`, {
+    status: "solved",
+    solved_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }, { returning: false });
+  await rpc("support_recount", { p_ticket_id: ticketId });
+  await logEvent({
+    ticket_id: ticketId,
+    staff_id: staff.id,
+    actor: staff.email,
+    action: decision === "approve" ? "practice.verified" : "practice.rejected",
+    detail: { app_user_id: customer.app_user_id, note: cleanNote },
+  });
+
+  // Tell the dietitian. Polish unless the customer's locale says otherwise —
+  // the practice panel itself is Polish-and-English only.
+  if (isMailConfigured()) {
+    const locale = customer.locale === "en" ? "en" : "pl";
+    const pl = locale === "pl";
+    const approved = decision === "approve";
+    const title = approved
+      ? (pl ? "Twój gabinet został zweryfikowany" : "Your practice has been verified")
+      : (pl ? "Nie udało się zweryfikować gabinetu" : "We could not verify your practice");
+    const body = approved
+      ? (pl
+          ? "Panel gabinetu jest już aktywny. Masz 14 dni na start — wygeneruj pierwszy kod i wręcz go pacjentowi na najbliższej konsultacji."
+          : "Your practice panel is live. You have 14 days to get started — create your first invite code and hand it over at the next consultation.")
+      : (pl
+          ? `Osoba sprawdzająca zgłoszenie zostawiła notatkę: ${cleanNote || "brak"}. Jeśli to pomyłka, odpisz na tę wiadomość.`
+          : `The reviewer left a note: ${cleanNote || "none"}. If you think this is a mistake, reply to this message.`);
+    const appUrl = (process.env.APP_URL || "https://app.plately.eu/").replace(/\/+$/, "");
+    const rendered = lifecycleEmail({
+      title, body, locale,
+      cta: approved ? (pl ? "Otwórz panel" : "Open the panel") : undefined,
+      ctaUrl: approved ? `${appUrl}/pro` : undefined,
+    });
+    const from = identities().support;
+    try {
+      await sendMail({
+        to: customer.email,
+        subject: rendered.subject,
+        text: rendered.text,
+        html: rendered.html,
+        from: from.email,
+        fromName: from.name,
+      });
+    } catch (err) {
+      console.error("verify-practice mail failed", err);
+    }
+  }
+
+  return json({ ok: true, state, detail: await rpc("support_ticket_detail", { p_ticket_id: ticketId }) });
 }
 
 async function writeAppNotice(request, session, staff) {

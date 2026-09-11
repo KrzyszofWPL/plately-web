@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zrealizuj kartę podarunkową — Plately</title>
+<meta name="description" content="Masz kod PLATELY-XXXX-XXXX-XXXX? Wpisz go tutaj — przeniesiemy Cię do aplikacji z kodem już wypełnionym.">
+<link rel="canonical" href="https://www.plately.eu/redeem">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="apple-touch-icon" href="/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Same skin as /help: this is the same site, and a redeem page that looks
+     like a different company is a redeem page nobody types a code into. */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { background: #0a0a0b; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #0a0a0b; color: #f4f4f5; font-family: "Inter", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #34d399; text-decoration: none; }
+  a:hover { color: #6ee7b7; }
+  ::selection { background: #34d399; color: #04140d; }
+  :focus-visible { outline: 2px solid #34d399; outline-offset: 3px; border-radius: 4px; }
+
+  header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(18px); background: rgba(10,10,11,.72); border-bottom: 1px solid rgba(255,255,255,.08); }
+  .bar { max-width: 820px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 11px; color: #f4f4f5; }
+  .brand img { width: 32px; height: 32px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); display: block; }
+  .brand span { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+  .langs { display: flex; align-items: center; gap: 6px; }
+  .langs button { font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: #131316; color: #e4e4e7; cursor: pointer; transition: border-color .2s ease, background-color .2s ease, color .2s ease; }
+  .langs button:hover { border-color: rgba(52,211,153,.45); }
+  .langs button[aria-pressed="true"] { border-color: rgba(52,211,153,.5); background: #17251f; color: #34d399; }
+
+  main { max-width: 620px; margin: 0 auto; padding: clamp(36px,5vw,64px) 24px clamp(56px,7vw,88px); }
+  .back { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #8a8a92; margin-bottom: 26px; }
+  .back:hover { color: #34d399; }
+  h1 { margin: 0; font-size: clamp(30px,4.4vw,46px); line-height: 1.1; font-weight: 700; letter-spacing: -.03em; text-wrap: balance; }
+  .lede { margin: 14px 0 0; font-size: 16px; line-height: 1.65; color: #b6b6bd; max-width: 60ch; text-wrap: pretty; }
+
+  form { margin-top: clamp(30px,4vw,42px); display: flex; flex-direction: column; gap: 14px; }
+  label { font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+  input { width: 100%; font: 500 20px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; padding: 16px 18px; border-radius: 16px; border: 1px solid rgba(255,255,255,.12); background: #131316; color: #f4f4f5; }
+  input:focus { outline: none; border-color: rgba(52,211,153,.65); }
+  input::placeholder { color: #55555c; letter-spacing: .08em; }
+  .hint { font-size: 13px; line-height: 1.6; color: #8a8a92; margin: 0; }
+  button.go { font: 600 15px/1 "Inter", sans-serif; padding: 16px 22px; border-radius: 999px; border: 0; background: #34d399; color: #04140d; cursor: pointer; }
+  button.go:disabled { opacity: .45; cursor: not-allowed; }
+  .error { color: #fda4af; font-size: 13px; margin: 0; min-height: 1.2em; }
+  .note { margin-top: 28px; font-size: 13px; line-height: 1.65; color: #8a8a92; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <a class="brand" href="/">
+      <img src="/logo.png" alt="" width="32" height="32">
+      <span>Plately</span>
+    </a>
+    <div class="langs" role="group" aria-label="Language / Język">
+      <button type="button" data-lang="pl" lang="pl" aria-pressed="true">Polski</button>
+      <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <a class="back" href="/">← <span data-t="back">Strona główna</span></a>
+  <h1 data-t="title">Zrealizuj kartę podarunkową</h1>
+  <p class="lede" data-t="lede">Wpisz kod z karty, z maila albo od znajomego. Przeniesiemy Cię do aplikacji z kodem już wypełnionym — wystarczy się zalogować.</p>
+
+  <form id="f" novalidate>
+    <label for="code" data-t="label">Kod</label>
+    <input id="code" name="code" placeholder="PLATELY-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+    <p class="hint" data-t="hint">Dwanaście znaków po „PLATELY-”. Wielkość liter nie ma znaczenia; 0/O i 1/I/L traktujemy tak samo.</p>
+    <p class="error" id="err" aria-live="polite"></p>
+    <button class="go" type="submit" id="go" disabled data-t="go">Przejdź do aplikacji</button>
+  </form>
+
+  <p class="note" data-t="note">Nie masz jeszcze konta? Nic nie szkodzi — założysz je w aplikacji w jedno kliknięcie, a kod poczeka. Chcesz kupić więcej kart ze zniżką? Napisz na <a href="/help">plately.eu/help</a> i wybierz kategorię „Business”.</p>
+</main>
+
+<script>
+  // Client-side only. No Supabase, no session, no API — the actual redemption
+  // needs a signed-in account and lives in the app at app.plately.eu/redeem.
+  // This page exists so a link on a flyer, on a marketplace or in an e-mail
+  // points at the brand's own domain and still lands with the code filled in.
+  var APP = 'https://app.plately.eu/redeem';
+  var T = {
+    pl: {
+      back: 'Strona główna', title: 'Zrealizuj kartę podarunkową',
+      lede: 'Wpisz kod z karty, z maila albo od znajomego. Przeniesiemy Cię do aplikacji z kodem już wypełnionym — wystarczy się zalogować.',
+      label: 'Kod', hint: 'Dwanaście znaków po „PLATELY-”. Wielkość liter nie ma znaczenia; 0/O i 1/I/L traktujemy tak samo.',
+      go: 'Przejdź do aplikacji', bad: 'Kod ma dwanaście znaków — sprawdź, czy niczego nie brakuje.',
+      note: 'Nie masz jeszcze konta? Nic nie szkodzi — założysz je w aplikacji w jedno kliknięcie, a kod poczeka. Chcesz kupić więcej kart ze zniżką? Napisz na <a href="/help">plately.eu/help</a> i wybierz kategorię „Business”.',
+      docTitle: 'Zrealizuj kartę podarunkową — Plately'
+    },
+    en: {
+      back: 'Home', title: 'Redeem a gift card',
+      lede: 'Type the code from a card, an e-mail or a friend. We will take you to the app with the code already filled in — just sign in.',
+      label: 'Code', hint: 'Twelve characters after “PLATELY-”. Case does not matter; 0/O and 1/I/L are treated the same.',
+      go: 'Continue to the app', bad: 'A code has twelve characters — check nothing is missing.',
+      note: 'No account yet? No problem — you create one in the app with a single click, and the code waits. Want more cards at a discount? Write to <a href="/help">plately.eu/help</a> and pick the “Business” category.',
+      docTitle: 'Redeem a gift card — Plately'
+    }
+  };
+
+  // Mirrors src/lib/programCode.ts in the app: Crockford alphabet, confusable
+  // letters folded, brand prefix stripped in both of its spellings.
+  var ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  var FOLD = { I: '1', L: '1', O: '0', U: 'V' };
+  function normalise(raw) {
+    var s = String(raw || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+    if (s.indexOf('PLATELY') === 0) s = s.slice(7);
+    else if (s.indexOf('P1ATE1Y') === 0) s = s.slice(7);
+    var out = '';
+    for (var i = 0; i < s.length && out.length < 12; i++) out += FOLD[s[i]] || s[i];
+    return out;
+  }
+  function valid(norm) {
+    if (norm.length !== 12) return false;
+    for (var i = 0; i < norm.length; i++) if (ALPHABET.indexOf(norm[i]) < 0) return false;
+    return true;
+  }
+  function pretty(norm) {
+    var g = norm.match(/.{1,4}/g) || [];
+    return ['PLATELY'].concat(g).join('-');
+  }
+
+  var input = document.getElementById('code');
+  var go = document.getElementById('go');
+  var err = document.getElementById('err');
+  var lang = 'pl';
+
+  function applyLang(code) {
+    lang = T[code] ? code : 'pl';
+    document.documentElement.lang = lang;
+    document.title = T[lang].docTitle;
+    document.querySelectorAll('[data-t]').forEach(function (el) {
+      var key = el.getAttribute('data-t');
+      if (key === 'note') el.innerHTML = T[lang][key]; else el.textContent = T[lang][key];
+    });
+    document.querySelectorAll('.langs button').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
+    });
+    try { localStorage.setItem('plately_landing_lang', lang); } catch (e) {}
+  }
+  document.querySelectorAll('.langs button').forEach(function (b) {
+    b.addEventListener('click', function () { applyLang(b.getAttribute('data-lang')); });
+  });
+  var stored = null;
+  try { stored = localStorage.getItem('plately_landing_lang'); } catch (e) {}
+  applyLang(stored === 'en' || (!stored && !/^pl/i.test(navigator.language || '')) ? 'en' : 'pl');
+
+  input.addEventListener('input', function () {
+    var norm = normalise(input.value);
+    input.value = norm ? pretty(norm) : '';
+    go.disabled = !valid(norm);
+    err.textContent = '';
+  });
+
+  // A code can arrive in the address too, e.g. from a marketplace link.
+  try {
+    var pre = new URL(location.href).searchParams.get('code');
+    if (pre) { input.value = pretty(normalise(pre)); go.disabled = !valid(normalise(pre)); }
+  } catch (e) {}
+
+  document.getElementById('f').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var norm = normalise(input.value);
+    if (!valid(norm)) { err.textContent = T[lang].bad; return; }
+    location.href = APP + '?code=' + encodeURIComponent(pretty(norm));
+  });
+</script>
+</body>
+</html>

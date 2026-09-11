@@ -604,6 +604,9 @@ ${alternates}
     { slug: 'privacy', changefreq: 'yearly', priority: '0.3' },
     { slug: 'help', changefreq: 'monthly', priority: '0.6' },
     { slug: 'status', changefreq: 'daily', priority: '0.5' },
+    // "plately gift card code" is the query a marketplace buyer types after
+    // the card arrives; the page that answers it is one field and a button.
+    { slug: 'redeem', changefreq: 'monthly', priority: '0.5' },
   ]
     .map(
       ({ slug, changefreq, priority }) => `  <url>

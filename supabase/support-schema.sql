@@ -1008,13 +1008,112 @@ as $$
                           order by t.created_at desc)
                         from (select * from public.support_tickets t2
                               where t2.customer_id = c.id
-                              order by t2.created_at desc limit 6) t), '[]'::jsonb)
+                              order by t2.created_at desc limit 6) t), '[]'::jsonb),
+
+    -- Plately Pro. The practice row from the app's schema, if this customer
+    -- registered one — everything the desk needs to approve or reject a
+    -- verification without opening another tool. Like `entitlements` and
+    -- `payments` above, this reads the app's schema, so the app's schema.sql
+    -- (with its PLATELY PRO block) has to be applied before this file.
+    'dietitian', (select to_jsonb(d) - 'user_id'
+                    from public.dietitians d
+                   where d.user_id = c.app_user_id)
   )
   from public.support_customers c
   where c.id = p_customer_id;
 $$;
 
 revoke all on function public.support_customer_context(uuid) from public;
+
+
+-- ============================================================================
+-- support_file_verification_ticket — a practice asks to be verified
+--
+-- Called by the app's serverless verification handler (service role) when the
+-- automatic checks did not clear a practice on their own. Same atomic shape as
+-- support_confirm_request(): customer, ticket, first message, event — one
+-- transaction, so a half-filed request cannot exist.
+--
+-- Idempotent on purpose: "check again" in the app can fire many times while a
+-- practice is pending, and each of those must land on the ONE open ticket
+-- rather than pile up in the inbox. A second call adds a note to the existing
+-- thread instead.
+-- ============================================================================
+create or replace function public.support_file_verification_ticket(p_user_id uuid, p_summary jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_email       text;
+  v_name        text;
+  v_customer_id uuid;
+  v_ticket_id   uuid;
+  v_number      integer;
+  v_business    text := coalesce(p_summary ->> 'businessName', '(no name)');
+  v_body        text := coalesce(p_summary ->> 'body', '');
+begin
+  select lower(u.email), coalesce(u.raw_user_meta_data ->> 'full_name', u.raw_user_meta_data ->> 'name')
+    into v_email, v_name
+    from auth.users u where u.id = p_user_id;
+
+  if v_email is null then
+    return jsonb_build_object('ok', false, 'error', 'no_user');
+  end if;
+
+  insert into public.support_customers (email, name, app_user_id, last_seen_at)
+  values (v_email, v_name, p_user_id, now())
+  on conflict (lower(email)) do update
+    set name         = coalesce(support_customers.name, excluded.name),
+        app_user_id  = coalesce(support_customers.app_user_id, excluded.app_user_id),
+        last_seen_at = now()
+  returning id into v_customer_id;
+
+  -- One open verification thread per practice.
+  select t.id, t.number into v_ticket_id, v_number
+    from public.support_tickets t
+   where t.customer_id = v_customer_id
+     and t.tag = 'Verification'
+     and t.status in ('open', 'pending')
+   order by t.created_at desc
+   limit 1;
+
+  if v_ticket_id is not null then
+    insert into public.support_messages (ticket_id, kind, author_name, author_email, body)
+    values (v_ticket_id, 'customer', v_name, v_email, v_body);
+
+    update public.support_tickets
+       set last_message_at = now(),
+           last_customer_message_at = now(),
+           message_count = message_count + 1,
+           status = case when status = 'pending' then 'open' else status end,
+           updated_at = now()
+     where id = v_ticket_id;
+
+    insert into public.support_events (ticket_id, actor, action, detail)
+    values (v_ticket_id, v_email, 'practice.rechecked', p_summary - 'body');
+
+    return jsonb_build_object('ok', true, 'ticket_id', v_ticket_id, 'number', v_number, 'existing', true);
+  end if;
+
+  insert into public.support_tickets
+    (customer_id, subject, channel, tag, priority, last_message_at, last_customer_message_at, message_count)
+  values
+    (v_customer_id, 'Weryfikacja gabinetu: ' || v_business, 'app', 'Verification', 'normal', now(), now(), 1)
+  returning id, number into v_ticket_id, v_number;
+
+  insert into public.support_messages (ticket_id, kind, author_name, author_email, body)
+  values (v_ticket_id, 'customer', v_name, v_email, v_body);
+
+  insert into public.support_events (ticket_id, actor, action, detail)
+  values (v_ticket_id, v_email, 'ticket.created_app', p_summary - 'body');
+
+  return jsonb_build_object('ok', true, 'ticket_id', v_ticket_id, 'number', v_number, 'existing', false);
+end;
+$$;
+
+revoke all on function public.support_file_verification_ticket(uuid, jsonb) from public;
 
 
 -- ============================================================================

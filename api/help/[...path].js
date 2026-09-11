@@ -40,7 +40,7 @@ export const config = { runtime: "edge" };
 // Kept in step with TAGS in api/support/[...path].js, because a tag outside
 // that list would show up in the panel's filters as a category nobody can
 // select. The public labels live in the page; these are the stored values.
-const CATEGORIES = ["Billing", "Bug", "Feature request", "How-to", "Account", "Other"];
+const CATEGORIES = ["Billing", "Bug", "Feature request", "How-to", "Account", "Business", "Other"];
 
 // Enough for a detailed bug report, far short of a paste-bomb.
 const MAX_BODY = 5000;

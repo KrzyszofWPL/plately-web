@@ -1230,6 +1230,65 @@
     "</div>";
   }
 
+  // --- practice verification -------------------------------------------------
+  //
+  // Present only when the customer registered a dietitian practice in the app
+  // (context.dietitian comes from support_customer_context()). The evidence
+  // shown here is what the app's automatic checks found, laid out so a person
+  // can decide without re-doing them: who owns the domain, what Google Maps
+  // says, and what fell short. Approve/Reject are admin-only — see
+  // ADMIN_ONLY in api/_lib/staff-session.js for why a tier is not enough.
+  function practiceCard(ctx) {
+    var d = ctx.dietitian;
+    if (!d) return "";
+    var ev = d.verification_evidence || {};
+    var places = ev.places || {};
+    var pending = d.verification_state === "pending" || d.verification_state === "unverified";
+    var canDecide = pending && S.perms.verify_practice;
+    var yes = function (b) { return b ? '<span class="chip chip-ok">yes</span>' : '<span class="chip">no</span>'; };
+    var stateChip = d.verification_state === "verified" ? "chip-ok" : d.verification_state === "rejected" ? "chip-urgent" : "";
+
+    return '<div class="card">' +
+      '<h3 style="display:flex;align-items:center;gap:8px">Practice verification ' +
+        '<span class="chip ' + stateChip + '" style="margin-left:auto">' + esc(d.verification_state) + "</span></h3>" +
+      '<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">' +
+        '<div class="kv"><span>Practice</span><strong>' + esc(d.business_name || "—") + "</strong></div>" +
+        '<div class="kv"><span>Website</span><strong class="mono">' + esc(d.website || "—") + "</strong></div>" +
+        '<div class="kv"><span>Where</span><strong>' + esc([d.city, d.country].filter(Boolean).join(", ") || "—") + "</strong></div>" +
+        '<div class="kv"><span>Requested</span><strong>' + esc(longDate(d.verification_requested_at)) + "</strong></div>" +
+        '<div class="kv"><span>DPA</span><strong>' + esc(d.dpa_version ? d.dpa_version + " · " + longDate(d.dpa_accepted_at) : "not accepted") + "</strong></div>" +
+      "</div>" +
+      '<div style="height:1px;background:var(--m3-outline-variant);margin:12px 0"></div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+        '<div class="kv"><span>Domain ownership</span>' + (ev.ownership ? '<span class="chip chip-ok">' + esc(ev.ownership) + "</span>" : yes(false)) + "</div>" +
+        '<div class="kv"><span>Account e-mail</span><strong class="mono">' + esc(ev.email || "—") + "</strong></div>" +
+        (places.queried
+          ? (places.found
+              ? '<div class="kv"><span>Google Maps</span><strong>' + esc(places.name || "found") + "</strong></div>" +
+                '<div class="kv"><span>Address</span><strong style="text-align:right">' + esc(places.address || "—") + "</strong></div>" +
+                '<div class="kv"><span>Operational · wellness</span><span>' + yes(places.operational) + " " + yes(places.wellness) + "</span></div>" +
+                '<div class="kv"><span>Reviews</span><strong>' + esc(places.reviews != null ? places.reviews : 0) + "</strong></div>" +
+                '<div class="kv"><span>Site matches</span>' + yes(places.websiteMatches) + "</div>" +
+                '<div class="kv"><span>Types</span><strong style="text-align:right;font-size:11px">' + esc((places.types || []).slice(0, 5).join(", ") || "—") + "</strong></div>"
+              : '<div class="kv"><span>Google Maps</span><strong>not found</strong></div>')
+          : '<div class="kv"><span>Google Maps</span><strong>not checked</strong></div>') +
+        (ev.reasons && ev.reasons.length
+          ? '<div style="font-size:12px;color:var(--m3-on-surface-variant);margin-top:4px">Short of auto-pass: ' + esc(ev.reasons.join(", ")) + "</div>"
+          : "") +
+        (d.verification_note
+          ? '<div style="font-size:12px;margin-top:4px">Note: ' + esc(d.verification_note) + "</div>"
+          : "") +
+      "</div>" +
+      (canDecide
+        ? '<textarea class="field" id="practice-note" style="height:64px;margin-top:12px" placeholder="Note for the dietitian (optional, shown to them on reject)"></textarea>' +
+          '<div style="display:flex;gap:8px;margin-top:10px">' +
+            '<button type="button" class="btn btn-sm" style="flex:1" data-act="verify-practice" data-decision="approve" data-ticket="' + attr(S.selectedId) + '" data-customer="' + attr(ctx.customer && ctx.customer.id) + '">Approve</button>' +
+            '<button type="button" class="btn btn-sm btn-danger" style="flex:1" data-act="verify-practice" data-decision="reject" data-ticket="' + attr(S.selectedId) + '" data-customer="' + attr(ctx.customer && ctx.customer.id) + '">Reject</button>' +
+          "</div>"
+        : "") +
+    "</div>";
+  }
+
   function renderAside() {
     if (!S.detail || !S.detail.context) return "";
     var ctx = S.detail.context;
@@ -1253,6 +1312,7 @@
         "</div>" +
         '<button type="button" class="btn" style="width:100%;margin-top:14px" data-act="nav" data-screen="customers">Open customer list</button>' +
       "</div>" +
+      practiceCard(ctx) +
       '<div class="card"><h3>Recent payments</h3><div class="rowlist">' +
         (orders.length ? orders.map(function (o) {
           return '<div style="display:flex;align-items:center;gap:12px">' +
@@ -2319,6 +2379,29 @@
       S.metrics = null;
       render();
       loadMetrics();
+    },
+
+    "verify-practice": function (el) {
+      var decision = el.dataset.decision;
+      var note = value("practice-note");
+      if (decision === "reject" && !note.trim()) {
+        if (!confirm("Reject without a note? The dietitian will see no reason.")) return;
+      } else if (!confirm(decision === "approve" ? "Approve this practice? They get panel access and a 14-day trial." : "Reject this practice?")) {
+        return;
+      }
+      busy(el, true);
+      api("/api/support/verify-practice", {
+        method: "POST",
+        body: { ticketId: el.dataset.ticket, customerId: el.dataset.customer, decision: decision, note: note },
+      })
+        .then(function (data) {
+          busy(el, false);
+          S.detail = data.detail;
+          render();
+          refreshTickets(false);
+          toast(decision === "approve" ? "Practice verified" : "Practice rejected");
+        })
+        .catch(function (err) { busy(el, false); toast(err.message, true); });
     },
 
     "app-mode": function (el) {

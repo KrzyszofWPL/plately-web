@@ -345,7 +345,11 @@ const AGENT_TIER_MIN = {
 };
 
 // Things only the top of the ladder touches, whatever an agent's tier is.
-const ADMIN_ONLY = new Set(["maintenance", "settings", "kb_write", "macros_write"]);
+// `verify_practice` — approving a dietitian's practice hands that person read
+// access to their patients' health data. That is an owner/admin decision, not a
+// tier: an agent, however senior, does not get to make it. Mirrored in
+// Application APK/src/lib/staff.ts.
+const ADMIN_ONLY = new Set(["maintenance", "settings", "kb_write", "macros_write", "verify_practice"]);
 const OWNER_ONLY = new Set(["staff_write"]);
 
 export function can(session, action) {
