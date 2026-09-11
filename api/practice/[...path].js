@@ -195,7 +195,7 @@ async function settle(dietitian, evidence, { manual = false } = {}) {
     try {
       await rpc("support_resolve_verification_ticket", {
         p_email: dietitian.email,
-        p_body: "Zweryfikowano automatycznie: domena, VIES i Google Maps przeszły przy ponownym sprawdzeniu.",
+        p_body: "Zweryfikowano automatycznie: domena, rejestr VAT i strona przeszły przy ponownym sprawdzeniu.",
       });
     } catch (err) {
       console.error("practice: ticket not resolved", err?.message || err);
@@ -270,7 +270,7 @@ async function requestManual(dietitian) {
   if (dietitian.verification_state === "pending") return json({ ok: true, dietitian: publicDietitian(dietitian) });
 
   const previous = dietitian.verification_evidence || null;
-  const evidence = previous && previous.version === 2 ? previous : await runChecks(dietitian, null);
+  const evidence = previous && previous.version === 3 ? previous : await runChecks(dietitian, null);
   const settled = await settle(dietitian, evidence, { manual: true });
   return json({ ok: true, dietitian: publicDietitian(settled), evidence });
 }

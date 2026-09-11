@@ -1257,7 +1257,7 @@
     var ev = d.verification_evidence || {};
     var steps = ev.steps || {};
     var company = ev.company || {};
-    var places = ev.places || {};
+    var presence = ev.presence || null;
     var pending = d.verification_state === "pending" || d.verification_state === "unverified";
     var canDecide = pending && S.perms.verify_practice;
     var yes = function (b) { return b ? '<span class="chip chip-ok">yes</span>' : '<span class="chip">no</span>'; };
@@ -1290,23 +1290,27 @@
           ? (company.queried
               ? '<div class="kv"><span>Number</span><strong class="mono">' + esc((company.country || "") + (company.number || "")) + "</strong></div>" +
                 (company.valid
-                  ? '<div class="kv"><span>Registered name</span><strong style="text-align:right">' + esc(company.name || "(not disclosed)") + "</strong></div>" +
-                    '<div class="kv"><span>Registered address</span><strong style="text-align:right;font-size:11px">' + esc(company.address || "(not disclosed)") + "</strong></div>"
-                  : '<div class="kv"><span>VIES</span><strong>not in the register</strong></div>')
-              : '<div class="kv"><span>VIES</span><strong>did not answer (' + esc(company.error || "?") + ")</strong></div>")
-          : '<div class="kv"><span>VIES</span><strong>' + (company.reason === "outside_vies" ? "number outside the EU" : "no number given") + "</strong></div>") +
-        // 3. presence
-        '<div class="kv" style="margin-top:4px"><span>3 · Google Maps</span>' + verdict(steps.presence) + "</div>" +
-        (places.queried
-          ? (places.found
-              ? '<div class="kv"><span>Listing</span><strong>' + esc(places.name || "found") + "</strong></div>" +
-                '<div class="kv"><span>Address</span><strong style="text-align:right">' + esc(places.address || "—") + "</strong></div>" +
-                '<div class="kv"><span>Operational · wellness</span><span>' + yes(places.operational) + " " + yes(places.wellness) + "</span></div>" +
-                '<div class="kv"><span>Reviews</span><strong>' + esc(places.reviews != null ? places.reviews : 0) + "</strong></div>" +
-                '<div class="kv"><span>Site matches</span>' + yes(places.websiteMatches) + "</div>" +
-                '<div class="kv"><span>Types</span><strong style="text-align:right;font-size:11px">' + esc((places.types || []).slice(0, 5).join(", ") || "—") + "</strong></div>"
-              : '<div class="kv"><span>Listing</span><strong>not found</strong></div>')
-          : '<div class="kv"><span>Listing</span><strong>' + (steps.presence === "waiting" ? "waiting on the domain" : "not checked — no Places key") + "</strong></div>") +
+                  ? '<div class="kv"><span>Register</span><strong>' + (company.registry === "wykaz" ? "Wykaz podatników VAT (MF)" : "VIES") + (company.status ? " · " + esc(company.status) : "") + "</strong></div>" +
+                    '<div class="kv"><span>Registered name</span><strong style="text-align:right">' + esc(company.name || "(not disclosed)") + "</strong></div>" +
+                    '<div class="kv"><span>Registered address</span><strong style="text-align:right;font-size:11px">' + esc(company.address || "(not disclosed)") + "</strong></div>" +
+                    (company.regon || company.krs
+                      ? '<div class="kv"><span>REGON · KRS</span><strong class="mono">' + esc([company.regon, company.krs].filter(Boolean).join(" · ")) + "</strong></div>"
+                      : "") +
+                    (company.registeredSince ? '<div class="kv"><span>VAT since</span><strong>' + esc(company.registeredSince) + "</strong></div>" : "")
+                  : '<div class="kv"><span>Register</span><strong>not found (' + (company.registry === "wykaz" ? "MF nor VIES" : "VIES") + ")</strong></div>")
+              : '<div class="kv"><span>Register</span><strong>did not answer (' + esc(company.error || "?") + ")</strong></div>")
+          : '<div class="kv"><span>Register</span><strong>' + (company.reason === "outside_vies" ? "number outside the EU" : "no number given") + "</strong></div>") +
+        // 3. presence: the practice's own site and the domain's age
+        '<div class="kv" style="margin-top:4px"><span>3 · Website and domain</span>' + verdict(steps.presence) + "</div>" +
+        (presence
+          ? (presence.site && presence.site.reachable
+              ? '<div class="kv"><span>Site</span><strong style="text-align:right">' + esc(presence.site.title || presence.site.finalHost || "answers") + "</strong></div>" +
+                '<div class="kv"><span>Nutrition / health · names the practice</span><span>' + yes(presence.site.wellness) + " " + yes(presence.site.mentionsName) + "</span></div>"
+              : '<div class="kv"><span>Site</span><strong>did not answer (' + esc((presence.site && (presence.site.error || presence.site.status)) || "?") + ")</strong></div>") +
+            (presence.domainRegisteredAt
+              ? '<div class="kv"><span>Domain registered</span><strong>' + esc(String(presence.domainRegisteredAt).slice(0, 10)) + " · " + esc(presence.domainAgeDays) + " days</strong></div>"
+              : '<div class="kv"><span>Domain registered</span><strong>unknown (' + esc(presence.rdapError || "no RDAP") + ")</strong></div>")
+          : '<div class="kv"><span>Site</span><strong>' + (steps.presence === "waiting" ? "waiting on the domain" : "not checked") + "</strong></div>") +
         (ev.reasons && ev.reasons.length
           ? '<div style="font-size:12px;color:var(--m3-on-surface-variant);margin-top:4px">Short of auto-pass: ' + esc(ev.reasons.join(", ")) + "</div>"
           : "") +
@@ -2123,24 +2127,25 @@
       accountBusiness: "A mailbox on your own domain. If your website is on this domain, ownership is confirmed on the spot \u2014 no DNS record needed.",
       accountPublic: "A mailbox on a public provider proves nothing about your domain, so you will be asked to add a TXT record. If you have an address on your practice\u2019s own domain (anna@your-practice.com), sign out and use that one \u2014 verification then usually completes immediately.",
       businessName: "Practice name", website: "Website", websiteHint: "Your own domain, e.g. my-practice.com", city: "City", country: "Country",
-      vat: "VAT number (optional)", vatHint: "With the country prefix, e.g. PL1234567890. Checked against VIES, the EU register \u2014 with it an established practice is verified without waiting for a person.",
+      vat: "VAT number (optional)", vatHint: "With the country prefix, e.g. PL1234567890. Checked against the public VAT registers (Ministry of Finance for Poland, VIES for the EU) \u2014 with it an established practice is verified without waiting for a person.",
       dpaLabel: "I accept the Data Processing Agreement on behalf of the practice", dpaRead: "Read the agreement", submit: "Register and verify",
       badWebsite: "That does not look like a domain.", regFailed: "Could not register. Try again in a moment.",
       verifyTitle: "Verify your practice", verifyBody: "Three steps, one at a time. The first is yours to do; the other two run on their own the moment it passes.",
       pendingTitle: "Your practice is being verified", pendingBody: "A person is looking at it. You will get an e-mail \u2014 usually within one working day. You can still re-run the checks: if all three pass, you are in without waiting.",
-      stepDomain: "Domain", stepCompany: "Company", stepPresence: "Presence in Google Maps",
+      stepDomain: "Domain", stepCompany: "Company", stepPresence: "Website and domain",
+      regWykaz: "the VAT taxpayer register (MF)", regVies: "VIES",
       vPassed: "passed", vPending: "your move", vFailed: "not passed", vSkipped: "skipped", vUnavailable: "try later", vWaiting: "waiting",
       domainByEmail: "Confirmed by your mailbox on {domain}.", domainByTxt: "Confirmed by the TXT record on {domain}.",
       ownershipBody: "Add this TXT record at your domain registrar, then press \u201cCheck again\u201d. It usually takes a few minutes to propagate.",
       noDns: "I cannot add a DNS record \u2014 ask a person to verify me", noDnsConfirm: "A person will review your practice instead. This usually takes one working day. Continue?",
       afterDomain: "Runs once the domain is confirmed.",
-      companyPassed: "{name} \u2014 active in VIES.", companyPassedNoName: "{vat} \u2014 active in VIES.",
-      companyFailed: "{vat} is not in VIES, the EU VAT register. A person will take a look.",
+      companyPassed: "{name} \u2014 active in {registry}.", companyPassedNoName: "{vat} \u2014 active in {registry}.",
+      companyFailed: "{vat} is not in {registry}. A person will take a look.",
       companySkipped: "No VAT number given \u2014 a person will check the company instead.", companyOutside: "A number from outside the EU cannot be checked automatically.",
-      companyUnavailable: "VIES did not answer. Try again in a few minutes.",
-      presencePassed: "{name} \u00b7 {reviews} reviews.", presenceSkipped: "Not checked.",
-      r_places_not_found: "Not found in Maps under this name and city.", r_places_too_few_reviews: "Fewer than 10 reviews.", r_places_not_wellness: "Not listed in a health or wellness category.",
-      r_places_website_mismatch: "The website in Maps differs from the one given.", r_places_not_operational: "Marked as not operating.",
+      companyUnavailable: "The register did not answer. Try again in a few minutes.",
+      presencePassed: "The site answers and is about nutrition; the domain has been registered since {date}.",
+      r_site_unreachable: "The website did not answer.", r_site_not_wellness: "The site does not read as nutrition or health.", r_site_no_name: "The practice\u2019s name is not on the site.",
+      r_domain_too_young: "The domain is younger than a year.", r_domain_age_unknown: "The domain\u2019s age could not be read.",
       txtHost: "Host", txtType: "Type", txtValue: "Value", recheck: "Check again", recheckLimit: "Too many checks. Try again in an hour.",
       rejectedTitle: "We could not verify this practice", rejectedBody: "The note below is from the person who reviewed it. If you think this is a mistake, write to us.", contact: "Contact support",
       panelTitle: "Practice", panelSubtitle: "Your patients, and what needs attention today.", signOut: "Sign out",
@@ -2160,24 +2165,25 @@
       accountBusiness: "Skrzynka na w\u0142asnej domenie. Je\u015bli strona gabinetu jest na tej domenie, w\u0142asno\u015b\u0107 potwierdzi si\u0119 od r\u0119ki \u2014 bez rekordu DNS.",
       accountPublic: "Skrzynka u publicznego dostawcy nie dowodzi niczego o Twojej domenie, wi\u0119c poprosimy o rekord TXT. Je\u015bli masz adres na domenie gabinetu (anna@twoj-gabinet.pl), wyloguj si\u0119 i zaloguj nim \u2014 weryfikacja zwykle ko\u0144czy si\u0119 wtedy od razu.",
       businessName: "Nazwa gabinetu", website: "Strona WWW", websiteHint: "Twoja w\u0142asna domena, np. moj-gabinet.pl", city: "Miasto", country: "Kraj",
-      vat: "Numer VAT (opcjonalny)", vatHint: "Z prefiksem kraju, np. PL1234567890. Sprawdzany w VIES, rejestrze VAT UE \u2014 z nim ugruntowany gabinet przechodzi bez czekania na cz\u0142owieka.",
+      vat: "Numer VAT (opcjonalny)", vatHint: "Z prefiksem kraju, np. PL1234567890. Sprawdzany w publicznych rejestrach VAT (wykaz MF dla Polski, VIES dla UE) \u2014 z nim ugruntowany gabinet przechodzi bez czekania na cz\u0142owieka.",
       dpaLabel: "Akceptuj\u0119 Umow\u0119 powierzenia przetwarzania danych w imieniu gabinetu", dpaRead: "Przeczytaj umow\u0119", submit: "Zarejestruj i zweryfikuj",
       badWebsite: "To nie wygl\u0105da na domen\u0119.", regFailed: "Nie uda\u0142o si\u0119 zarejestrowa\u0107. Spr\u00f3buj za chwil\u0119.",
       verifyTitle: "Zweryfikuj gabinet", verifyBody: "Trzy kroki, po kolei. Pierwszy nale\u017cy do Ciebie; dwa kolejne uruchamiaj\u0105 si\u0119 same, gdy tylko przejdzie.",
       pendingTitle: "Tw\u00f3j gabinet jest weryfikowany", pendingBody: "Patrzy na to cz\u0142owiek. Dostaniesz e-mail \u2014 zwykle w ci\u0105gu jednego dnia roboczego. Sprawdzenie mo\u017cesz uruchomi\u0107 ponownie: je\u015bli wszystkie trzy kroki przejd\u0105, wchodzisz bez czekania.",
-      stepDomain: "Domena", stepCompany: "Firma", stepPresence: "Obecno\u015b\u0107 w Google Maps",
+      stepDomain: "Domena", stepCompany: "Firma", stepPresence: "Strona WWW i domena",
+      regWykaz: "wykazie podatnik\u00f3w VAT (MF)", regVies: "VIES",
       vPassed: "OK", vPending: "Tw\u00f3j ruch", vFailed: "nie przesz\u0142o", vSkipped: "pomini\u0119to", vUnavailable: "spr\u00f3buj p\u00f3\u017aniej", vWaiting: "czeka",
       domainByEmail: "Potwierdzona skrzynk\u0105 na {domain}.", domainByTxt: "Potwierdzona rekordem TXT na {domain}.",
       ownershipBody: "Dodaj ten rekord TXT u rejestratora domeny i naci\u015bnij \u201eSprawd\u017a ponownie\u201d. Propagacja trwa zwykle kilka minut.",
       noDns: "Nie mog\u0119 doda\u0107 rekordu DNS \u2014 popro\u015b o weryfikacj\u0119 r\u0119czn\u0105", noDnsConfirm: "Zamiast tego gabinet sprawdzi cz\u0142owiek. Zwykle trwa to jeden dzie\u0144 roboczy. Kontynuowa\u0107?",
       afterDomain: "Uruchomi si\u0119 po potwierdzeniu domeny.",
-      companyPassed: "{name} \u2014 aktywny w VIES.", companyPassedNoName: "{vat} \u2014 aktywny w VIES.",
-      companyFailed: "Numeru {vat} nie ma w VIES, rejestrze VAT UE. Spojrzy na to cz\u0142owiek.",
+      companyPassed: "{name} \u2014 w {registry}.", companyPassedNoName: "{vat} \u2014 w {registry}.",
+      companyFailed: "Numeru {vat} nie ma w {registry}. Spojrzy na to cz\u0142owiek.",
       companySkipped: "Nie podano numeru VAT \u2014 firm\u0119 sprawdzi cz\u0142owiek.", companyOutside: "Numeru spoza UE nie da si\u0119 sprawdzi\u0107 automatycznie.",
-      companyUnavailable: "VIES nie odpowiedzia\u0142. Spr\u00f3buj za kilka minut.",
-      presencePassed: "{name} \u00b7 {reviews} opinii.", presenceSkipped: "Nie sprawdzano.",
-      r_places_not_found: "Nie znaleziono w Maps pod t\u0105 nazw\u0105 i miastem.", r_places_too_few_reviews: "Mniej ni\u017c 10 opinii.", r_places_not_wellness: "Brak kategorii zdrowie / wellness.",
-      r_places_website_mismatch: "Strona w Maps r\u00f3\u017cni si\u0119 od podanej.", r_places_not_operational: "Oznaczona jako nieczynna.",
+      companyUnavailable: "Rejestr nie odpowiedzia\u0142. Spr\u00f3buj za kilka minut.",
+      presencePassed: "Strona odpowiada i jest o \u017cywieniu; domena zarejestrowana od {date}.",
+      r_site_unreachable: "Strona nie odpowiada.", r_site_not_wellness: "Strona nie wygl\u0105da na dietetyczn\u0105 ani zdrowotn\u0105.", r_site_no_name: "Na stronie nie ma nazwy gabinetu.",
+      r_domain_too_young: "Domena m\u0142odsza ni\u017c rok.", r_domain_age_unknown: "Nie uda\u0142o si\u0119 odczyta\u0107 wieku domeny.",
       txtHost: "Host", txtType: "Typ", txtValue: "Warto\u015b\u0107", recheck: "Sprawd\u017a ponownie", recheckLimit: "Za du\u017co sprawdze\u0144. Spr\u00f3buj za godzin\u0119.",
       rejectedTitle: "Nie uda\u0142o si\u0119 zweryfikowa\u0107 tego gabinetu", rejectedBody: "Notatka ni\u017cej pochodzi od osoby, kt\u00f3ra to sprawdza\u0142a. Je\u015bli to pomy\u0142ka, napisz do nas.", contact: "Napisz do supportu",
       panelTitle: "Gabinet", panelSubtitle: "Twoi pacjenci i to, co dzi\u015b wymaga uwagi.", signOut: "Wyloguj",
@@ -2359,23 +2365,23 @@
     // 2. company
     var c = (ev && ev.company) || null;
     var vat = c && c.country ? c.country + c.number : (me.vatNumber || "");
+    var registry = pt(c && c.registry === "wykaz" ? "regWykaz" : "regVies");
     var companyDetail =
       steps.company === "waiting" ? esc(pt("afterDomain")) :
-      steps.company === "passed" ? esc(c && c.name ? pt("companyPassed", { name: c.name }) : pt("companyPassedNoName", { vat: vat })) :
-      steps.company === "failed" ? esc(pt("companyFailed", { vat: vat })) :
+      steps.company === "passed" ? esc(c && c.name ? pt("companyPassed", { name: c.name, registry: registry }) : pt("companyPassedNoName", { vat: vat, registry: registry })) :
+      steps.company === "failed" ? esc(pt("companyFailed", { vat: vat, registry: registry })) :
       steps.company === "unavailable" ? esc(pt("companyUnavailable")) :
       esc(pt(c && c.reason === "outside_vies" ? "companyOutside" : "companySkipped"));
 
-    // 3. presence
-    var pl = (ev && ev.places) || null;
+    // 3. presence: the practice's own site and the domain's age
+    var pr = (ev && ev.presence) || null;
     var presenceDetail;
     if (steps.presence === "waiting") presenceDetail = esc(pt("afterDomain"));
-    else if (steps.presence === "passed") presenceDetail = esc(pt("presencePassed", { name: pl.name || "", reviews: pl.reviews || 0 }));
-    else if (steps.presence === "skipped") presenceDetail = esc(pt("presenceSkipped"));
+    else if (steps.presence === "passed") presenceDetail = esc(pt("presencePassed", { date: String(pr.domainRegisteredAt || "").slice(0, 10) }));
     else {
-      var why = (ev.reasons || []).filter(function (r) { return r.indexOf("places_") === 0 && PT.en["r_" + r]; })
+      var why = (ev.reasons || []).filter(function (r) { return (r.indexOf("site_") === 0 || r.indexOf("domain_") === 0) && PT.en["r_" + r]; })
         .map(function (r) { return esc(pt("r_" + r)); });
-      presenceDetail = (pl && pl.found && pl.name ? '<span class="mono">' + esc(pl.name) + "</span> \u2014 " : "") + why.join(" ");
+      presenceDetail = (pr && pr.site && pr.site.reachable && pr.site.title ? '<span class="mono">' + esc(pr.site.title) + "</span> \u2014 " : "") + why.join(" ");
     }
 
     return '<div class="card practice-steps">' +
