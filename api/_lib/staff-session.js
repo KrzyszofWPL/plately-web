@@ -38,9 +38,20 @@ import { selectOne, update, insert, q } from "./db.js";
 
 const FULL_COOKIE = "plately_staff";
 const PRE_COOKIE = "plately_staff_pre";
+// Dietitians. A separate cookie and a separate payload `kind`, never the staff
+// one: a practice session must not be mistakable for a help-desk session by
+// any route, and the two expire on different clocks.
+const PRACTICE_COOKIE = "plately_practice";
+const PRACTICE_PENDING_COOKIE = "plately_practice_pending";
 
 const FULL_TTL_MS = 12 * 60 * 60 * 1000; // one shift
 const PRE_TTL_MS = 10 * 60 * 1000; // Google done, a code and/or the PIN still owed
+// A practice is opened between consultations, days apart. Google only, no
+// TOTP or PIN: a dietitian sees their own handful of patients, not every
+// customer on the desk, and a second factor on top of a Google account with
+// its own 2FA would mostly stop them coming back.
+const PRACTICE_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+const PRACTICE_PENDING_TTL_MS = 30 * 60 * 1000; // Google done, the form not yet
 
 export const MAX_PIN_ATTEMPTS = 5;
 export const PIN_LOCK_MINUTES = 15;
@@ -154,7 +165,51 @@ export function clearCookie(name) {
   return `${name}=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`;
 }
 
-export const COOKIES = { FULL: FULL_COOKIE, PRE: PRE_COOKIE };
+export const COOKIES = { FULL: FULL_COOKIE, PRE: PRE_COOKIE, PRACTICE: PRACTICE_COOKIE, PRACTICE_PENDING: PRACTICE_PENDING_COOKIE };
+
+// ---------------------------------------------------------------------------
+// practice (dietitian) sessions
+// ---------------------------------------------------------------------------
+
+/** Signed in with Google, registered as a practice. What the panel runs on. */
+export async function issuePracticeSession(dietitian) {
+  const token = await sign({
+    kind: "practice",
+    did: dietitian.id,
+    em: dietitian.email,
+    iat: Date.now(),
+    exp: Date.now() + PRACTICE_TTL_MS,
+  });
+  return cookieHeader(PRACTICE_COOKIE, token, Math.floor(PRACTICE_TTL_MS / 1000));
+}
+
+export async function readPracticeSession(request) {
+  const payload = await unsign(parseCookies(request)[PRACTICE_COOKIE]);
+  return payload && payload.kind === "practice" ? payload : null;
+}
+
+/**
+ * Signed in with Google, not on the team, no practice row yet. Carries what
+ * Google told us — address, sub, name, picture — so the registration form can
+ * show which account is being used and the register route can trust the
+ * address without a second round trip to Google.
+ */
+export async function issuePracticePending(claims) {
+  const token = await sign({
+    kind: "practice_pending",
+    em: String(claims.email || "").toLowerCase(),
+    sub: String(claims.sub || ""),
+    nm: claims.name || null,
+    pic: claims.picture || null,
+    exp: Date.now() + PRACTICE_PENDING_TTL_MS,
+  });
+  return cookieHeader(PRACTICE_PENDING_COOKIE, token, Math.floor(PRACTICE_PENDING_TTL_MS / 1000));
+}
+
+export async function readPracticePending(request) {
+  const payload = await unsign(parseCookies(request)[PRACTICE_PENDING_COOKIE]);
+  return payload && payload.kind === "practice_pending" ? payload : null;
+}
 
 /**
  * Google is done; the authenticator and the PIN may not be. Carries no
@@ -426,4 +481,28 @@ export async function logEvent(entry) {
   } catch {
     // An audit write must never be the reason a reply fails to send.
   }
+}
+
+/** The practice row as the panel sees it — shared by api/staff and api/practice. */
+export function publicDietitian(d) {
+  return {
+    id: d.id,
+    email: d.email,
+    displayName: d.display_name,
+    avatarUrl: d.avatar_url,
+    businessName: d.business_name,
+    website: d.website,
+    city: d.city,
+    country: d.country,
+    verificationState: d.verification_state,
+    verificationMethod: d.verification_method,
+    verificationNote: d.verification_note,
+    verificationEvidence: d.verification_evidence,
+    domainToken: d.domain_token,
+    dpaVersion: d.dpa_version,
+    plan: d.plan,
+    seatLimit: d.seat_limit,
+    expiresAt: d.expires_at,
+    active: d.verification_state === "verified" && (!d.expires_at || new Date(d.expires_at) > new Date()),
+  };
 }

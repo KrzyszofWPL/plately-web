@@ -226,6 +226,7 @@
     chevron: svg('<path d="m6 9 6 6 6-6"></path>', 16),
     shield: svg('<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path>', 16),
     info: svg('<circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path>', 20),
+    copy: svg('<rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>', 16),
     spark: svg('<path d="M9.5 3 11 7.5 15.5 9 11 10.5 9.5 15 8 10.5 3.5 9 8 7.5z"></path><path d="M17.5 13 18.4 15.6 21 16.5 18.4 17.4 17.5 20 16.6 17.4 14 16.5 16.6 15.6z"></path>', 16),
     thumbUp: svg('<path d="M7 10v11"></path><path d="M14.5 3 12 10h6.6a2 2 0 0 1 2 2.4l-1.3 6a2 2 0 0 1-2 1.6H7V10l3.5-7a2 2 0 0 1 4 0z"></path>', 15),
     thumbDown: svg('<path d="M17 14V3"></path><path d="M9.5 21 12 14H5.4a2 2 0 0 1-2-2.4l1.3-6a2 2 0 0 1 2-1.6H17v11l-3.5 7a2 2 0 0 1-4 0z"></path>', 15),
@@ -452,6 +453,7 @@
         return loadDesk();
       }
       S.phase = data.state;
+      if (data.state === "practice") { S.practice = { me: data.dietitian, overview: null, patients: null, invites: null, open: null, fresh: null, evidence: null }; loadPractice(); return; }
       render();
     }).catch(function (err) {
       S.phase = "signed_out";
@@ -565,6 +567,8 @@
       return;
     }
     if (S.phase === "signed_out") return renderSignIn();
+    if (S.phase === "practice_register") return renderPracticeRegister();
+    if (S.phase === "practice") return renderPractice();
     if (S.phase === "pin_required" || S.phase === "pin_setup") return renderPin();
     if (S.phase === "totp_required" || S.phase === "totp_setup") return renderTotp();
     renderApp();
@@ -575,8 +579,8 @@
       '<div class="auth-hero">' +
         '<img class="auth-mark" src="/logo.png" alt="Plately">' +
         '<div class="auth-copy">' +
-          "<h1>Plately for the team — and for practices</h1>" +
-          "<p>One door, two rooms. Plately staff sign in here to the help desk. Dietitians and clinics register their practice in the app and get the patient panel — this page just points the way.</p>" +
+          "<h1>Every customer e-mail, one shared inbox</h1>" +
+          "<p>Ticket list and full conversation side by side, with the customer's history and their actual plan. No tab switching, no lost threads.</p>" +
         "</div>" +
       "</div>";
   }
@@ -603,48 +607,31 @@
     var code = params.get("error");
     var message = code ? (AUTH_ERRORS[code] || "Sign-in failed (" + code + ").") : S.error;
 
-    // Two audiences share this address, and they must not be confused for one
-    // another. Staff sign in HERE; a dietitian's account lives in the app and
-    // is created by signing in there — this page can only explain and link.
-    // The e-mail hint is the whole point of the practice card: a Google account
-    // on the practice's own domain proves control of that domain on the spot,
-    // which is what the app's verification needs before it will skip the TXT
-    // record. Gmail proves nothing about any domain.
+    // One box, one button. Two audiences use it — Plately staff and dietitians
+    // — and which room the button opens is decided by the address after
+    // Google, not by anything chosen here. The one thing worth saying up front
+    // is the e-mail hint: a Google account on the practice's own domain proves
+    // control of that domain, which is what verification needs before it will
+    // skip the DNS record. Gmail proves nothing about any domain.
     root.innerHTML =
       '<div class="auth">' +
         heroSide() +
-        '<div class="auth-panel"><div class="auth-box auth-box-wide">' +
-
-          '<div class="gate-card">' +
-            '<span class="gate-kicker">Plately team</span>' +
-            "<h2>Sign in to the help desk</h2>" +
-            '<p class="lede">Verified staff accounts only. Use your <strong>@plately.eu</strong> Google account — a personal Gmail is not on the team list and will be refused.</p>' +
-            (S.auth.googleConfigured === false
-              ? '<div class="auth-error">Google sign-in is not configured yet. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel.</div>'
-              : "") +
-            '<button type="button" class="google-btn" data-act="google">' +
-              '<svg width="18" height="18" viewBox="0 0 48 48" style="flex:none;display:block"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"></path><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C39.9 37.4 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"></path></svg>' +
-              "Continue with Google" +
-            "</button>" +
-            (message ? '<div class="auth-error">' + esc(message) + "</div>" : "") +
-          "</div>" +
-
-          '<div class="gate-card gate-card-alt">' +
-            '<span class="gate-kicker">Dietitians &amp; clinics</span>' +
-            "<h2>Open or register your practice</h2>" +
-            '<p class="lede">The practice panel lives in the app: your patients\u2019 meal logs, macro targets you set for them, and a queue of who needs attention today. Fourteen days free, three patients, no card.</p>' +
-            '<div class="gate-tip">' + ICON.info +
-              "<p><strong style=\"color:var(--m3-on-surface)\">Sign in with your practice\u2019s Google account, not Gmail.</strong><br>" +
-              "An address on your own domain \u2014 <code>anna@your-practice.com</code> \u2014 proves you control that domain, so verification skips the DNS step and usually completes on the spot. " +
-              "With a Gmail address you will be asked to add a TXT record to your domain instead.</p>" +
-            "</div>" +
-            '<a class="gate-btn" href="https://app.plately.eu/pro">Continue to the app \u2192</a>' +
-            '<p class="gate-fine">No account yet? The same link creates one \u2014 signing in with Google is the whole sign-up.</p>' +
-          "</div>" +
-
+        '<div class="auth-panel"><div class="auth-box">' +
+          "<h2>Sign in to Plately</h2>" +
+          '<p class="lede">For Plately staff and for dietitians. Staff use their <strong>@plately.eu</strong> account. ' +
+            'Dietitians: we recommend your practice\u2019s Google account (<code class="mono">name@your-practice.com</code>) \u2014 ' +
+            'a mailbox on your own domain confirms ownership on the spot. You can continue with Gmail, but domain ownership will then have to be proven with a DNS record.</p>' +
+          (S.auth.googleConfigured === false
+            ? '<div class="auth-error">Google sign-in is not configured yet. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel.</div>'
+            : "") +
+          '<button type="button" class="google-btn" data-act="google">' +
+            '<svg width="18" height="18" viewBox="0 0 48 48" style="flex:none;display:block"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"></path><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C39.9 37.4 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"></path></svg>' +
+            "Continue with Google" +
+          "</button>" +
+          (message ? '<div class="auth-error">' + esc(message) + "</div>" : "") +
           '<div class="auth-note">' + ICON.info +
             "<p><strong style=\"color:var(--m3-on-surface)\">Looking for help with Plately?</strong><br>" +
-            "Neither of these is customer support. If you need assistance, " +
+            "This page is not customer support. If you need assistance, " +
             'please write to us at <a class="auth-link" href="/help">plately.eu/help</a>.</p>' +
           "</div>" +
         "</div></div>" +
@@ -2084,6 +2071,447 @@
   // actions
   // -------------------------------------------------------------------------
 
+
+  // ===========================================================================
+  // Plately Pro — the practice panel, for dietitians
+  //
+  // A dietitian signs in through the same Google button as staff and lands
+  // here. Nothing below shares a screen with the help desk: a practice sees
+  // its own patients and nothing else, and staff never see this. Data comes
+  // from /api/practice, which holds the service-role key and filters every
+  // query by the practice id in the cookie — see the header of that file for
+  // why RLS is not the gate here.
+  //
+  // Polish and English, chosen from the browser. The panel is a professional
+  // surface for a few dozen practices, most of them Polish; the customer
+  // support desk around it stays English-only as it always was.
+  // ===========================================================================
+
+  var PRACTICE_LANG = (navigator.language || "").toLowerCase().indexOf("pl") === 0 ? "pl" : "en";
+  try { PRACTICE_LANG = localStorage.getItem("plately_practice_lang") || PRACTICE_LANG; } catch (e) {}
+
+  var PT = {
+    en: {
+      signedInAs: "Signed in as", switchAccount: "Sign out and use a different account", langOther: "Polski",
+      regTitle: "Register your practice", regSubtitle: "Fourteen days free, three patients, no card. Most practices are verified within a minute.",
+      accountBusiness: "A mailbox on your own domain. If your website is on this domain, ownership is confirmed on the spot \u2014 no DNS record needed.",
+      accountPublic: "A mailbox on a public provider proves nothing about your domain, so you will be asked to add a TXT record. If you have an address on your practice\u2019s own domain (anna@your-practice.com), sign out and use that one \u2014 verification then usually completes immediately.",
+      businessName: "Practice name", website: "Website", websiteHint: "Your own domain, e.g. my-practice.com", city: "City", country: "Country",
+      dpaLabel: "I accept the Data Processing Agreement on behalf of the practice", dpaRead: "Read the agreement", submit: "Register and verify",
+      badWebsite: "That does not look like a domain.", regFailed: "Could not register. Try again in a moment.",
+      pendingTitle: "Your practice is being verified", pendingBody: "We could not confirm everything automatically, so a person will look at it. You will get an e-mail \u2014 usually within one working day.",
+      ownershipTitle: "Prove you control the domain", ownershipBody: "Add this TXT record at your domain registrar, then press \u201cCheck again\u201d. It usually takes a few minutes to propagate. If you would rather not, a person can verify you instead \u2014 the request is already filed.",
+      txtHost: "Host", txtType: "Type", txtValue: "Value", recheck: "Check again", recheckLimit: "Too many checks. Try again in an hour.",
+      rejectedTitle: "We could not verify this practice", rejectedBody: "The note below is from the person who reviewed it. If you think this is a mistake, write to us.", contact: "Contact support",
+      evidence: "What we checked", evOwnership: "Domain ownership", evPlaces: "Google Maps listing", yes: "confirmed", no: "not confirmed", skipped: "not checked",
+      panelTitle: "Practice", panelSubtitle: "Your patients, and what needs attention today.", signOut: "Sign out",
+      queueTitle: "Needs attention", queueSilent: "no log for {days} days", queueNever: "has never logged", queueOver: "over calorie goal {days} days running", queueWeight: "{delta} kg in a week", queueClear: "Nothing needs attention. All patients are on track.", total: "{total} active patients",
+      patients: "Patients", noPatients: "No patients yet. Create an invite code and hand it over at the next consultation.", seats: "{used} of {limit} places used",
+      invites: "Invite codes", newTrack: "New code \u2014 Track", newCare: "New code \u2014 Care", handOver: "Write this down now. It is shown once and cannot be read again.", revoke: "Revoke", seatLimit: "No free places. Unused codes count towards the limit.",
+      stOpen: "open", stUsed: "used", stExpired: "expired", stRevoked: "revoked",
+      goals: "Macro targets", kcal: "Calories", protein: "Protein (g)", carb: "Carbs (g)", fat: "Fat (g)", save: "Save targets", saved: "Saved",
+      coach: "AI Coach", coachNote: "Off by default. Turn it on if you want the AI to field the small questions.", toTrack: "Move to Track", toCare: "Move to Care", pendingTrack: "drops to Track next period",
+      end: "End programme", endConfirm: "End the programme for this patient? They keep all their data.", lastLog: "last log", never: "never", week: "Last seven days", hidden: "Not shared by the patient", weight: "Weight",
+      inactiveTitle: "This practice is not active", inactiveBody: "Your access has lapsed. Patients keep their data; the panel is read-only until it is renewed.",
+      loadFailed: "Could not load the panel. Try again in a moment.",
+    },
+    pl: {
+      signedInAs: "Zalogowano jako", switchAccount: "Wyloguj i u\u017cyj innego konta", langOther: "English",
+      regTitle: "Zarejestruj gabinet", regSubtitle: "Czterna\u015bcie dni za darmo, trzech pacjent\u00f3w, bez karty. Wi\u0119kszo\u015b\u0107 gabinet\u00f3w weryfikuje si\u0119 w minut\u0119.",
+      accountBusiness: "Skrzynka na w\u0142asnej domenie. Je\u015bli strona gabinetu jest na tej domenie, w\u0142asno\u015b\u0107 potwierdzi si\u0119 od r\u0119ki \u2014 bez rekordu DNS.",
+      accountPublic: "Skrzynka u publicznego dostawcy nie dowodzi niczego o Twojej domenie, wi\u0119c poprosimy o rekord TXT. Je\u015bli masz adres na domenie gabinetu (anna@twoj-gabinet.pl), wyloguj si\u0119 i zaloguj nim \u2014 weryfikacja zwykle ko\u0144czy si\u0119 wtedy od razu.",
+      businessName: "Nazwa gabinetu", website: "Strona WWW", websiteHint: "Twoja w\u0142asna domena, np. moj-gabinet.pl", city: "Miasto", country: "Kraj",
+      dpaLabel: "Akceptuj\u0119 Umow\u0119 powierzenia przetwarzania danych w imieniu gabinetu", dpaRead: "Przeczytaj umow\u0119", submit: "Zarejestruj i zweryfikuj",
+      badWebsite: "To nie wygl\u0105da na domen\u0119.", regFailed: "Nie uda\u0142o si\u0119 zarejestrowa\u0107. Spr\u00f3buj za chwil\u0119.",
+      pendingTitle: "Tw\u00f3j gabinet jest weryfikowany", pendingBody: "Nie uda\u0142o si\u0119 potwierdzi\u0107 wszystkiego automatycznie, wi\u0119c spojrzy na to cz\u0142owiek. Dostaniesz e-mail \u2014 zwykle w ci\u0105gu jednego dnia roboczego.",
+      ownershipTitle: "Potwierd\u017a, \u017ce to Twoja domena", ownershipBody: "Dodaj ten rekord TXT u rejestratora domeny i naci\u015bnij \u201eSprawd\u017a ponownie\u201d. Propagacja trwa zwykle kilka minut. Je\u015bli wolisz, zweryfikuje Ci\u0119 cz\u0142owiek \u2014 zg\u0142oszenie ju\u017c jest w kolejce.",
+      txtHost: "Host", txtType: "Typ", txtValue: "Warto\u015b\u0107", recheck: "Sprawd\u017a ponownie", recheckLimit: "Za du\u017co sprawdze\u0144. Spr\u00f3buj za godzin\u0119.",
+      rejectedTitle: "Nie uda\u0142o si\u0119 zweryfikowa\u0107 tego gabinetu", rejectedBody: "Notatka ni\u017cej pochodzi od osoby, kt\u00f3ra to sprawdza\u0142a. Je\u015bli to pomy\u0142ka, napisz do nas.", contact: "Napisz do supportu",
+      evidence: "Co sprawdzili\u015bmy", evOwnership: "W\u0142asno\u015b\u0107 domeny", evPlaces: "Wpis w Google Maps", yes: "potwierdzone", no: "niepotwierdzone", skipped: "nie sprawdzano",
+      panelTitle: "Gabinet", panelSubtitle: "Twoi pacjenci i to, co dzi\u015b wymaga uwagi.", signOut: "Wyloguj",
+      queueTitle: "Wymaga uwagi", queueSilent: "brak wpis\u00f3w od {days} dni", queueNever: "nie zalogowa\u0142 ani razu", queueOver: "przekracza cel kaloryczny {days} dni z rz\u0119du", queueWeight: "{delta} kg w tydzie\u0144", queueClear: "Nic nie wymaga uwagi. Wszyscy pacjenci trzymaj\u0105 si\u0119 planu.", total: "{total} aktywnych pacjent\u00f3w",
+      patients: "Pacjenci", noPatients: "Nie masz jeszcze pacjent\u00f3w. Wygeneruj kod i wr\u0119cz go na najbli\u017cszej konsultacji.", seats: "Zaj\u0119te {used} z {limit} miejsc",
+      invites: "Kody zaprosze\u0144", newTrack: "Nowy kod \u2014 Track", newCare: "Nowy kod \u2014 Care", handOver: "Zapisz go teraz. Pokazujemy go raz i nie da si\u0119 go odczyta\u0107 ponownie.", revoke: "Odwo\u0142aj", seatLimit: "Brak wolnych miejsc. Niewykorzystane kody te\u017c licz\u0105 si\u0119 do limitu.",
+      stOpen: "aktywny", stUsed: "wykorzystany", stExpired: "wygas\u0142", stRevoked: "odwo\u0142any",
+      goals: "Cele makro", kcal: "Kalorie", protein: "Bia\u0142ko (g)", carb: "W\u0119glowodany (g)", fat: "T\u0142uszcz (g)", save: "Zapisz cele", saved: "Zapisano",
+      coach: "AI Coach", coachNote: "Domy\u015blnie wy\u0142\u0105czony. W\u0142\u0105cz, je\u015bli chcesz, \u017ceby AI odsiewa\u0142o drobne pytania.", toTrack: "Przenie\u015b na Track", toCare: "Przenie\u015b na Care", pendingTrack: "zejdzie na Track w nast\u0119pnym okresie",
+      end: "Zako\u0144cz program", endConfirm: "Zako\u0144czy\u0107 program dla tego pacjenta? Zachowa wszystkie swoje dane.", lastLog: "ostatni wpis", never: "nigdy", week: "Ostatnie siedem dni", hidden: "Pacjent tego nie udost\u0119pni\u0142", weight: "Waga",
+      inactiveTitle: "Ten gabinet nie jest aktywny", inactiveBody: "Tw\u00f3j dost\u0119p wygas\u0142. Pacjenci zachowuj\u0105 dane; panel dzia\u0142a w trybie odczytu do czasu przed\u0142u\u017cenia.",
+      loadFailed: "Nie uda\u0142o si\u0119 wczyta\u0107 panelu. Spr\u00f3buj za chwil\u0119.",
+    },
+  };
+  function pt(key, vars) {
+    var str = (PT[PRACTICE_LANG] || PT.en)[key] || PT.en[key] || key;
+    return str.replace(/\{(\w+)\}/g, function (m, k) { return vars && k in vars ? String(vars[k]) : m; });
+  }
+
+  // Mirrors api/_lib/domain-rules.js: the hint on the form has to agree with
+  // the verifier about what counts as a business mailbox.
+  var PUBLIC_MAIL = ["gmail.com", "googlemail.com", "outlook.com", "hotmail.com", "live.com", "msn.com", "yahoo.com", "yahoo.pl", "yahoo.co.uk", "yahoo.de", "icloud.com", "me.com", "mac.com", "proton.me", "protonmail.com", "pm.me", "aol.com", "gmx.com", "gmx.de", "gmx.net", "wp.pl", "o2.pl", "onet.pl", "onet.eu", "op.pl", "interia.pl", "interia.eu", "tlen.pl", "poczta.fm", "vp.pl", "gazeta.pl", "spoko.pl", "autograf.pl", "go2.pl", "buziaczek.pl", "web.de", "t-online.de", "mail.ru", "yandex.ru", "yandex.com", "ukr.net", "i.ua", "orange.fr", "free.fr", "laposte.net", "libero.it", "virgilio.it", "seznam.cz", "centrum.cz", "qq.com", "163.com", "126.com", "naver.com", "daum.net", "hanmail.net"];
+  function mailDomain(email) { var i = String(email || "").lastIndexOf("@"); return i < 0 ? "" : String(email).slice(i + 1).toLowerCase(); }
+  function normDomain(v) {
+    var d = String(v || "").trim().toLowerCase().replace(/^[a-z]+:\/\//, "").split("/")[0].split("?")[0].replace(/:\d+$/, "").replace(/^www\./, "");
+    return /^[a-z0-9.-]+\.[a-z]{2,}$/.test(d) ? d : "";
+  }
+
+  function practiceTop(me) {
+    return '<div class="practice-top">' +
+      '<a class="brand" href="/"><img src="/logo.png" alt="" width="28" height="28"><span>Plately</span></a>' +
+      '<div class="practice-who">' +
+        (me && me.avatarUrl ? '<img class="avatar" src="' + attr(me.avatarUrl) + '" alt="" referrerpolicy="no-referrer">' : "") +
+        '<span class="ellipsis">' + esc(me ? (me.businessName || me.email) : "") + "</span>" +
+      "</div>" +
+      '<button type="button" class="btn btn-sm" data-act="practice-lang">' + pt("langOther") + "</button>" +
+      '<button type="button" class="btn btn-sm btn-danger" data-act="practice-signout">' + pt("signOut") + "</button>" +
+    "</div>";
+  }
+
+  // --- registration ----------------------------------------------------------
+
+  function renderPracticeRegister() {
+    var email = S.auth.email || "";
+    var domain = mailDomain(email);
+    var business = domain && PUBLIC_MAIL.indexOf(domain) < 0;
+    var p = S.practiceForm || (S.practiceForm = { businessName: "", website: "", city: "", country: "PL", dpa: false, error: "" });
+
+    root.innerHTML =
+      '<div class="practice">' +
+        practiceTop({ email: email, avatarUrl: S.auth.avatarUrl, businessName: S.auth.displayName }) +
+        '<div class="practice-col">' +
+          "<h1>" + pt("regTitle") + "</h1>" +
+          '<p class="lede">' + pt("regSubtitle") + "</p>" +
+
+          '<div class="card ' + (business ? "practice-ok" : "practice-warn") + '">' +
+            '<div style="font-size:12px;color:var(--m3-on-surface-variant)">' + pt("signedInAs") + "</div>" +
+            '<div class="mono" style="font-weight:600;margin:2px 0 8px">' + esc(email) + "</div>" +
+            '<p style="margin:0;font-size:13px;line-height:20px">' + pt(business ? "accountBusiness" : "accountPublic") + "</p>" +
+            (business ? "" : '<button type="button" class="btn btn-sm" style="margin-top:10px" data-act="practice-signout">' + pt("switchAccount") + "</button>") +
+          "</div>" +
+
+          '<form class="card" id="practice-form" data-act-submit="practice-register">' +
+            '<label class="field-label">' + pt("businessName") + '<input class="field" id="pf-name" maxlength="120" value="' + attr(p.businessName) + '" required></label>' +
+            '<label class="field-label">' + pt("website") + '<input class="field" id="pf-site" maxlength="200" value="' + attr(p.website) + '" placeholder="moj-gabinet.pl" autocapitalize="none" required>' +
+              '<small>' + pt("websiteHint") + "</small></label>" +
+            '<div class="practice-grid">' +
+              '<label class="field-label">' + pt("city") + '<input class="field" id="pf-city" maxlength="80" value="' + attr(p.city) + '"></label>' +
+              '<label class="field-label">' + pt("country") + '<select class="field" id="pf-country">' +
+                ["PL", "DE", "GB", "UA", "CZ", "SK", "FR", "ES", "IT", "PT", "NL", "AT", "IE", "US", "OTHER"].map(function (c) {
+                  return '<option value="' + c + '"' + (p.country === c ? " selected" : "") + ">" + c + "</option>";
+                }).join("") + "</select></label>" +
+            "</div>" +
+            '<label class="practice-check"><input type="checkbox" id="pf-dpa"' + (p.dpa ? " checked" : "") + "><span>" + pt("dpaLabel") +
+              ' <a href="#" data-act="practice-dpa">' + pt("dpaRead") + "</a></span></label>" +
+            (p.error ? '<div class="auth-error">' + esc(p.error) + "</div>" : "") +
+            '<button type="submit" class="btn btn-primary" style="align-self:flex-start">' + pt("submit") + "</button>" +
+          "</form>" +
+        "</div>" +
+      "</div>";
+
+    var form = document.getElementById("practice-form");
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      p.businessName = value("pf-name"); p.website = value("pf-site"); p.city = value("pf-city"); p.country = value("pf-country");
+      p.dpa = document.getElementById("pf-dpa").checked;
+      if (!normDomain(p.website)) { p.error = pt("badWebsite"); render(); return; }
+      if (!p.dpa) return;
+      p.error = "";
+      var btn = form.querySelector("button[type=submit]");
+      busy(btn, true);
+      api("/api/practice/register", { method: "POST", body: {
+        businessName: p.businessName, website: normDomain(p.website), city: p.city, country: p.country,
+        dpaVersion: DPA_VERSION, dpaAccepted: true,
+      } }).then(function (data) {
+        S.practiceForm = null;
+        S.phase = "practice";
+        S.practice = { me: data.dietitian, overview: null, patients: null, invites: null, open: null, fresh: null, evidence: null };
+        loadPractice();
+      }).catch(function (err) {
+        busy(btn, false);
+        p.error = err.status === 401 ? "Session expired \u2014 sign in again." : (pt("regFailed") + " (" + err.message + ")");
+        render();
+      });
+    });
+  }
+
+  // --- pending / rejected / panel ---------------------------------------------
+
+  function loadPractice() {
+    var me = S.practice.me;
+    if (me.verificationState !== "verified") { render(); return; }
+    var tz = encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+    Promise.all([
+      api("/api/practice/overview"),
+      api("/api/practice/patients?tz=" + tz),
+      api("/api/practice/invites"),
+    ]).then(function (r) {
+      S.practice.overview = r[0].overview; S.practice.me = r[0].dietitian || me;
+      S.practice.patients = r[1].patients || []; S.practice.invites = r[2].invites || [];
+      S.practice.failed = false;
+      render();
+    }).catch(function (err) {
+      S.practice.failed = err.message || true;
+      render();
+    });
+  }
+
+  function renderPractice() {
+    var me = S.practice.me;
+    if (me.verificationState === "rejected") return renderPracticeRejected(me);
+    if (me.verificationState !== "verified") return renderPracticePending(me);
+    if (!S.practice.overview && !S.practice.failed) {
+      root.className = "loading";
+      root.innerHTML = '<span class="spinner"></span> ' + pt("panelTitle") + "\u2026";
+      return;
+    }
+    renderPracticePanel(me);
+  }
+
+  function evidenceCard(ev, me) {
+    var ownership = ev ? Boolean(ev.ownership) : (me.verificationMethod === "email_domain" || me.verificationMethod === "domain_txt");
+    var pl = ev && ev.places;
+    var row = function (label, ok, text) {
+      return '<div class="kv"><span>' + label + "</span><strong>" +
+        (ok === null ? "" : ok ? '<span class="chip chip-ok">' : '<span class="chip chip-urgent">') + esc(text) + (ok === null ? "" : "</span>") + "</strong></div>";
+    };
+    return '<div class="card"><h3>' + pt("evidence") + "</h3>" +
+      row(pt("evOwnership"), ownership, ownership ? pt("yes") : pt("no")) +
+      row(pt("evPlaces"), pl && pl.queried ? (pl.found && pl.wellness) : null,
+        !pl || !pl.queried ? pt("skipped") : pl.found ? (pl.name || "") + " \u00b7 " + (pl.reviews || 0) + " \u2605" : pt("no")) +
+    "</div>";
+  }
+
+  function renderPracticePending(me) {
+    var ev = me.verificationEvidence || S.practice.evidence;
+    var ownership = ev ? Boolean(ev.ownership) : (me.verificationMethod === "email_domain" || me.verificationMethod === "domain_txt");
+    root.innerHTML =
+      '<div class="practice">' + practiceTop(me) + '<div class="practice-col">' +
+        '<div class="card practice-info"><h3>' + pt("pendingTitle") + "</h3><p>" + pt("pendingBody") + "</p>" +
+          '<p class="mono" style="font-size:12px;opacity:.7;margin:8px 0 0">' + esc(me.businessName) + " \u00b7 " + esc(me.website || "") + "</p></div>" +
+        (!ownership && me.domainToken
+          ? '<div class="card"><h3>' + pt("ownershipTitle") + "</h3><p>" + pt("ownershipBody") + "</p>" +
+            '<div class="practice-txt mono">' +
+              '<div><span>' + pt("txtType") + "</span><b>TXT</b></div>" +
+              '<div><span>' + pt("txtHost") + "</span><b>" + esc(me.website) + "</b></div>" +
+              '<div><span>' + pt("txtValue") + '</span><b id="txt-value">plately-verify=' + esc(me.domainToken) + "</b>" +
+                '<button type="button" class="btn btn-sm" data-act="practice-copy" data-copy="plately-verify=' + attr(me.domainToken) + '">' + ICON.copy + "</button></div>" +
+            "</div></div>"
+          : "") +
+        evidenceCard(ev, me) +
+        (S.practice.error ? '<div class="auth-error">' + esc(S.practice.error) + "</div>" : "") +
+        '<button type="button" class="btn btn-primary" style="align-self:flex-start" data-act="practice-recheck">' + pt("recheck") + "</button>" +
+      "</div></div>";
+  }
+
+  function renderPracticeRejected(me) {
+    root.innerHTML =
+      '<div class="practice">' + practiceTop(me) + '<div class="practice-col">' +
+        '<div class="card practice-bad"><h3>' + pt("rejectedTitle") + "</h3><p>" + pt("rejectedBody") + "</p>" +
+          (me.verificationNote ? '<p class="practice-note">' + esc(me.verificationNote) + "</p>" : "") + "</div>" +
+        '<a class="btn" style="align-self:flex-start" href="/help">' + pt("contact") + "</a>" +
+      "</div></div>";
+  }
+
+  function renderPracticePanel(me) {
+    var P = S.practice, o = P.overview || {}, patients = P.patients || [], invites = P.invites || [];
+    var queueEmpty = !o.silent || (!o.silent.length && !o.overGoal.length && !o.weightSwing.length);
+    var qrow = function (e, text, tone) {
+      return '<button type="button" class="practice-qrow" data-act="practice-open" data-id="' + attr(e.membershipId) + '">' +
+        '<span class="dot ' + tone + '"></span><b>' + esc(e.name) + "</b><span>" + esc(text) + "</span></button>";
+    };
+
+    root.innerHTML =
+      '<div class="practice">' + practiceTop(me) + '<div class="practice-col practice-wide">' +
+        "<h1>" + pt("panelTitle") + "</h1>" + '<p class="lede">' + pt("panelSubtitle") + "</p>" +
+        (P.failed ? '<div class="auth-error">' + pt("loadFailed") + "</div>" : "") +
+        (me.active ? "" : '<div class="card practice-bad"><h3>' + pt("inactiveTitle") + "</h3><p>" + pt("inactiveBody") + "</p></div>") +
+
+        '<div class="card"><h3 style="display:flex;align-items:center;gap:8px">' + pt("queueTitle") +
+          '<span class="chip" style="margin-left:auto">' + pt("total", { total: o.total || 0 }) + "</span></h3>" +
+          (queueEmpty ? '<p class="muted">' + pt("queueClear") + "</p>" :
+            '<div class="rowlist">' +
+              (o.silent || []).map(function (e) { return qrow(e, e.days == null ? pt("queueNever") : pt("queueSilent", { days: e.days }), "bad"); }).join("") +
+              (o.overGoal || []).map(function (e) { return qrow(e, pt("queueOver", { days: e.days || 0 }), "warn"); }).join("") +
+              (o.weightSwing || []).map(function (e) { return qrow(e, pt("queueWeight", { delta: (e.delta > 0 ? "+" : "") + e.delta }), "warn"); }).join("") +
+            "</div>") +
+        "</div>" +
+
+        '<div class="card"><h3 style="display:flex;align-items:center;gap:8px">' + pt("invites") +
+          '<span class="chip" style="margin-left:auto">' + pt("seats", { used: o.total || 0, limit: o.seatLimit || me.seatLimit }) + "</span></h3>" +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+            '<button type="button" class="btn btn-sm" data-act="practice-invite" data-seat="track"' + (me.active ? "" : " disabled") + ">" + pt("newTrack") + "</button>" +
+            '<button type="button" class="btn btn-sm" data-act="practice-invite" data-seat="care"' + (me.active ? "" : " disabled") + ">" + pt("newCare") + "</button>" +
+          "</div>" +
+          (P.inviteError ? '<div class="auth-error">' + esc(P.inviteError) + "</div>" : "") +
+          (P.fresh
+            ? '<div class="practice-fresh"><code class="mono">' + esc(P.fresh.code) + "</code>" +
+              '<button type="button" class="btn btn-sm" data-act="practice-copy" data-copy="' + attr(P.fresh.code) + '">' + ICON.copy + "</button>" +
+              '<button type="button" class="btn btn-sm" data-act="practice-fresh-close">OK</button>' +
+              '<p>' + pt("handOver") + "</p></div>"
+            : "") +
+          (invites.length ? '<div class="rowlist" style="margin-top:12px">' + invites.slice(0, 8).map(function (i) {
+            var st = i.state === "open" ? "stOpen" : i.state === "used" ? "stUsed" : i.state === "expired" ? "stExpired" : "stRevoked";
+            return '<div style="display:flex;align-items:center;gap:10px"><code class="mono">' + esc(i.prefix) + "\u00b7\u00b7\u00b7\u00b7</code>" +
+              '<span class="chip">' + esc(i.seatType) + '</span><span class="muted">' + pt(st) + "</span>" +
+              (i.state === "open" ? '<button type="button" class="btn btn-sm" style="margin-left:auto" data-act="practice-invite-revoke" data-prefix="' + attr(i.prefix) + '">' + pt("revoke") + "</button>" : "") +
+            "</div>";
+          }).join("") + "</div>" : "") +
+        "</div>" +
+
+        '<div class="card"><h3>' + pt("patients") + "</h3>" +
+          (patients.length ? '<div class="rowlist">' + patients.map(patientRow).join("") + "</div>" : '<p class="muted">' + pt("noPatients") + "</p>") +
+        "</div>" +
+      "</div></div>";
+  }
+
+  function patientRow(pat) {
+    var open = S.practice.open === pat.membershipId;
+    var days = pat.lastLogAt ? Math.floor((Date.now() - new Date(pat.lastLogAt).getTime()) / 86400000) + " d" : pt("never");
+    var maxK = Math.max(1, Math.max.apply(null, (pat.week || []).map(function (d) { return d.calories; })));
+    var goal = pat.goals && pat.goals.calorie;
+    return '<div class="practice-pat">' +
+      '<button type="button" class="practice-pat-head" data-act="practice-open" data-id="' + attr(pat.membershipId) + '">' +
+        "<b>" + esc(pat.name) + "</b>" +
+        '<span class="chip ' + (pat.seatType === "care" ? "chip-ok" : "") + '">' + esc(pat.seatType) + "</span>" +
+        '<span class="muted mono">' + esc(days) + "</span>" +
+        "<span>" + (open ? "\u25b4" : "\u25be") + "</span>" +
+      "</button>" +
+      (open ? '<div class="practice-pat-body">' +
+        (pat.seatPending === "track" ? '<p class="muted">' + pt("pendingTrack") + "</p>" : "") +
+        '<div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em">' + pt("week") + "</div>" +
+        '<div class="practice-week">' + (pat.week || []).map(function (d) {
+          var over = goal && d.calories > goal * 1.15;
+          var h = Math.max(d.calories === 0 ? 3 : 8, Math.round(d.calories / maxK * 100));
+          return '<div title="' + attr(d.day + ": " + d.calories + " kcal") + '"><i class="' + (d.calories === 0 ? "empty" : over ? "over" : "") + '" style="height:' + h + '%"></i></div>';
+        }).join("") + "</div>" +
+        (pat.weight ? '<div class="kv"><span>' + pt("weight") + "</span><strong>" + esc(pat.weight.kg) + " kg \u00b7 " + esc(longDate(pat.weight.date)) + "</strong></div>"
+          : '<div class="muted" style="font-size:12px">' + pt("weight") + ": " + pt("hidden") + "</div>") +
+        '<div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-top:8px">' + pt("goals") + "</div>" +
+        '<div class="practice-grid4">' +
+          [["kcal", "calorie"], ["protein", "protein"], ["carb", "carb"], ["fat", "fat"]].map(function (f) {
+            return '<label class="field-label">' + pt(f[0]) + '<input class="field" type="number" min="0" id="g-' + f[1] + "-" + attr(pat.membershipId) + '" value="' + attr(pat.goals && pat.goals[f[1]] != null ? pat.goals[f[1]] : "") + '"></label>';
+          }).join("") +
+        "</div>" +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+          '<button type="button" class="btn btn-sm btn-primary" data-act="practice-goals" data-id="' + attr(pat.membershipId) + '" data-patient="' + attr(pat.patientId) + '">' + pt("save") + "</button>" +
+          '<button type="button" class="btn btn-sm ' + (pat.coachEnabled ? "chip-ok" : "") + '" data-act="practice-coach" data-id="' + attr(pat.membershipId) + '" data-on="' + (pat.coachEnabled ? "0" : "1") + '">' + pt("coach") + ": " + (pat.coachEnabled ? "ON" : "OFF") + "</button>" +
+          '<button type="button" class="btn btn-sm" data-act="practice-seat" data-id="' + attr(pat.membershipId) + '" data-seat="' + (pat.seatType === "care" ? "track" : "care") + '">' + pt(pat.seatType === "care" ? "toTrack" : "toCare") + "</button>" +
+          '<button type="button" class="btn btn-sm btn-danger" style="margin-left:auto" data-act="practice-end" data-id="' + attr(pat.membershipId) + '">' + pt("end") + "</button>" +
+        "</div>" +
+        '<p class="muted" style="font-size:12px;margin:6px 0 0">' + pt("coachNote") + "</p>" +
+      "</div>" : "") +
+    "</div>";
+  }
+
+  // --- DPA ---------------------------------------------------------------------
+
+  var DPA_VERSION = "2026-09-11";
+  var DPA = {
+    pl: { title: "Umowa powierzenia przetwarzania danych osobowych", sections: [
+      ["1. Strony i przedmiot", ["Umowa zawierana jest pomi\u0119dzy podmiotem prowadz\u0105cym gabinet (\u201eAdministrator\u201d) a operatorem aplikacji Plately (\u201eProcesor\u201d) z chwil\u0105 zaakceptowania jej w formularzu rejestracji gabinetu.", "Administrator powierza Procesorowi przetwarzanie danych osobowych swoich pacjent\u00f3w w zakresie i celu opisanym ni\u017cej. Procesor przetwarza je wy\u0142\u0105cznie na udokumentowane polecenie Administratora, kt\u00f3rym jest korzystanie z panelu gabinetu."]],
+      ["2. Zakres i kategorie danych", ["Dane pacjent\u00f3w, kt\u00f3rzy do\u0142\u0105czyli do programu gabinetu kodem zaproszenia i wyrazili zgod\u0119 na udost\u0119pnienie: identyfikator konta, nick, log posi\u0142k\u00f3w z warto\u015bciami od\u017cywczymi, cele makrosk\u0142adnik\u00f3w, a \u2014 je\u015bli pacjent w\u0142\u0105czy\u0142 te zakresy \u2014 historia wagi oraz dane o \u015bnie i z urz\u0105dze\u0144 noszonych.", "S\u0105 to dane dotycz\u0105ce zdrowia w rozumieniu art. 9 RODO. Pacjent decyduje o zakresie samodzielnie i mo\u017ce go zmieni\u0107 lub cofn\u0105\u0107 w ka\u017cdej chwili."]],
+      ["3. Cel i czas trwania", ["Wy\u0142\u0105cznym celem jest umo\u017cliwienie Administratorowi prowadzenia pacjenta: podgl\u0105d logu, ustawianie cel\u00f3w, sygna\u0142y o braku aktywno\u015bci.", "Powierzenie trwa, dop\u00f3ki pacjent pozostaje w programie gabinetu. Z chwil\u0105 zako\u0144czenia programu dost\u0119p Administratora ustaje natychmiast, a dane pozostaj\u0105 na koncie pacjenta jako jego w\u0142asne."]],
+      ["4. Obowi\u0105zki Procesora", ["Przetwarza dane wy\u0142\u0105cznie w celu z pkt 3 i nie wykorzystuje ich do w\u0142asnych cel\u00f3w.", "Stosuje \u015brodki techniczne opisane w Polityce Prywatno\u015bci: izolacj\u0119 danych na poziomie bazy, szyfrowanie w tranzycie, ograniczenie dost\u0119pu do personelu z uprawnieniami.", "Prowadzi rejestr dost\u0119pu Administratora do danych pacjenta i udost\u0119pnia go pacjentowi.", "Pomaga Administratorowi w realizacji praw os\u00f3b, kt\u00f3rych dane dotycz\u0105, w zakresie wynikaj\u0105cym z funkcji aplikacji.", "Zg\u0142asza Administratorowi naruszenie ochrony danych bez zb\u0119dnej zw\u0142oki, nie p\u00f3\u017aniej ni\u017c w 48 godzin od stwierdzenia.", "Nie przekazuje danych poza EOG, z wyj\u0105tkiem dalszych podmiot\u00f3w przetwarzaj\u0105cych wymienionych w pkt 5."]],
+      ["5. Dalsi procesorzy", ["Administrator wyra\u017ca og\u00f3ln\u0105 zgod\u0119 na korzystanie przez Procesora z: dostawcy bazy danych i uwierzytelniania (Supabase), dostawcy hostingu (Vercel / Netlify), dostawcy modelu AI analizuj\u0105cego zdj\u0119cia posi\u0142k\u00f3w (Google). Pe\u0142na lista z regionami przetwarzania jest w Polityce Prywatno\u015bci.", "O zamiarze dodania lub zmiany dalszego procesora Procesor informuje z 14-dniowym wyprzedzeniem; Administrator mo\u017ce w tym czasie wnie\u015b\u0107 sprzeciw, co jest r\u00f3wnoznaczne z wypowiedzeniem umowy."]],
+      ["6. Obowi\u0105zki Administratora", ["Administrator odpowiada za posiadanie podstawy prawnej przetwarzania danych swoich pacjent\u00f3w oraz za poinformowanie ich o korzystaniu z Plately jako narz\u0119dzia.", "Administrator korzysta z panelu wy\u0142\u0105cznie w celu prowadzenia pacjent\u00f3w, kt\u00f3rzy do\u0142\u0105czyli do jego programu, i nie udost\u0119pnia dost\u0119pu osobom nieuprawnionym."]],
+      ["7. Zako\u0144czenie", ["Umowa wygasa wraz z usuni\u0119ciem konta gabinetu lub zako\u0144czeniem programu ostatniego pacjenta. Dane pacjent\u00f3w nie s\u0105 usuwane przez Procesora na skutek wyga\u015bni\u0119cia \u2014 pozostaj\u0105 na kontach pacjent\u00f3w jako ich w\u0142asne dane.", "Administrator mo\u017ce w ka\u017cdej chwili zako\u0144czy\u0107 umow\u0119, ko\u0144cz\u0105c programy swoich pacjent\u00f3w w panelu."]],
+    ]},
+    en: { title: "Data Processing Agreement", sections: [
+      ["1. Parties and subject", ["This agreement is made between the entity running the practice (the \u201cController\u201d) and the operator of the Plately application (the \u201cProcessor\u201d) at the moment it is accepted in the practice registration form.", "The Controller entrusts the Processor with processing its patients\u2019 personal data in the scope and for the purpose set out below. The Processor processes it only on the Controller\u2019s documented instruction, which is the use of the practice panel."]],
+      ["2. Scope and categories of data", ["Data of patients who joined the practice programme with an invite code and consented to sharing: account identifier, nickname, meal log with nutritional values, macro targets, and \u2014 where the patient enabled those scopes \u2014 weight history and sleep / wearable data.", "This is health data within the meaning of Article 9 GDPR. The patient chooses the scope and may change or withdraw it at any time."]],
+      ["3. Purpose and duration", ["The sole purpose is to let the Controller guide the patient: viewing the log, setting targets, signals about inactivity.", "The entrustment lasts as long as the patient remains in the practice programme. When the programme ends the Controller\u2019s access ceases immediately and the data remains on the patient\u2019s account as their own."]],
+      ["4. Processor\u2019s obligations", ["Processes the data only for the purpose in section 3 and never for its own purposes.", "Applies the technical measures described in the Privacy Policy: database-level isolation, encryption in transit, access limited to authorised staff.", "Keeps a log of the Controller\u2019s access to patient data and makes it available to the patient.", "Assists the Controller with data-subject rights to the extent the application supports them.", "Notifies the Controller of a personal data breach without undue delay and no later than 48 hours after becoming aware of it.", "Does not transfer data outside the EEA except to the sub-processors listed in section 5."]],
+      ["5. Sub-processors", ["The Controller gives general authorisation for: the database and authentication provider (Supabase), the hosting provider (Vercel / Netlify), the AI model provider analysing meal photos (Google). The full list with processing regions is in the Privacy Policy.", "The Processor gives 14 days\u2019 notice of any intended addition or replacement of a sub-processor; the Controller may object within that time, which terminates this agreement."]],
+      ["6. Controller\u2019s obligations", ["The Controller is responsible for having a lawful basis for processing its patients\u2019 data and for informing them that Plately is used as a tool.", "The Controller uses the panel only to guide patients who joined its programme and does not grant access to unauthorised persons."]],
+      ["7. Termination", ["This agreement ends when the practice account is deleted or the last patient\u2019s programme ends. Patient data is not deleted by the Processor as a result \u2014 it remains on the patients\u2019 accounts as their own data.", "The Controller may end this agreement at any time by ending its patients\u2019 programmes in the panel."]],
+    ]},
+  };
+  // PLACEHOLDER FOR LEGAL REVIEW. Written from what the code does and covering
+  // Article 28(3), not read by a lawyer. Bump DPA_VERSION after any change.
+
+  function showDpa() {
+    var doc = DPA[PRACTICE_LANG] || DPA.en;
+    showModal('<div class="modal-head"><h3>' + esc(doc.title) + '</h3><button type="button" class="btn btn-sm" data-act="scrim">\u00d7</button></div>' +
+      '<div class="modal-body practice-dpa">' + doc.sections.map(function (sec) {
+        return "<h4>" + esc(sec[0]) + "</h4>" + sec[1].map(function (par) { return "<p>" + esc(par) + "</p>"; }).join("");
+      }).join("") + "</div>");
+  }
+
+  var PRACTICE_ACTIONS = {
+    "practice-lang": function () {
+      PRACTICE_LANG = PRACTICE_LANG === "pl" ? "en" : "pl";
+      try { localStorage.setItem("plately_practice_lang", PRACTICE_LANG); } catch (e) {}
+      render();
+    },
+    "practice-signout": function (el) {
+      busy(el, true);
+      api("/api/staff/logout", { method: "POST" }).then(function () { location.href = "/staff"; });
+    },
+    "practice-dpa": function (el, event) { if (event) event.preventDefault(); showDpa(); },
+    "practice-copy": function (el) {
+      var text = el.dataset.copy || "";
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast("Copied"); });
+    },
+    "practice-recheck": function (el) {
+      busy(el, true);
+      S.practice.error = "";
+      api("/api/practice/recheck", { method: "POST" }).then(function (data) {
+        S.practice.me = data.dietitian; S.practice.evidence = data.evidence || null;
+        loadPractice();
+      }).catch(function (err) {
+        busy(el, false);
+        S.practice.error = err.status === 429 ? pt("recheckLimit") : err.message;
+        render();
+      });
+    },
+    "practice-open": function (el) {
+      S.practice.open = S.practice.open === el.dataset.id ? null : el.dataset.id;
+      render();
+      var node = document.querySelector('.practice-pat-head[data-id="' + S.practice.open + '"]');
+      if (node) node.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    },
+    "practice-invite": function (el) {
+      busy(el, true);
+      S.practice.inviteError = "";
+      api("/api/practice/invite", { method: "POST", body: { seatType: el.dataset.seat } }).then(function (data) {
+        S.practice.fresh = { code: data.code };
+        return api("/api/practice/invites");
+      }).then(function (data) { S.practice.invites = data.invites || []; render(); })
+        .catch(function (err) { busy(el, false); S.practice.inviteError = err.data && err.data.error === "seat_limit" ? pt("seatLimit") : err.message; render(); });
+    },
+    "practice-fresh-close": function () { S.practice.fresh = null; render(); },
+    "practice-invite-revoke": function (el) {
+      busy(el, true);
+      api("/api/practice/invite-revoke", { method: "POST", body: { prefix: el.dataset.prefix } })
+        .then(function () { return api("/api/practice/invites"); })
+        .then(function (data) { S.practice.invites = data.invites || []; render(); })
+        .catch(function (err) { busy(el, false); toast(err.message, true); });
+    },
+    "practice-goals": function (el) {
+      var id = el.dataset.id;
+      var g = function (k) { var v = value("g-" + k + "-" + id); return v === "" ? null : Number(v); };
+      busy(el, true);
+      api("/api/practice/goals", { method: "POST", body: { patientId: el.dataset.patient, calorie: g("calorie"), protein: g("protein"), carb: g("carb"), fat: g("fat") } })
+        .then(function () { toast(pt("saved")); loadPractice(); })
+        .catch(function (err) { busy(el, false); toast(err.message, true); });
+    },
+    "practice-coach": function (el) {
+      busy(el, true);
+      api("/api/practice/coach", { method: "POST", body: { membershipId: el.dataset.id, enabled: el.dataset.on === "1" } })
+        .then(function () { loadPractice(); }).catch(function (err) { busy(el, false); toast(err.message, true); });
+    },
+    "practice-seat": function (el) {
+      busy(el, true);
+      api("/api/practice/seat", { method: "POST", body: { membershipId: el.dataset.id, seatType: el.dataset.seat } })
+        .then(function () { loadPractice(); }).catch(function (err) { busy(el, false); toast(err.message, true); });
+    },
+    "practice-end": function (el) {
+      if (!confirm(pt("endConfirm"))) return;
+      busy(el, true);
+      api("/api/practice/end", { method: "POST", body: { membershipId: el.dataset.id } })
+        .then(function () { S.practice.open = null; loadPractice(); }).catch(function (err) { busy(el, false); toast(err.message, true); });
+    },
+  };
+
   var ACTIONS = {
     google: function () {
       var button = document.querySelector('[data-act="google"]');
@@ -2656,7 +3084,7 @@
   document.addEventListener("click", function (event) {
     var el = event.target.closest("[data-act]");
     if (!el) return;
-    var action = ACTIONS[el.dataset.act];
+    var action = (PRACTICE_ACTIONS[el.dataset.act] || ACTIONS[el.dataset.act]);
     if (!action) return;
     action(el, event);
   });

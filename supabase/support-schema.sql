@@ -1010,14 +1010,16 @@ as $$
                               where t2.customer_id = c.id
                               order by t2.created_at desc limit 6) t), '[]'::jsonb),
 
-    -- Plately Pro. The practice row from the app's schema, if this customer
-    -- registered one — everything the desk needs to approve or reject a
-    -- verification without opening another tool. Like `entitlements` and
-    -- `payments` above, this reads the app's schema, so the app's schema.sql
-    -- (with its PLATELY PRO block) has to be applied before this file.
-    'dietitian', (select to_jsonb(d) - 'user_id'
+    -- Plately Pro. The practice row, if this customer registered one —
+    -- everything the desk needs to approve or reject a verification without
+    -- opening another tool. Joined on e-mail: a dietitian signs in on this
+    -- site with Google, never in the app, so there is no app_user_id to join
+    -- on and there must not be. Like `entitlements` and `payments` above, this
+    -- reads the app's schema, so the app's schema.sql (with its PLATELY PRO
+    -- block) has to be applied before this file.
+    'dietitian', (select to_jsonb(d)
                     from public.dietitians d
-                   where d.user_id = c.app_user_id)
+                   where lower(d.email) = lower(c.email))
   )
   from public.support_customers c
   where c.id = p_customer_id;
@@ -1029,8 +1031,8 @@ revoke all on function public.support_customer_context(uuid) from public;
 -- ============================================================================
 -- support_file_verification_ticket — a practice asks to be verified
 --
--- Called by the app's serverless verification handler (service role) when the
--- automatic checks did not clear a practice on their own. Same atomic shape as
+-- Called by api/practice (service role) when the automatic checks did not clear
+-- a practice on their own. Same atomic shape as
 -- support_confirm_request(): customer, ticket, first message, event — one
 -- transaction, so a half-filed request cannot exist.
 --
@@ -1039,34 +1041,32 @@ revoke all on function public.support_customer_context(uuid) from public;
 -- rather than pile up in the inbox. A second call adds a note to the existing
 -- thread instead.
 -- ============================================================================
-create or replace function public.support_file_verification_ticket(p_user_id uuid, p_summary jsonb)
+create or replace function public.support_file_verification_ticket(p_email text, p_name text, p_summary jsonb)
 returns jsonb
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  v_email       text;
-  v_name        text;
+  v_email       text := lower(trim(p_email));
+  v_name        text := nullif(trim(coalesce(p_name, '')), '');
   v_customer_id uuid;
   v_ticket_id   uuid;
   v_number      integer;
   v_business    text := coalesce(p_summary ->> 'businessName', '(no name)');
   v_body        text := coalesce(p_summary ->> 'body', '');
 begin
-  select lower(u.email), coalesce(u.raw_user_meta_data ->> 'full_name', u.raw_user_meta_data ->> 'name')
-    into v_email, v_name
-    from auth.users u where u.id = p_user_id;
-
-  if v_email is null then
-    return jsonb_build_object('ok', false, 'error', 'no_user');
+  if v_email is null or position('@' in v_email) = 0 then
+    return jsonb_build_object('ok', false, 'error', 'no_email');
   end if;
 
-  insert into public.support_customers (email, name, app_user_id, last_seen_at)
-  values (v_email, v_name, p_user_id, now())
+  -- No app_user_id: the dietitian is a site-side identity. If the same address
+  -- also happens to own an app account, the customer row picks it up the first
+  -- time they write in from the app, exactly as before.
+  insert into public.support_customers (email, name, last_seen_at)
+  values (v_email, v_name, now())
   on conflict (lower(email)) do update
     set name         = coalesce(support_customers.name, excluded.name),
-        app_user_id  = coalesce(support_customers.app_user_id, excluded.app_user_id),
         last_seen_at = now()
   returning id into v_customer_id;
 
@@ -1113,7 +1113,7 @@ begin
 end;
 $$;
 
-revoke all on function public.support_file_verification_ticket(uuid, jsonb) from public;
+revoke all on function public.support_file_verification_ticket(text, text, jsonb) from public;
 
 
 -- ============================================================================

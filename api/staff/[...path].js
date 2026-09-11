@@ -45,6 +45,11 @@ import {
   readPreSession,
   readVerifiedPreSession,
   requireStaff,
+  issuePracticeSession,
+  issuePracticePending,
+  readPracticeSession,
+  readPracticePending,
+  publicDietitian,
   can,
   permissionMap,
   verifyTurnstile,
@@ -312,8 +317,10 @@ async function handleCallback(request) {
 
   const staff = await selectOne("staff", `select=*&email=eq.${q(email)}`);
   if (!staff) {
-    await logEvent({ actor: email, action: "signin.rejected", detail: { reason: "not_staff" } });
-    return fail("not_staff");
+    // Not on the team: this is a dietitian, registered or about to be. The
+    // same Google door serves both audiences; which room it opens is decided
+    // here, by the address, and nowhere else.
+    return await practiceSignIn(claims, email, drop);
   }
   if (!staff.active) return fail("inactive");
   // The address is the login, but the Google account behind it is pinned on
@@ -336,6 +343,36 @@ async function handleCallback(request) {
   await logEvent({ staff_id: staff.id, actor: email, action: "signin.google" });
 
   return withCookies(null, [drop, preCookie], 302, { Location: "/staff" });
+}
+
+/**
+ * A Google account that is not staff. A registered practice gets its session;
+ * anyone else gets a short-lived "pending" cookie and the registration form.
+ * Pinning `google_sub` on first use is the same rule as for staff: an address
+ * that changes hands is a different person.
+ */
+async function practiceSignIn(claims, email, dropOauth) {
+  const dietitian = await selectOne("dietitians", `select=*&email=eq.${q(email)}`);
+  if (dietitian) {
+    if (dietitian.google_sub && !timingSafeEqual(dietitian.google_sub, String(claims.sub))) {
+      return redirect("/staff?error=account_mismatch", { "Set-Cookie": dropOauth });
+    }
+    await update(
+      "dietitians",
+      `id=eq.${q(dietitian.id)}`,
+      {
+        google_sub: dietitian.google_sub || String(claims.sub),
+        display_name: dietitian.display_name || claims.name || null,
+        avatar_url: claims.picture || dietitian.avatar_url || null,
+        last_seen_at: new Date().toISOString(),
+      },
+      { returning: false }
+    );
+    const cookie = await issuePracticeSession(dietitian);
+    return withCookies(null, [dropOauth, cookie], 302, { Location: "/staff" });
+  }
+  const pending = await issuePracticePending(claims);
+  return withCookies(null, [dropOauth, pending], 302, { Location: "/staff" });
 }
 
 // --- 3. session -------------------------------------------------------------
@@ -377,12 +414,25 @@ async function readSession(request) {
     }
   }
 
+  // Dietitians. Checked after the staff paths so a staff member's browser that
+  // somehow holds both cookies is still treated as staff.
+  const practice = await readPracticeSession(request);
+  if (practice) {
+    const dietitian = await selectOne("dietitians", `select=*&id=eq.${q(practice.did)}`);
+    if (dietitian) return json({ state: "practice", dietitian: publicDietitian(dietitian) });
+  }
+  const pending = await readPracticePending(request);
+  if (pending) {
+    return json({ state: "practice_register", email: pending.em, displayName: pending.nm, avatarUrl: pending.pic });
+  }
+
   return json({
     state: "signed_out",
     turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
     googleConfigured: Boolean(process.env.GOOGLE_CLIENT_ID),
   });
 }
+
 
 /**
  * Which setup steps are done — checkable with curl, before anyone signs in.
@@ -806,7 +856,12 @@ async function confirmRelinkTotp(request) {
 async function logout(request) {
   const auth = await requireStaff(request);
   if (auth.staff) await logEvent({ staff_id: auth.staff.id, actor: auth.staff.email, action: "signout" });
-  return withCookies({ ok: true }, [clearCookie(COOKIES.FULL), clearCookie(COOKIES.PRE)]);
+  // Every cookie this site issues, staff or practice: one logout button, one
+  // meaning, whichever room the person was in.
+  return withCookies({ ok: true }, [
+    clearCookie(COOKIES.FULL), clearCookie(COOKIES.PRE),
+    clearCookie(COOKIES.PRACTICE), clearCookie(COOKIES.PRACTICE_PENDING),
+  ]);
 }
 
 // --- 5. managing the team (owner only) --------------------------------------

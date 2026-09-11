@@ -779,14 +779,18 @@ async function verifyPractice(request, session, staff) {
   if (!ticketId || !customerId) return json({ error: "ticketId and customerId are required" }, 400);
   if (decision !== "approve" && decision !== "reject") return json({ error: "Invalid decision" }, 400);
 
-  const customer = await selectOne("support_customers", `select=id,email,name,app_user_id,locale&id=eq.${q(customerId)}`);
-  if (!customer?.app_user_id) return json({ error: "This customer has no app account" }, 404);
+  const customer = await selectOne("support_customers", `select=id,email,name,locale&id=eq.${q(customerId)}`);
+  if (!customer) return json({ error: "Customer not found" }, 404);
+  // The practice is a site-side identity keyed by e-mail — the same address the
+  // ticket was filed from. No app account is involved and none is required.
+  const dietitian = await selectOne("dietitians", `select=id,email&email=eq.${q(String(customer.email).toLowerCase())}`);
+  if (!dietitian) return json({ error: "No practice registered for this address" }, 404);
 
   const state = decision === "approve" ? "verified" : "rejected";
   const cleanNote = typeof note === "string" ? note.trim().slice(0, 1000) : null;
 
   const result = await rpc("admin_set_dietitian_verification", {
-    p_user_id: customer.app_user_id,
+    p_dietitian_id: dietitian.id,
     p_state: state,
     p_method: "manual",
     p_note: cleanNote,
@@ -810,7 +814,7 @@ async function verifyPractice(request, session, staff) {
     staff_id: staff.id,
     actor: staff.email,
     action: decision === "approve" ? "practice.verified" : "practice.rejected",
-    detail: { app_user_id: customer.app_user_id, note: cleanNote },
+    detail: { dietitian_id: dietitian.id, note: cleanNote },
   });
 
   // Tell the dietitian. Polish unless the customer's locale says otherwise —
@@ -829,11 +833,12 @@ async function verifyPractice(request, session, staff) {
       : (pl
           ? `Osoba sprawdzająca zgłoszenie zostawiła notatkę: ${cleanNote || "brak"}. Jeśli to pomyłka, odpisz na tę wiadomość.`
           : `The reviewer left a note: ${cleanNote || "none"}. If you think this is a mistake, reply to this message.`);
-    const appUrl = (process.env.APP_URL || "https://app.plately.eu/").replace(/\/+$/, "");
+    // The panel lives on this site, not in the app.
+    const siteUrl = (process.env.SITE_URL || "https://plately.eu").replace(/\/+$/, "");
     const rendered = lifecycleEmail({
       title, body, locale,
       cta: approved ? (pl ? "Otwórz panel" : "Open the panel") : undefined,
-      ctaUrl: approved ? `${appUrl}/pro` : undefined,
+      ctaUrl: approved ? `${siteUrl}/staff` : undefined,
     });
     const from = identities().support;
     try {
