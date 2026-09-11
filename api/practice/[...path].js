@@ -64,6 +64,7 @@ export default async function handler(request) {
 
     switch (`${request.method} ${route}`) {
       case "POST recheck":       return await recheck(dietitian);
+      case "POST manual":        return await requestManual(dietitian);
       case "GET overview":       return await overview(dietitian);
       case "GET patients":       return json({ patients: await rpc("pro_patients", { p_dietitian_id: dietitian.id, p_tz: tz(url) }) });
       case "GET invites":        return json({ invites: await rpc("pro_invites", { p_dietitian_id: dietitian.id }) });
@@ -110,6 +111,7 @@ async function register(request) {
   const website = normaliseDomain(clean(body.website, 200));
   const country = clean(body.country, 2).toUpperCase();
   const city = clean(body.city, 80);
+  const vatNumber = clean(body.vatNumber, 32) || null;
   const dpaVersion = clean(body.dpaVersion, 20) || null;
 
   if (businessName.length < 2 || !website) return json({ error: "bad_request" }, 400);
@@ -129,6 +131,7 @@ async function register(request) {
     p_website: website,
     p_country: country || null,
     p_city: city || null,
+    p_vat_number: vatNumber,
     p_dpa_version: dpaVersion,
     p_ip_hash: await ipHash(request),
   });
@@ -162,27 +165,56 @@ async function sessionResponse(dietitian) {
 }
 
 /**
- * Applies a verification result. Auto-pass calls the same function the help
- * desk calls on Approve, so "what does verified grant" lives in one place.
- * A ticket is filed only for `pending`, and only best-effort: the row is the
- * truth, the ticket is its notification.
+ * Applies a verification result. Three outcomes, in the order the steps run:
+ *
+ *   auto-pass          → verified. The same function the help desk calls on
+ *                        Approve, so "what does verified grant" lives in one
+ *                        place. An open ticket from an earlier attempt is
+ *                        closed — the person no longer has anything to decide.
+ *   domain unproven    → stays `unverified`, evidence saved, NO ticket. The
+ *                        dietitian is on the TXT record; a queue entry for
+ *                        that would be noise. `manual` overrides this: the
+ *                        dietitian asked for a person because they cannot
+ *                        touch DNS.
+ *   anything else      → pending + a ticket carrying the per-step summary.
+ *
+ * The ticket is best-effort: the row is the truth, the ticket is its
+ * notification.
  */
-async function settle(dietitian, evidence) {
-  if (evidence.autopass) {
+async function settle(dietitian, evidence, { manual = false } = {}) {
+  const ev = manual ? { ...evidence, manualRequested: true } : evidence;
+
+  if (ev.autopass) {
     await rpc("admin_set_dietitian_verification", {
       p_dietitian_id: dietitian.id,
       p_state: "verified",
-      p_method: evidence.ownership === "email_domain" ? "email_domain" : "domain_txt",
+      p_method: ev.ownership === "email_domain" ? "email_domain" : "domain_txt",
       p_note: null,
-      p_evidence: evidence,
+      p_evidence: ev,
+    });
+    try {
+      await rpc("support_resolve_verification_ticket", {
+        p_email: dietitian.email,
+        p_body: "Zweryfikowano automatycznie: domena, VIES i Google Maps przeszły przy ponownym sprawdzeniu.",
+      });
+    } catch (err) {
+      console.error("practice: ticket not resolved", err?.message || err);
+    }
+  } else if (ev.steps?.domain !== "passed" && !manual) {
+    await rpc("admin_set_dietitian_verification", {
+      p_dietitian_id: dietitian.id,
+      p_state: "unverified",
+      p_method: null,
+      p_note: null,
+      p_evidence: ev,
     });
   } else {
     await rpc("admin_set_dietitian_verification", {
       p_dietitian_id: dietitian.id,
       p_state: "pending",
-      p_method: evidence.ownership,
+      p_method: ev.ownership,
       p_note: null,
-      p_evidence: evidence,
+      p_evidence: ev,
     });
     try {
       await rpc("support_file_verification_ticket", {
@@ -193,10 +225,12 @@ async function settle(dietitian, evidence) {
           website: dietitian.website,
           city: dietitian.city,
           country: dietitian.country,
-          ownership: evidence.ownership,
-          reasons: evidence.reasons,
-          places: evidence.places,
-          body: summariseForTicket(dietitian, evidence),
+          vatNumber: dietitian.vat_number,
+          ownership: ev.ownership,
+          steps: ev.steps,
+          reasons: ev.reasons,
+          manualRequested: manual,
+          body: summariseForTicket(dietitian, ev),
         },
       });
     } catch (err) {
@@ -216,7 +250,28 @@ async function recheck(dietitian) {
   if (withinHour && (previous?.rechecks ?? 0) >= MAX_RECHECKS_PER_HOUR) return json({ error: "rate_limited" }, 429);
 
   const evidence = await runChecks(dietitian, withinHour ? previous : { ...(previous || {}), rechecks: 0 });
-  const settled = await settle(dietitian, evidence);
+  // A practice already in the queue stays in it (and the ticket gets the
+  // fresh summary) even if the domain step somehow regressed — a person is
+  // already looking, and flipping them back out would lose that.
+  const manual = dietitian.verification_state === "pending";
+  const settled = await settle(dietitian, evidence, { manual });
+  return json({ ok: true, dietitian: publicDietitian(settled), evidence });
+}
+
+/**
+ * "I cannot add a TXT record — let a person verify me." Only meaningful while
+ * the domain step is what blocks: the practice goes to `pending` with a
+ * ticket that says the dietitian asked, so the reviewer knows to look at the
+ * company and the listing themselves.
+ */
+async function requestManual(dietitian) {
+  if (dietitian.verification_state === "verified") return json({ ok: true, dietitian: publicDietitian(dietitian) });
+  if (dietitian.verification_state === "rejected") return json({ error: "rejected" }, 409);
+  if (dietitian.verification_state === "pending") return json({ ok: true, dietitian: publicDietitian(dietitian) });
+
+  const previous = dietitian.verification_evidence || null;
+  const evidence = previous && previous.version === 2 ? previous : await runChecks(dietitian, null);
+  const settled = await settle(dietitian, evidence, { manual: true });
   return json({ ok: true, dietitian: publicDietitian(settled), evidence });
 }
 

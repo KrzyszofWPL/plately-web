@@ -1120,6 +1120,60 @@ $$;
 
 revoke all on function public.support_file_verification_ticket(text, text, jsonb) from public;
 
+-- ============================================================================
+-- support_resolve_verification_ticket — the automatic checks passed after all
+--
+-- A practice that was queued for a person (VIES down, reviews short) can
+-- re-run its checks and pass. When it does, the open Verification thread is
+-- closed here with a system line, so nobody opens a ticket to approve a
+-- practice that is already verified. No-op without an open thread.
+-- ============================================================================
+create or replace function public.support_resolve_verification_ticket(p_email text, p_body text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_email  text := lower(trim(p_email));
+  v_ticket record;
+  v_count  integer := 0;
+begin
+  if v_email is null or position('@' in v_email) = 0 then
+    return jsonb_build_object('ok', false, 'error', 'no_email');
+  end if;
+
+  for v_ticket in
+    select t.id
+      from public.support_tickets t
+      join public.support_customers c on c.id = t.customer_id
+     where lower(c.email) = v_email
+       and t.tag = 'Verification'
+       and t.status in ('open', 'pending')
+  loop
+    insert into public.support_messages (ticket_id, kind, author_name, body)
+    values (v_ticket.id, 'system', 'system', coalesce(p_body, 'Practice verified automatically.'));
+
+    update public.support_tickets
+       set status = 'solved',
+           solved_at = now(),
+           last_message_at = now(),
+           message_count = message_count + 1,
+           updated_at = now()
+     where id = v_ticket.id;
+
+    insert into public.support_events (ticket_id, actor, action, detail)
+    values (v_ticket.id, v_email, 'practice.autoverified', '{}'::jsonb);
+
+    v_count := v_count + 1;
+  end loop;
+
+  return jsonb_build_object('ok', true, 'resolved', v_count);
+end;
+$$;
+
+revoke all on function public.support_resolve_verification_ticket(text, text) from public;
+
 
 -- ============================================================================
 -- support_customers_overview — the Customers screen

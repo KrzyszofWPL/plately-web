@@ -494,6 +494,7 @@ export function publicDietitian(d) {
     website: d.website,
     city: d.city,
     country: d.country,
+    vatNumber: d.vat_number,
     verificationState: d.verification_state,
     verificationMethod: d.verification_method,
     verificationNote: d.verification_note,
