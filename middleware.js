@@ -87,12 +87,13 @@ export default async function middleware(request) {
 
   if (ALWAYS_PUBLIC.has(pathname)) return passThrough();
 
-  // Strona prezentu. Link plately.eu/giftcards/<uuid> ktos dostal na urodziny
-  // i otwiera go dokladnie raz, wtedy, kiedy chce -- a 503 w tym miejscu to
-  // "prezent nie dziala", nie "strona ma przerwe". Rozmawia z /api/gift i z
-  // baza, czyli z tym, czego przerwa techniczna nie wylacza (ten sam powod,
-  // co /help wyzej). Grafika karty lezy pod /giftcard/ i musi isc razem.
-  if (pathname === "/giftcards" || pathname.startsWith("/giftcards/") || pathname.startsWith("/giftcard/")) {
+  // Strona prezentu (/gift, pod ktora przepisuje sie /giftcards/<uuid>) i
+  // sklep z kartami (/giftcards). Link ktos dostal na urodziny i otwiera go
+  // dokladnie raz, wtedy, kiedy chce -- a 503 w tym miejscu to "prezent nie
+  // dziala", nie "strona ma przerwe". Rozmawia z /api/gift i z baza, czyli z
+  // tym, czego przerwa techniczna nie wylacza (ten sam powod, co /help
+  // wyzej). Grafika karty lezy pod /giftcard/ i musi isc razem.
+  if (pathname === "/gift" || pathname === "/giftcards" || pathname.startsWith("/giftcards/") || pathname.startsWith("/giftcard/")) {
     return passThrough();
   }
 

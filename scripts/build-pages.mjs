@@ -607,6 +607,7 @@ ${alternates}
     // "plately gift card code" is the query a marketplace buyer types after
     // the card arrives; the page that answers it is one field and a button.
     { slug: 'redeem', changefreq: 'monthly', priority: '0.5' },
+    { slug: 'giftcards', changefreq: 'monthly', priority: '0.6' },
   ]
     .map(
       ({ slug, changefreq, priority }) => `  <url>

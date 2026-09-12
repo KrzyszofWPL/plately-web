@@ -1,6 +1,7 @@
 # Karta podarunkowa — źródła
 
-Grafika karty z `/giftcards/<link>` (`public/giftcards.html`). Tu leżą pliki
+Grafika karty z `/giftcards/<link>` (`public/gift.html`; `public/giftcards.html`
+to sklep). Tu leżą pliki
 projektowe; strona czyta wyłącznie zoptymalizowane kopie z `public/giftcard/`.
 
 | plik | co to jest |
@@ -14,13 +15,13 @@ projektowe; strona czyta wyłącznie zoptymalizowane kopie z `public/giftcard/`.
 Napisy („KOD CYFROWY”, plan i liczba dni, hasło na dole) strona nakłada sama,
 tekstem HTML na `front.webp` — dzięki temu ta sama grafika obsługuje Premium
 i Ultra, każdą długość i oba języki. Pozycje i rozmiary w `.over` w
-`giftcards.html` są odwzorowane z `Giftcard.png`: bloki w rogach są
+`gift.html` są odwzorowane z `Giftcard.png`: bloki w rogach są
 wyśrodkowane same w sobie („KOD” nad „CYFROWY”), a hasło na dole ma kilka
 warstw cienia — to odpowiednik potrójnej kopii warstwy z PSD.
 
 Rewers jest biały i rysowany w całości w HTML — z PSD bierze tylko wykrój.
-Pod zdrapką jest kod i kod QR prowadzący na `plately.eu/redeem?code=…` (kod
-wpisuje się sam), a kod kreskowy niesie tylko datę wydania i ID karty (obie
+Pod zdrapką jest sam kod; kod QR w rogu prowadzi na `plately.eu` i nic
+więcej nie niesie, a kod kreskowy — tylko datę wydania i ID karty (obie
 rzeczy wypisane pod nim). Napisy na stronie i na karcie są w dwunastu
 językach aplikacji — słownik w `public/giftcard/i18n.js`, generator QR w
 `public/giftcard/qr.js`.

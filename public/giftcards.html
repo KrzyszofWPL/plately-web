@@ -3,685 +3,281 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dostałeś prezent — Plately</title>
-<!-- A gift link is a private thing: it must never be indexed, never appear
-     in a search result, never be followed from here to anywhere else. -->
-<meta name="robots" content="noindex, nofollow">
-<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Karta podarunkowa Plately — sklep</title>
+<meta name="description" content="Podaruj plan Premium albo Ultra na 31, 92 lub 366 dni. Obdarowany dostaje link, rozpakowuje kartę i zdrapuje kod.">
+<link rel="canonical" href="https://www.plately.eu/giftcards">
+<meta name="robots" content="index, follow">
 <meta name="theme-color" content="#0a0a0b">
 <link rel="icon" type="image/png" href="/logo.png">
 <link rel="apple-touch-icon" href="/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Montserrat is the face on the card itself — the printed artwork uses it,
-     and the text laid over the picture has to match what the picture would
-     have said. Everything around the card is the panel's Inter. -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<!-- The same stylesheet as /staff: this page is drawn with the panel's tokens
-     and components (the split hero, .auth-box, .btn, .field, .chip), so the
-     gift is received in the same room the rest of Plately lives in. -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<!-- The gift-card shop. Same stylesheet as /staff, /redeem and the gift page
+     itself: one room for everything the card touches.
+
+     What it sells is decided here (plan × period) and paid for in the app:
+     the button carries the choice to app.plately.eu as `?gift=<plan>&period=`,
+     the app opens its paywall on the gift tab with that choice made, the
+     existing crypto checkout does the rest, and the link to hand over
+     appears in the app under Settings → My gift cards. No second checkout to
+     keep in step with the first. -->
 <link rel="stylesheet" href="/staff/support.css?v=23">
-<link rel="preload" as="image" href="/giftcard/wrapped.webp">
-<link rel="preload" as="image" href="/giftcard/front.webp">
 <script>document.documentElement.dataset.theme = 'dark';</script>
 <style>
   [hidden] { display: none !important; }
-  .gift.auth { min-height: 100dvh; }
-  /* The hero holds the card, not a headline. */
-  .gift .auth-hero { display: flex; flex-direction: column; align-items: stretch; }
-  .gift .auth-hero .stage { margin: auto 0; display: flex; flex-direction: column; align-items: center; }
-  .gift .auth-hero .hint { margin-top: 22px; font-size: 13px; font-weight: 600; letter-spacing: .02em; opacity: .75; text-align: center; }
-  .gift .flip-row { margin-top: 18px; display: flex; gap: 10px; justify-content: center; }
-  .gift .auth-hero .btn { border-color: rgba(0,0,0,.18); color: var(--m3-on-primary-container); background: rgba(255,255,255,.08); }
-  .gift .auth-hero .btn:hover:not(:disabled) { background: rgba(255,255,255,.16); }
-  .ts-slot { margin-top: 18px; min-height: 0; display: flex; justify-content: center; }
+  .shop.auth { min-height: 100dvh; }
+  .shop .auth-hero .auth-copy .art { width: min(220px, 44%); height: auto; margin: 0 0 28px; border-radius: 12px; box-shadow: 0 30px 50px -18px rgba(0,0,0,.55); display: block; transform: rotate(-4deg); }
+  .shop .auth-hero ul { margin: 22px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; max-width: 560px; }
+  .shop .auth-hero li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 24px; opacity: .88; }
+  .shop .auth-hero li::before { content: "✓"; flex: none; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; background: var(--m3-on-primary-container); color: var(--m3-primary-container); margin-top: 1px; }
+  @media (max-height: 820px) { .shop .auth-hero .auth-copy .art { width: 150px; margin-bottom: 18px; } .shop .auth-hero li { font-size: 14px; line-height: 22px; } }
+  @media (max-width: 900px) { .shop .auth-hero .auth-copy .art, .shop .auth-hero ul { display: none; } }
 
-  /* -- the panel -------------------------------------------------------- */
-  .gift .auth-box { max-width: 460px; }
-  .gift-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
-  .gift-top select.field { width: auto; min-height: 36px; padding: 0 32px 0 12px; font-size: 12px; font-weight: 600; border-radius: 999px; background: var(--m3-surface-container) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a8a92' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center; }
-  .status { min-height: 22px; margin: 0 0 6px; font-size: 13px; color: var(--m3-on-surface-variant); display: flex; align-items: center; gap: 10px; }
-  .reveal { opacity: 0; transform: translateY(10px); transition: opacity .5s ease, transform .5s ease; }
-  .reveal.in { opacity: 1; transform: none; }
-  .code-row { display: flex; align-items: stretch; gap: 8px; }
-  .code-box { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 14px; border-radius: 16px; border: 1px solid var(--m3-outline-variant); background: var(--m3-surface-container); font: 700 clamp(15px,3.8vw,19px)/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; overflow-wrap: anywhere; user-select: all; }
-  .code-row .btn { min-height: 52px; border-radius: 16px; }
-  .meta-line { margin: 12px 0 0; font-size: 13px; line-height: 20px; color: var(--m3-on-surface-variant); }
-  .meta-line strong { color: var(--m3-on-surface); font-weight: 600; }
-  .go { width: 100%; min-height: 52px; margin-top: 18px; font-size: 14px; }
-  .how { margin: 18px 0 0; padding: 14px 16px; border-radius: 16px; font-size: 13px; line-height: 20px; color: var(--m3-on-surface-variant); background: var(--m3-surface-container-low); border: 1px solid var(--card-border); }
-  .how b { color: var(--m3-on-surface); font-weight: 600; }
-  .panel .why { margin-top: 8px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; opacity: .8; word-break: break-word; }
-  .panel .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .panel h2 { font-size: 15px; line-height: 22px; margin: 0; font-weight: 700; }
-  .panel p { margin: 6px 0 0; }
-  .auth-warn { margin-top: 16px; padding: 12px 14px; border-radius: 14px; font-size: 13px; line-height: 19px; background: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
+  .shop .auth-box { max-width: 460px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .top a { font-size: 13px; font-weight: 600; }
+  .top select.field { width: auto; min-height: 36px; padding: 0 32px 0 12px; font-size: 12px; font-weight: 600; border-radius: 999px; background: var(--m3-surface-container) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a8a92' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center; }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 6px; border-radius: 999px; background: var(--m3-surface-container); border: 1px solid var(--m3-outline-variant); }
+  .seg button { min-height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--m3-on-surface-variant); font-size: 13px; font-weight: 600; cursor: pointer; transition: background .14s ease, color .14s ease; }
+  .seg button[aria-pressed="true"] { background: var(--m3-primary); color: var(--m3-on-primary); }
+  .blurb { margin: 10px 0 0; font-size: 13px; line-height: 20px; color: var(--m3-on-surface-variant); min-height: 40px; }
+
+  .periods { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .period { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--m3-outline-variant); background: var(--m3-surface-container-low); cursor: pointer; text-align: left; color: var(--m3-on-surface); font: inherit; transition: border-color .14s ease, background .14s ease; }
+  .period:hover { background: var(--m3-surface-container); }
+  .period[aria-pressed="true"] { border-color: var(--m3-primary); background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
+  .period .dot { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--m3-outline); }
+  .period[aria-pressed="true"] .dot { border-color: var(--m3-primary); background: var(--m3-primary); box-shadow: inset 0 0 0 3px var(--m3-primary-container); }
+  .period .days { font-size: 14px; font-weight: 700; }
+  .period .sub { font-size: 12px; opacity: .75; margin-top: 2px; }
+  .period .price { margin-left: auto; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .period .chip { margin-left: 8px; }
+
+  .summary { margin: 16px 0 0; padding: 14px 16px; border-radius: 16px; background: var(--m3-surface-container-low); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; line-height: 20px; }
+  .summary strong { color: var(--m3-on-surface); font-weight: 600; }
+  .summary .total { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 20px; font-weight: 700; color: var(--m3-on-surface); }
+  .buy { width: 100%; min-height: 52px; margin-top: 12px; font-size: 14px; }
+  .pay-note { margin: 10px 0 0; font-size: 12px; line-height: 18px; color: var(--m3-on-surface-variant); }
+  .steps { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; line-height: 20px; color: var(--m3-on-surface-variant); }
+  .steps i { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-style: normal; font-size: 11px; font-weight: 700; background: var(--m3-primary-container); color: var(--m3-on-primary-container); margin-top: -1px; }
+  .steps b { color: var(--m3-on-surface); font-weight: 600; }
   .auth-note p { font-size: 12px; line-height: 18px; }
-
-  /* -- the card ----------------------------------------------------------
-     One card-shaped thing in three states: wrapped, front, back. The
-     wrapping is its own layer on top, so unwrapping is the paper coming
-     apart with the card underneath it the whole time. */
-  .card-wrap { position: relative; z-index: 1; width: min(400px, 80vw); aspect-ratio: 1017 / 1465; perspective: 1700px; }
-  /* `.gc`, not `.card`: the panel's stylesheet already owns `.card` (a padded, bordered box), and a 26px padding on the card's container would make every cqw on it 13% short. */
-  .gc { position: absolute; inset: 0; transform-style: preserve-3d; transform: scale(.94); transition: transform .9s cubic-bezier(.4,0,.2,1); container-type: inline-size; }
-  .card-wrap.opened .gc { transform: none; cursor: pointer; }
-  .card-wrap.opened.flipped .gc { transform: rotateY(180deg); }
-  /* Each face sits one pixel in front of the card plane on its own side, so
-     the visible face is unambiguously the one on top for hit-testing. */
-  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: translateZ(1px); }
-  .face.back { transform: rotateY(180deg) translateZ(1px); }
-  .face .die { display: block; width: 100%; height: 100%; filter: drop-shadow(0 30px 44px rgba(0,0,0,.55)); }
-
-  .wrap { position: absolute; inset: 0; z-index: 3; border: 0; padding: 0; background: none; cursor: pointer; font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
-  .wrap .half { position: absolute; inset: 0; width: 100%; height: 100%; display: block; filter: drop-shadow(0 26px 44px rgba(0,0,0,.5)); transition: transform 1s cubic-bezier(.2,.8,.2,1), opacity .8s ease; will-change: transform, opacity; }
-  .wrap .half.l { clip-path: inset(0 50% 0 0); }
-  .wrap .half.r { clip-path: inset(0 0 0 50%); }
-  .wrap:hover .half.l { transform: translate(-1.5%, -1%) rotate(-.6deg); }
-  .wrap:hover .half.r { transform: translate(1.5%, -1%) rotate(.6deg); }
-  .wrap.checking { animation: wobble 1.1s ease-in-out infinite; }
-  .wrap.open { pointer-events: none; }
-  .wrap.open .half.l { transform: translate(-58%, 8%) rotate(-12deg); opacity: 0; }
-  .wrap.open .half.r { transform: translate(58%, 8%) rotate(12deg); opacity: 0; }
-  @keyframes wobble { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-1.6deg) translateY(-2px); } 40% { transform: rotate(1.6deg); } 60% { transform: rotate(-1.2deg); } 80% { transform: rotate(1.2deg) translateY(-1px); } }
-
-  /* -- the front: ink over the picture ------------------------------------
-     The two corner blocks are each centred on themselves ("KOD" over
-     "CYFROWY") and set the same distance in from their own edge, at the
-     same size and the same height — mirror images of each other, whatever
-     the words are. A block that comes out wider than its room (Cyrillic,
-     German) is shrunk by fitInk() below rather than allowed to spill. */
-  .front { overflow: hidden; border-radius: 4.5cqw; }
-  .over { position: absolute; z-index: 1; color: #fff; font-family: "Montserrat", "Inter", sans-serif; font-weight: 800; text-transform: uppercase; line-height: 1.1; letter-spacing: .005em; white-space: pre-line; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
-  .over.kind { left: 5.2%; top: 4.4%; font-size: 4.6cqw; max-width: 29%; }
-  .over.plan { right: 5.2%; top: 4.4%; font-size: 4.6cqw; max-width: 29%; }
-  /* The strapline sits on the vegetables. Ink would not be legible there
-     either; the artwork solves it with the same text stacked three times
-     with a shadow, and these layered shadows are that, without the copies. */
-  .over.tagline { left: 3%; right: 3%; bottom: 5.4%; font-size: 6.3cqw; font-weight: 900; line-height: 1.14; letter-spacing: -.01em; text-transform: none; text-shadow: 0 0 2px rgba(0,0,0,.95), 0 1px 3px rgba(0,0,0,.9), 0 3px 8px rgba(0,0,0,.85), 0 6px 18px rgba(0,0,0,.75), 0 12px 34px rgba(0,0,0,.6); }
-  .front::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(to top, rgba(0,0,0,.34), transparent); pointer-events: none; }
-
-  /* -- the back: a plain white card ---------------------------------------
-     What a real one carries and nothing it does not: what the card is, how
-     to use it, the terms in small print, the code under a scratch panel
-     with a QR that fills it in, a barcode that carries the issue time and
-     the card id, a magnetic strip. */
-  .bk { position: absolute; inset: 0; padding: 18.5cqw 6.4cqw 5cqw; color: #1f1f22; font-family: "Inter", ui-sans-serif, system-ui, sans-serif; text-align: left; display: flex; flex-direction: column; }
-  /* `.auth-hero p` in the panel's stylesheet sizes (and on phones hides)
-     every paragraph in the hero; the print on the card outranks it. */
-  .gift .bk p, .gift .bk ol { margin: 0; display: block; }
-  .gift .bk .bk-h { font-weight: 800; font-size: 2.95cqw; line-height: 1.32; letter-spacing: .01em; text-transform: uppercase; color: #2a2a2e; }
-  .gift .bk .bk-h + .bk-h { margin-top: .6cqw; }
-  .gift .bk .bk-note { margin-top: 2.2cqw; font-size: 2.55cqw; line-height: 1.4; color: #3d3d42; }
-  .gift .bk .bk-redeem { margin-top: 2.6cqw; }
-  .gift .bk .bk-steps { margin: .8cqw 0 0; padding-left: 3.6cqw; font-size: 2.65cqw; line-height: 1.45; color: #2a2a2e; }
-  .gift .bk .bk-terms { margin-top: 2.6cqw; font-size: 2.3cqw; line-height: 1.38; color: #45454a; text-wrap: pretty; }
-  .gift .bk .bk-warn { flex: none; margin-top: auto; padding-top: 2.4cqw; font-weight: 800; font-size: 2.6cqw; letter-spacing: .02em; text-transform: uppercase; text-align: center; color: #1f1f22; }
-
-  .scratch { flex: none; position: relative; margin: 1.8cqw auto 0; width: 100%; height: 24cqw; border-radius: 1.6cqw; overflow: hidden; background: #f3f3f0; border: .35cqw solid #dcdcd6; user-select: none; -webkit-user-select: none; }
-  .scratch .inner { position: absolute; inset: 0; display: flex; align-items: center; gap: 3cqw; padding: 2cqw 2.4cqw; }
-  .scratch .qr { flex: 0 0 auto; width: 19.5cqw; height: 19.5cqw; border-radius: 1cqw; overflow: hidden; background: #fff; }
-  .scratch .qr svg { display: block; width: 100%; height: 100%; }
-  .scratch .right { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4cqw; text-align: center; }
-  .scratch .code { font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 700; font-size: 3.55cqw; letter-spacing: .05em; color: #0b845a; white-space: nowrap; }
-  .scratch .qr-cap { font-size: 2cqw; line-height: 1.35; color: #6b6b73; }
-  .scratch canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; transition: opacity .5s ease; z-index: 2; }
-  .scratch canvas:active { cursor: grabbing; }
-  .scratch.done canvas { opacity: 0; pointer-events: none; }
-  .gift .bk .scratch-hint { flex: none; margin-top: 1cqw; font-size: 2cqw; color: #6b6b73; text-align: center; }
-
-  .bk-bar { flex: none; margin-top: 2.6cqw; display: flex; flex-direction: column; align-items: center; gap: .8cqw; }
-  .bk-bar .bars { display: block; width: 100%; }
-  .bk-bar .num { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 2.35cqw; letter-spacing: .1em; color: #2a2a2e; white-space: nowrap; }
-  .mag { flex: none; margin: 2.6cqw -3.4% 0; height: 9.4cqw; background: linear-gradient(180deg, #2a2a2c 0%, #050506 45%, #1a1a1c 100%); border-radius: .6cqw; }
-
-  @media (max-width: 900px) {
-    .gift .auth-hero { padding: 28px 20px 30px; }
-    .gift .auth-hero .stage { margin: 0 auto; }
-    .gift .auth-panel { padding: 28px 22px 40px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .wrap.checking { animation: none; }
-    .wrap .half, .gc, .reveal { transition-duration: .01s; }
-  }
+  .auth-note a { font-weight: 600; }
 </style>
 </head>
 <body>
-<div class="auth gift">
+<div class="auth shop">
   <div class="auth-hero">
     <img class="auth-mark" src="/logo.png" alt="Plately">
-    <div class="stage" id="stage">
-      <div class="card-wrap" id="cardWrap">
-        <div class="gc" id="card">
-          <div class="face front">
-            <img class="die" src="/giftcard/front.webp" alt="" width="800" height="1152" decoding="async">
-            <span class="over kind" id="cardKind"></span>
-            <span class="over plan" id="cardPlan"></span>
-            <span class="over tagline" id="cardTagline"></span>
-          </div>
-          <div class="face back">
-            <img class="die" src="/giftcard/back.webp" alt="" width="800" height="1152" decoding="async" loading="lazy">
-            <div class="bk">
-              <p class="bk-h" id="bkH1"></p>
-              <p class="bk-h" id="bkH2"></p>
-              <p class="bk-note" id="bkNote"></p>
-              <p class="bk-h bk-redeem" id="bkRedeemH"></p>
-              <ol class="bk-steps" id="bkSteps"></ol>
-              <p class="bk-terms" id="bkTerms"></p>
-              <p class="bk-warn" id="bkWarn"></p>
-              <div class="scratch" id="scratchBox">
-                <div class="inner">
-                  <span class="qr" id="qr" aria-hidden="true"></span>
-                  <span class="right"><span class="code" id="cardCode"></span><span class="qr-cap" id="qrCap"></span></span>
-                </div>
-                <canvas id="scratch" role="img" aria-label=""></canvas>
-              </div>
-              <p class="scratch-hint" id="scratchHint"></p>
-              <div class="bk-bar"><span class="bars" id="bars"></span><span class="num" id="barNum"></span></div>
-              <div class="mag" aria-hidden="true"></div>
-            </div>
-          </div>
-        </div>
-        <button type="button" class="wrap" id="gift" aria-describedby="status">
-          <img class="half l" src="/giftcard/wrapped.webp" alt="" width="800" height="1152" decoding="async">
-          <img class="half r" src="/giftcard/wrapped.webp" alt="" width="800" height="1152" decoding="async">
-        </button>
-      </div>
-      <div class="hint" id="tap"></div>
-      <div class="flip-row" id="flipRow" hidden><button type="button" class="btn" id="flipBtn"></button></div>
-      <div class="ts-slot" id="ts-widget"></div>
+    <div class="auth-copy">
+      <img class="art" src="/giftcard/front.webp" alt="" width="800" height="1152" decoding="async">
+      <h1 id="heroTitle"></h1>
+      <p id="heroBody"></p>
+      <ul id="points"></ul>
     </div>
   </div>
-
   <div class="auth-panel"><div class="auth-box">
-    <div class="gift-top">
-      <span class="chip chip-ok" id="eyebrow"></span>
+    <div class="top">
+      <a href="/" id="back"></a>
       <select class="field" id="lang" aria-label="Language"></select>
     </div>
     <h2 id="title"></h2>
     <p class="lede" id="lede"></p>
-    <p class="status" id="status" aria-live="polite"></p>
 
-    <section class="reveal" id="reveal" hidden>
-      <div class="code-row">
-        <div class="code-box" id="code"></div>
-        <button type="button" class="btn" id="copy"></button>
-      </div>
-      <p class="meta-line" id="metaLine"></p>
-      <a class="btn btn-primary go" id="go" href="#"></a>
-      <div class="how" id="how"></div>
-    </section>
-
-    <div class="auth-warn panel" id="verifyPanel" hidden>
-      <h2>🛡️ <span id="verifyTitle"></span></h2>
-      <p id="verifyBody"></p>
-      <p class="why" id="verifyWhy" hidden></p>
-      <div class="actions"><button type="button" class="btn btn-primary btn-sm" id="retry"></button></div>
+    <label class="field-label" id="planLabel" style="margin-top:0"></label>
+    <div class="seg" role="group" id="planSeg">
+      <button type="button" data-plan="premium" aria-pressed="true">Premium</button>
+      <button type="button" data-plan="ultra" aria-pressed="false">Ultra</button>
     </div>
+    <p class="blurb" id="blurb"></p>
 
-    <div class="auth-error panel" id="badPanel" hidden>
-      <h2>😕 <span id="badTitle"></span></h2>
-      <p id="badBody"></p>
-      <div class="actions"><a class="btn btn-sm" href="/help" id="helpBtn"></a></div>
-    </div>
+    <label class="field-label" id="periodLabel"></label>
+    <div class="periods" id="periods"></div>
 
-    <div class="auth-note"><p id="foot"></p></div>
+    <div class="summary"><span id="summary"></span><span class="total" id="total"></span></div>
+    <a class="btn btn-primary buy" id="buy" href="#" rel="noopener"></a>
+    <p class="pay-note" id="payNote"></p>
+
+    <ol class="steps" id="steps"></ol>
+    <div class="auth-note"><p id="note"></p></div>
   </div></div>
 </div>
 
-<script src="/giftcard/i18n.js"></script>
-<script src="/giftcard/qr.js"></script>
 <script>
-  var APP_REDEEM = 'https://app.plately.eu/redeem';
-  var SITE_REDEEM = 'https://plately.eu/redeem';
-  var I18N = window.PlatelyGiftI18n, T = I18N.T, LANGS = I18N.LANGS;
+  var APP = 'https://app.plately.eu/main';
 
-  var $ = function (id) { return document.getElementById(id); };
-  var lang = 'en';
-  var state = {
-    id: null, siteKey: null, botCheck: false, widget: null, token: null,
-    pending: null, busy: false, card: null, opened: false, scratched: false, scratchStarted: false, lastBad: null
+  // Gross USD, as the app charges — mirrored from Application APK/src/lib/plans.ts
+  // (PLANS[plan].pricing) and shown the same way in every language, because the
+  // invoice says USD in every language and three spellings of one price look
+  // like three prices. Change them there first; this table follows.
+  var PRICES = {
+    premium: { monthly: 6.99, quarterly: 18.99, yearly: 59 },
+    ultra: { monthly: 12.99, quarterly: 34.99, yearly: 119 }
+  };
+  var DAYS = { monthly: 31, quarterly: 92, yearly: 366 };
+  var PERIODS = ['monthly', 'quarterly', 'yearly'];
+
+  var LANGS = [["pl", "Polski"], ["en", "English"], ["de", "Deutsch"], ["uk", "Українська"], ["ru", "Русский"], ["fr", "Français"], ["it", "Italiano"], ["es", "Español"], ["pt", "Português"], ["ja", "日本語"], ["zh", "中文"], ["ko", "한국어"]];
+  var T = {
+    pl: { docTitle: "Karta podarunkowa Plately — sklep", back: "← Strona główna", heroTitle: "Podaruj komuś mądrzejsze odżywianie", heroBody: "Karta podarunkowa Plately to plan Premium albo Ultra na miesiąc, kwartał lub rok. Obdarowany dostaje link, rozpakowuje kartę i zdrapuje kod — jak prawdziwą.",
+      points: ["Link do prezentu od razu po zapłacie — wyślij go, jak chcesz", "Kod działa na każdym koncie, także nowym", "Dni dodają się do planu, który obdarowany już ma"],
+      title: "Wybierz kartę", lede: "Plan i długość. Zapłacisz w aplikacji Plately — link do prezentu i kod znajdziesz potem w Ustawienia → Moje karty podarunkowe.",
+      planLabel: "Plan", premiumBlurb: "8 analiz posiłków i 6 wiadomości do coacha dziennie, raporty na żądanie, bez kolejki.", ultraBlurb: "16 analiz i 18 wiadomości dziennie, podwójne limity raportów — dla tych, którzy logują wszystko.",
+      periodLabel: "Długość", days: "{days} dni", perMonth: "{price} / mies.", popular: "najczęściej", best: "najtaniej",
+      summary: "Karta <strong>{plan}</strong> · <strong>{days} dni</strong>", buy: "Kup jako prezent →",
+      payNote: "Płatność w aplikacji (kryptowaluta). Potrzebne konto Plately — założysz je w jedno kliknięcie. Cena w USD, jak na fakturze.",
+      steps: ["<b>Zapłać w aplikacji</b> — przycisk otwiera ją z wybraną kartą.", "<b>Dostajesz link</b> plately.eu/giftcards/… i kod, w Ustawienia → Moje karty.", "<b>Wyślij link</b> — obdarowany rozpakuje prezent i zdrapie kod."],
+      note: "Masz już kod? <a href=\"/redeem\">Zrealizuj go tutaj</a>. Więcej kart ze zniżką? Napisz na <a href=\"/help\">plately.eu/help</a> i wybierz kategorię „Business”." },
+    en: { docTitle: "Plately gift card — shop", back: "← Home", heroTitle: "Give somebody smarter nutrition", heroBody: "A Plately gift card is the Premium or Ultra plan for a month, a quarter or a year. The recipient gets a link, unwraps the card and scratches the code — like a real one.",
+      points: ["A gift link right after payment — send it however you like", "The code works on any account, new ones included", "The days are added to whatever plan the recipient already has"],
+      title: "Choose a card", lede: "Plan and length. You pay in the Plately app — the gift link and the code are then under Settings → My gift cards.",
+      planLabel: "Plan", premiumBlurb: "8 meal analyses and 6 coach messages a day, reports on demand, no queue.", ultraBlurb: "16 analyses and 18 messages a day, double the report limits — for people who log everything.",
+      periodLabel: "Length", days: "{days} days", perMonth: "{price} / mo", popular: "most popular", best: "best value",
+      summary: "<strong>{plan}</strong> card · <strong>{days} days</strong>", buy: "Buy as a gift →",
+      payNote: "Paid in the app (crypto). A Plately account is needed — one click to create. Prices in USD, as on the invoice.",
+      steps: ["<b>Pay in the app</b> — the button opens it with this card chosen.", "<b>You get a link</b> plately.eu/giftcards/… and a code, under Settings → My gift cards.", "<b>Send the link</b> — the recipient unwraps the gift and scratches the code."],
+      note: "Already have a code? <a href=\"/redeem\">Redeem it here</a>. More cards at a discount? Write to <a href=\"/help\">plately.eu/help</a> and pick “Business”." },
+    de: { docTitle: "Plately-Geschenkkarte — Shop", back: "← Startseite", heroTitle: "Verschenke klügeres Essen", heroBody: "Eine Plately-Geschenkkarte ist der Plan Premium oder Ultra für einen Monat, ein Quartal oder ein Jahr. Die beschenkte Person bekommt einen Link, packt die Karte aus und rubbelt den Code frei — wie bei einer echten.",
+      points: ["Geschenk-Link direkt nach der Zahlung — verschicke ihn, wie du willst", "Der Code funktioniert auf jedem Konto, auch einem neuen", "Die Tage kommen zu dem Plan dazu, den die Person schon hat"],
+      title: "Karte wählen", lede: "Plan und Laufzeit. Bezahlt wird in der Plately-App — Geschenk-Link und Code findest du danach unter Einstellungen → Meine Geschenkkarten.",
+      planLabel: "Plan", premiumBlurb: "8 Mahlzeitenanalysen und 6 Coach-Nachrichten pro Tag, Berichte auf Abruf, keine Warteschlange.", ultraBlurb: "16 Analysen und 18 Nachrichten pro Tag, doppelte Berichtslimits — für alle, die alles protokollieren.",
+      periodLabel: "Laufzeit", days: "{days} Tage", perMonth: "{price} / Monat", popular: "am beliebtesten", best: "am günstigsten",
+      summary: "Karte <strong>{plan}</strong> · <strong>{days} Tage</strong>", buy: "Als Geschenk kaufen →",
+      payNote: "Zahlung in der App (Krypto). Ein Plately-Konto ist nötig — mit einem Klick angelegt. Preise in USD, wie auf der Rechnung.",
+      steps: ["<b>In der App bezahlen</b> — der Button öffnet sie mit dieser Karte.", "<b>Du bekommst einen Link</b> plately.eu/giftcards/… und einen Code, unter Einstellungen → Meine Geschenkkarten.", "<b>Link verschicken</b> — die beschenkte Person packt aus und rubbelt den Code frei."],
+      note: "Schon einen Code? <a href=\"/redeem\">Hier einlösen</a>. Mehr Karten mit Rabatt? Schreib an <a href=\"/help\">plately.eu/help</a>, Kategorie „Business“." },
+    uk: { docTitle: "Подарункова картка Plately — магазин", back: "← На головну", heroTitle: "Подаруйте комусь розумніше харчування", heroBody: "Подарункова картка Plately — це план Premium або Ultra на місяць, квартал чи рік. Отримувач отримує посилання, розгортає картку та стирає код — як справжню.",
+      points: ["Посилання на подарунок одразу після оплати — надішліть, як зручно", "Код працює на будь-якому обліковому записі, навіть новому", "Дні додаються до плану, який отримувач уже має"],
+      title: "Оберіть картку", lede: "План і тривалість. Оплата в застосунку Plately — посилання на подарунок і код будуть у Налаштування → Мої подарункові картки.",
+      planLabel: "План", premiumBlurb: "8 аналізів страв і 6 повідомлень коучу на день, звіти на вимогу, без черги.", ultraBlurb: "16 аналізів і 18 повідомлень на день, подвійні ліміти звітів — для тих, хто записує все.",
+      periodLabel: "Тривалість", days: "{days} днів", perMonth: "{price} / міс.", popular: "найпопулярніша", best: "найвигідніша",
+      summary: "Картка <strong>{plan}</strong> · <strong>{days} днів</strong>", buy: "Купити як подарунок →",
+      payNote: "Оплата в застосунку (криптовалюта). Потрібен обліковий запис Plately — створюється одним натисканням. Ціни в USD, як у рахунку.",
+      steps: ["<b>Оплатіть у застосунку</b> — кнопка відкриє його з обраною карткою.", "<b>Отримаєте посилання</b> plately.eu/giftcards/… і код у Налаштування → Мої подарункові картки.", "<b>Надішліть посилання</b> — отримувач розгорне подарунок і зітре код."],
+      note: "Уже маєте код? <a href=\"/redeem\">Активуйте його тут</a>. Більше карток зі знижкою? Напишіть на <a href=\"/help\">plately.eu/help</a>, категорія «Business»." },
+    ru: { docTitle: "Подарочная карта Plately — магазин", back: "← На главную", heroTitle: "Подарите кому-то умное питание", heroBody: "Подарочная карта Plately — это план Premium или Ultra на месяц, квартал или год. Получатель получает ссылку, разворачивает карту и стирает код — как настоящую.",
+      points: ["Ссылка на подарок сразу после оплаты — отправьте, как удобно", "Код работает на любом аккаунте, даже новом", "Дни добавляются к плану, который у получателя уже есть"],
+      title: "Выберите карту", lede: "План и срок. Оплата в приложении Plately — ссылка на подарок и код будут в Настройки → Мои подарочные карты.",
+      planLabel: "План", premiumBlurb: "8 анализов блюд и 6 сообщений коучу в день, отчёты по запросу, без очереди.", ultraBlurb: "16 анализов и 18 сообщений в день, двойные лимиты отчётов — для тех, кто записывает всё.",
+      periodLabel: "Срок", days: "{days} дней", perMonth: "{price} / мес.", popular: "популярная", best: "выгоднее всего",
+      summary: "Карта <strong>{plan}</strong> · <strong>{days} дней</strong>", buy: "Купить в подарок →",
+      payNote: "Оплата в приложении (криптовалюта). Нужен аккаунт Plately — создаётся в одно нажатие. Цены в USD, как в счёте.",
+      steps: ["<b>Оплатите в приложении</b> — кнопка откроет его с выбранной картой.", "<b>Получите ссылку</b> plately.eu/giftcards/… и код в Настройки → Мои подарочные карты.", "<b>Отправьте ссылку</b> — получатель развернёт подарок и сотрёт код."],
+      note: "Уже есть код? <a href=\"/redeem\">Активируйте его здесь</a>. Больше карт со скидкой? Напишите на <a href=\"/help\">plately.eu/help</a>, категория «Business»." },
+    fr: { docTitle: "Carte cadeau Plately — boutique", back: "← Accueil", heroTitle: "Offrez une alimentation plus intelligente", heroBody: "Une carte cadeau Plately, c'est le forfait Premium ou Ultra pour un mois, un trimestre ou un an. La personne reçoit un lien, déballe la carte et gratte le code — comme une vraie.",
+      points: ["Le lien cadeau juste après le paiement — envoyez-le comme vous voulez", "Le code fonctionne sur n'importe quel compte, même nouveau", "Les jours s'ajoutent au forfait que la personne a déjà"],
+      title: "Choisissez une carte", lede: "Forfait et durée. Vous payez dans l'application Plately — le lien cadeau et le code sont ensuite dans Réglages → Mes cartes cadeaux.",
+      planLabel: "Forfait", premiumBlurb: "8 analyses de repas et 6 messages au coach par jour, rapports à la demande, sans file d'attente.", ultraBlurb: "16 analyses et 18 messages par jour, limites de rapports doublées — pour ceux qui notent tout.",
+      periodLabel: "Durée", days: "{days} jours", perMonth: "{price} / mois", popular: "la plus choisie", best: "le meilleur prix",
+      summary: "Carte <strong>{plan}</strong> · <strong>{days} jours</strong>", buy: "Offrir cette carte →",
+      payNote: "Paiement dans l'application (crypto). Un compte Plately est nécessaire — créé en un clic. Prix en USD, comme sur la facture.",
+      steps: ["<b>Payez dans l'application</b> — le bouton l'ouvre avec cette carte choisie.", "<b>Vous recevez un lien</b> plately.eu/giftcards/… et un code, dans Réglages → Mes cartes cadeaux.", "<b>Envoyez le lien</b> — la personne déballe le cadeau et gratte le code."],
+      note: "Vous avez déjà un code ? <a href=\"/redeem\">Utilisez-le ici</a>. Plus de cartes à prix réduit ? Écrivez à <a href=\"/help\">plately.eu/help</a>, catégorie « Business »." },
+    it: { docTitle: "Carta regalo Plately — negozio", back: "← Home", heroTitle: "Regala un'alimentazione più intelligente", heroBody: "Una carta regalo Plately è il piano Premium o Ultra per un mese, un trimestre o un anno. Chi la riceve ottiene un link, scarta la carta e gratta il codice — come una vera.",
+      points: ["Il link del regalo subito dopo il pagamento — invialo come preferisci", "Il codice funziona su qualsiasi account, anche nuovo", "I giorni si aggiungono al piano che la persona ha già"],
+      title: "Scegli una carta", lede: "Piano e durata. Paghi nell'app Plately — il link del regalo e il codice sono poi in Impostazioni → Le mie carte regalo.",
+      planLabel: "Piano", premiumBlurb: "8 analisi dei pasti e 6 messaggi al coach al giorno, report su richiesta, senza coda.", ultraBlurb: "16 analisi e 18 messaggi al giorno, limiti dei report raddoppiati — per chi registra tutto.",
+      periodLabel: "Durata", days: "{days} giorni", perMonth: "{price} / mese", popular: "la più scelta", best: "più conveniente",
+      summary: "Carta <strong>{plan}</strong> · <strong>{days} giorni</strong>", buy: "Regala questa carta →",
+      payNote: "Pagamento nell'app (crypto). Serve un account Plately — si crea con un clic. Prezzi in USD, come in fattura.",
+      steps: ["<b>Paga nell'app</b> — il pulsante la apre con questa carta già scelta.", "<b>Ricevi un link</b> plately.eu/giftcards/… e un codice, in Impostazioni → Le mie carte regalo.", "<b>Invia il link</b> — chi lo riceve scarta il regalo e gratta il codice."],
+      note: "Hai già un codice? <a href=\"/redeem\">Riscattalo qui</a>. Più carte a prezzo scontato? Scrivi a <a href=\"/help\">plately.eu/help</a>, categoria “Business”." },
+    es: { docTitle: "Tarjeta regalo Plately — tienda", back: "← Inicio", heroTitle: "Regala una nutrición más inteligente", heroBody: "Una tarjeta regalo Plately es el plan Premium o Ultra para un mes, un trimestre o un año. Quien la recibe obtiene un enlace, desenvuelve la tarjeta y rasca el código — como una de verdad.",
+      points: ["El enlace del regalo justo después de pagar — envíalo como quieras", "El código funciona en cualquier cuenta, también en una nueva", "Los días se suman al plan que esa persona ya tenga"],
+      title: "Elige una tarjeta", lede: "Plan y duración. Pagas en la app Plately — el enlace del regalo y el código están después en Ajustes → Mis tarjetas regalo.",
+      planLabel: "Plan", premiumBlurb: "8 análisis de comidas y 6 mensajes al coach al día, informes bajo demanda, sin cola.", ultraBlurb: "16 análisis y 18 mensajes al día, el doble de informes — para quien lo registra todo.",
+      periodLabel: "Duración", days: "{days} días", perMonth: "{price} / mes", popular: "la más elegida", best: "mejor precio",
+      summary: "Tarjeta <strong>{plan}</strong> · <strong>{days} días</strong>", buy: "Regalar esta tarjeta →",
+      payNote: "Pago en la app (cripto). Hace falta una cuenta Plately — se crea con un clic. Precios en USD, como en la factura.",
+      steps: ["<b>Paga en la app</b> — el botón la abre con esta tarjeta elegida.", "<b>Recibes un enlace</b> plately.eu/giftcards/… y un código, en Ajustes → Mis tarjetas regalo.", "<b>Envía el enlace</b> — quien lo reciba desenvuelve el regalo y rasca el código."],
+      note: "¿Ya tienes un código? <a href=\"/redeem\">Canjéalo aquí</a>. ¿Más tarjetas con descuento? Escribe a <a href=\"/help\">plately.eu/help</a>, categoría “Business”." },
+    pt: { docTitle: "Cartão-presente Plately — loja", back: "← Início", heroTitle: "Ofereça uma alimentação mais inteligente", heroBody: "Um cartão-presente Plately é o plano Premium ou Ultra por um mês, um trimestre ou um ano. Quem o recebe obtém uma ligação, desembrulha o cartão e raspa o código — como um verdadeiro.",
+      points: ["A ligação do presente logo após o pagamento — envie-a como quiser", "O código funciona em qualquer conta, mesmo nova", "Os dias somam-se ao plano que a pessoa já tem"],
+      title: "Escolha um cartão", lede: "Plano e duração. Paga na app Plately — a ligação do presente e o código ficam depois em Definições → Os meus cartões-presente.",
+      planLabel: "Plano", premiumBlurb: "8 análises de refeições e 6 mensagens ao coach por dia, relatórios a pedido, sem fila.", ultraBlurb: "16 análises e 18 mensagens por dia, o dobro dos relatórios — para quem regista tudo.",
+      periodLabel: "Duração", days: "{days} dias", perMonth: "{price} / mês", popular: "mais escolhido", best: "melhor preço",
+      summary: "Cartão <strong>{plan}</strong> · <strong>{days} dias</strong>", buy: "Oferecer este cartão →",
+      payNote: "Pagamento na app (cripto). É precisa uma conta Plately — cria-se com um clique. Preços em USD, como na fatura.",
+      steps: ["<b>Pague na app</b> — o botão abre-a com este cartão escolhido.", "<b>Recebe uma ligação</b> plately.eu/giftcards/… e um código, em Definições → Os meus cartões-presente.", "<b>Envie a ligação</b> — quem a recebe desembrulha o presente e raspa o código."],
+      note: "Já tem um código? <a href=\"/redeem\">Resgate-o aqui</a>. Mais cartões com desconto? Escreva para <a href=\"/help\">plately.eu/help</a>, categoria “Business”." },
+    ja: { docTitle: "Plately ギフトカード — ショップ", back: "← ホーム", heroTitle: "大切な人に、もっと賢い食事を", heroBody: "Plately ギフトカードは、Premium または Ultra プランを 1 か月・3 か月・1 年分贈れるカードです。受け取った人はリンクを開き、カードを開けてスクラッチを削ります — 本物のカードのように。",
+      points: ["支払い直後にギフトリンクが届く — 好きな方法で送れます", "コードはどのアカウントでも使えます（新規でも）", "相手がすでにプランを持っていれば、日数が加算されます"],
+      title: "カードを選ぶ", lede: "プランと期間を選びます。お支払いは Plately アプリ内で — ギフトリンクとコードは 設定 → マイ ギフトカード に表示されます。",
+      planLabel: "プラン", premiumBlurb: "1 日 8 回の食事分析と 6 回のコーチメッセージ、オンデマンドのレポート、待ち時間なし。", ultraBlurb: "1 日 16 回の分析と 18 回のメッセージ、レポート上限は 2 倍 — すべてを記録する人に。",
+      periodLabel: "期間", days: "{days} 日", perMonth: "{price} / 月", popular: "人気", best: "最もお得",
+      summary: "<strong>{plan}</strong> カード · <strong>{days} 日</strong>", buy: "ギフトとして購入 →",
+      payNote: "アプリ内で支払い（暗号資産）。Plately アカウントが必要です — ワンクリックで作成できます。価格は請求書と同じく USD 表示です。",
+      steps: ["<b>アプリで支払う</b> — ボタンを押すと、このカードが選ばれた状態でアプリが開きます。", "<b>リンクが届く</b> plately.eu/giftcards/… とコードが 設定 → マイ ギフトカード に表示されます。", "<b>リンクを送る</b> — 受け取った人がプレゼントを開けてコードを削ります。"],
+      note: "すでにコードをお持ちですか？ <a href=\"/redeem\">こちらで引き換え</a>。まとめ買い割引は <a href=\"/help\">plately.eu/help</a> の「Business」カテゴリへ。" },
+    zh: { docTitle: "Plately 礼品卡 — 商店", back: "← 首页", heroTitle: "送给 TA 更聪明的饮食", heroBody: "Plately 礼品卡包含一个月、一季度或一年的 Premium 或 Ultra 套餐。收礼人打开链接，拆开卡片，刮开兑换码 — 就像真正的礼品卡。",
+      points: ["付款后立即获得礼物链接 — 以任何方式发送", "兑换码适用于任何账户，包括新账户", "天数会累加到收礼人已有的套餐上"],
+      title: "选择卡片", lede: "选择套餐和时长。在 Plately 应用内付款 — 礼物链接和兑换码随后会显示在 设置 → 我的礼品卡 中。",
+      planLabel: "套餐", premiumBlurb: "每天 8 次餐食分析和 6 条教练消息，随时生成报告，无需排队。", ultraBlurb: "每天 16 次分析和 18 条消息，报告上限翻倍 — 适合记录一切的人。",
+      periodLabel: "时长", days: "{days} 天", perMonth: "{price} / 月", popular: "最受欢迎", best: "最划算",
+      summary: "<strong>{plan}</strong> 卡 · <strong>{days} 天</strong>", buy: "作为礼物购买 →",
+      payNote: "在应用内付款（加密货币）。需要 Plately 账户 — 一键即可创建。价格以美元计，与发票一致。",
+      steps: ["<b>在应用内付款</b> — 按钮会打开应用并选中这张卡。", "<b>获得链接</b> plately.eu/giftcards/… 和兑换码，位于 设置 → 我的礼品卡。", "<b>发送链接</b> — 收礼人拆开礼物并刮开兑换码。"],
+      note: "已有兑换码？<a href=\"/redeem\">在这里兑换</a>。批量优惠请通过 <a href=\"/help\">plately.eu/help</a> 的“Business”类别联系我们。" },
+    ko: { docTitle: "Plately 기프트 카드 — 상점", back: "← 홈", heroTitle: "소중한 사람에게 더 똑똑한 식단을", heroBody: "Plately 기프트 카드는 한 달, 한 분기 또는 일 년 동안의 Premium 또는 Ultra 플랜이에요. 받는 사람은 링크를 열어 카드를 풀고 코드를 긁어요 — 진짜 카드처럼.",
+      points: ["결제 직후 선물 링크 제공 — 원하는 방법으로 보내세요", "코드는 새 계정을 포함해 어떤 계정에서도 사용 가능", "받는 사람이 이미 플랜이 있으면 일수가 더해져요"],
+      title: "카드 선택", lede: "플랜과 기간을 고르세요. 결제는 Plately 앱에서 — 선물 링크와 코드는 설정 → 내 기프트 카드에서 확인할 수 있어요.",
+      planLabel: "플랜", premiumBlurb: "하루 8회 식사 분석과 6개의 코치 메시지, 요청 시 리포트, 대기 없음.", ultraBlurb: "하루 16회 분석과 18개의 메시지, 리포트 한도 2배 — 모든 것을 기록하는 분에게.",
+      periodLabel: "기간", days: "{days}일", perMonth: "{price} / 월", popular: "인기", best: "가장 저렴",
+      summary: "<strong>{plan}</strong> 카드 · <strong>{days}일</strong>", buy: "선물로 구매 →",
+      payNote: "앱에서 결제(암호화폐). Plately 계정이 필요해요 — 클릭 한 번으로 만들 수 있어요. 가격은 청구서와 같이 USD로 표시돼요.",
+      steps: ["<b>앱에서 결제</b> — 버튼을 누르면 이 카드가 선택된 상태로 앱이 열려요.", "<b>링크 받기</b> plately.eu/giftcards/… 와 코드가 설정 → 내 기프트 카드에 표시돼요.", "<b>링크 보내기</b> — 받는 사람이 선물을 풀고 코드를 긁어요."],
+      note: "이미 코드가 있나요? <a href=\"/redeem\">여기에서 사용하세요</a>. 대량 구매 할인은 <a href=\"/help\">plately.eu/help</a>의 “Business” 카테고리로 문의하세요." }
   };
 
-  // --- language -------------------------------------------------------------
-  //
-  // Twelve, the same twelve as the app. Taken from the landing page's own
-  // preference when there is one, otherwise from the browser; the picker at
-  // the top of the panel overrides both.
-
-  var STATIC = { eyebrow: 'eyebrow', title: 'title', foot: 'foot', copy: 'copy', go: 'go', retry: 'retry', helpBtn: 'help', verifyTitle: 'verifyTitle', verifyBody: 'verifyBody', tap: 'tap' };
+  var $ = function (id) { return document.getElementById(id); };
+  var lang = 'en', plan = 'premium', period = 'yearly';
 
   function t(key, vars) {
     var str = (T[lang] && T[lang][key]) || T.en[key] || key;
     if (typeof str !== 'string') return str;
     return str.replace(/\{(\w+)\}/g, function (m, k) { return vars && k in vars ? String(vars[k]) : m; });
   }
+  function money(n) { return '$' + (Number.isInteger(n) ? String(n) : n.toFixed(2)); }
+  function planName(p) { return p === 'ultra' ? 'Ultra' : 'Premium'; }
 
-  function applyLang(code) {
-    lang = T[code] ? code : 'en';
+  function draw() {
+    var d = T[lang];
     document.documentElement.lang = lang;
-    document.title = t('docTitle');
-    Object.keys(STATIC).forEach(function (id) { $(id).textContent = t(STATIC[id]); });
-    $('gift').setAttribute('aria-label', t('giftAria'));
-    $('scratch').setAttribute('aria-label', t('scratchHint'));
+    document.title = d.docTitle;
+    ['back', 'heroTitle', 'heroBody', 'title', 'lede', 'planLabel', 'periodLabel', 'buy'].forEach(function (k) { $(k).textContent = d[k]; });
+    $('points').innerHTML = d.points.map(function (s) { return '<li>' + s + '</li>'; }).join('');
+    $('blurb').textContent = plan === 'ultra' ? d.ultraBlurb : d.premiumBlurb;
+    document.querySelectorAll('#planSeg button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.plan === plan ? 'true' : 'false'); });
+
+    $('periods').innerHTML = PERIODS.map(function (p) {
+      var price = PRICES[plan][p];
+      var per = money(Math.round(price / (DAYS[p] / 30.4) * 100) / 100);
+      var tag = p === 'yearly' ? '<span class="chip chip-ok">' + t('best') + '</span>' : p === 'quarterly' ? '<span class="chip">' + t('popular') + '</span>' : '';
+      return '<button type="button" class="period" data-period="' + p + '" aria-pressed="' + (p === period) + '">' +
+        '<span class="dot" aria-hidden="true"></span>' +
+        '<span><span class="days">' + t('days', { days: DAYS[p] }) + '</span>' + tag + '<span class="sub" style="display:block">' + t('perMonth', { price: per }) + '</span></span>' +
+        '<span class="price">' + money(price) + '</span></button>';
+    }).join('');
+    document.querySelectorAll('.period').forEach(function (b) { b.addEventListener('click', function () { period = b.dataset.period; draw(); }); });
+
+    $('summary').innerHTML = t('summary', { plan: planName(plan), days: DAYS[period] });
+    $('total').textContent = money(PRICES[plan][period]);
+    $('buy').href = APP + '?gift=' + plan + '&period=' + period;
+    $('payNote').textContent = d.payNote;
+    $('steps').innerHTML = d.steps.map(function (s, i) { return '<li><i>' + (i + 1) + '</i><span>' + s + '</span></li>'; }).join('');
+    $('note').innerHTML = d.note;
     $('lang').value = lang;
-    $('lang').setAttribute('aria-label', t('langLabel'));
-    $('lede').textContent = state.scratched ? t('ledeDone') : state.opened ? t('ledeOpen') : t('lede');
-    $('flipBtn').textContent = $('cardWrap').classList.contains('flipped') ? t('flipBack') : t('flip');
-    if (state.opened && !state.busy) setStatus(state.scratched ? '' : t('turnHint'));
-    if (state.card) drawCard(state.card);
-    if (!$('badPanel').hidden && state.lastBad) showBad(state.lastBad.kind, state.lastBad.date);
-    try { localStorage.setItem('plately_landing_lang', lang); } catch (e) {}
   }
 
-  // --- the link ---------------------------------------------------------------
-
-  // /giftcards/<id>. The id is the whole credential, so it is read once from
-  // the address and never written anywhere else on the page.
-  function readId() {
-    var m = location.pathname.match(/\/giftcards\/([^\/?#]+)/i);
-    var raw = m ? decodeURIComponent(m[1]) : '';
-    try { raw = raw || new URL(location.href).searchParams.get('id') || ''; } catch (e) {}
-    raw = raw.trim().toLowerCase();
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(raw) ? raw : null;
-  }
-
-  // --- Turnstile -------------------------------------------------------------
-  //
-  // The wrapped card is the widget. Cloudflare's script is loaded quietly on
-  // page load and the widget is rendered with `execution: 'execute'` and
-  // `appearance: 'interaction-only'`: nothing shows, nothing runs, until the
-  // person clicks the gift — then the challenge runs, and only a token from
-  // it is ever sent to the server. If Cloudflare decides against, the server
-  // is not asked at all and the page says the session could not be verified.
-  // Nothing about the card — valid or not — is learned that way.
-
-  var TURNSTILE_CODES = {
-    '110100': 'the site key is not valid', '110110': 'the site key is unknown',
-    '110200': 'this hostname is not registered for the widget', '110500': 'the browser is not supported',
-    '110600': 'the challenge failed', '300030': 'the challenge timed out', '600010': 'the challenge was refused'
-  };
-
-  function loadTurnstile() {
-    return new Promise(function (resolve, reject) {
-      if (window.turnstile && window.turnstile.render) return resolve();
-      var CALLBACK = '__platelyGiftTurnstile';
-      var timer = setTimeout(function () { reject(new Error('turnstile did not load')); }, 12000);
-      window[CALLBACK] = function () { clearTimeout(timer); resolve(); };
-      var script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=' + CALLBACK;
-      script.async = true; script.defer = true;
-      script.onerror = function () { clearTimeout(timer); reject(new Error('turnstile blocked')); };
-      document.head.appendChild(script);
-    });
-  }
-
-  function settleChallenge(err, token) {
-    var p = state.pending;
-    if (!p) return;
-    state.pending = null;
-    clearTimeout(p.timer);
-    if (err) p.reject(err); else p.resolve(token);
-  }
-
-  function mountTurnstile() {
-    if (!state.siteKey) return Promise.resolve();
-    return loadTurnstile().then(function () {
-      state.widget = window.turnstile.render($('ts-widget'), {
-        sitekey: state.siteKey, theme: 'dark', size: 'flexible', action: 'gift-open',
-        execution: 'execute', appearance: 'interaction-only',
-        callback: function (token) { state.token = token; settleChallenge(null, token); },
-        'expired-callback': function () { state.token = null; },
-        'timeout-callback': function () { settleChallenge(new Error('timeout')); },
-        'error-callback': function (code) {
-          var known = TURNSTILE_CODES[String(code).slice(0, 6)];
-          settleChallenge(new Error((code ? code + ' — ' : '') + (known || 'the check could not run')));
-        }
-      });
-    });
-  }
-
-  /** Runs the challenge and resolves with a fresh token. */
-  function challenge() {
-    if (!state.siteKey) return Promise.resolve(null);
-    return new Promise(function (resolve, reject) {
-      var start = function () {
-        if (state.widget === null || !window.turnstile) return reject(new Error('the check is not available'));
-        state.pending = { resolve: resolve, reject: reject, timer: setTimeout(function () { settleChallenge(new Error('timeout')); }, 25000) };
-        try {
-          // A token is single-use. Reset first so a retry never re-sends one
-          // the server has already refused.
-          if (state.token) { window.turnstile.reset(state.widget); state.token = null; }
-          window.turnstile.execute(state.widget);
-        } catch (err) { settleChallenge(err); }
-      };
-      if (state.widget === null) mountTurnstile().then(start, reject); else start();
-    });
-  }
-
-  // --- the printed details -------------------------------------------------------
-
-  // A version-7 UUID carries its own creation time in the first 48 bits.
-  function linkDate(id) {
-    var ms = parseInt(id.slice(0, 8) + id.slice(9, 13), 16);
-    return isFinite(ms) && ms > 0 ? new Date(ms) : new Date();
-  }
-
-  function pad(n, len) { var s = String(n); while (s.length < len) s = '0' + s; return s; }
-
-  // The barcode carries exactly two things: when the card was issued and its
-  // id — bars drawn from those digits, the same two things spelled out
-  // beneath. Nothing from the code goes into it.
-  function barcodeSvg(digits, height) {
-    var modules = [[1, 1], [1, 1]];
-    for (var i = 0; i < digits.length; i++) {
-      var d = parseInt(digits[i], 10) || 0;
-      modules.push([1 + (d % 3), 1 + ((d * 7 + i) % 3)]);
-    }
-    modules.push([1, 1], [1, 1]);
-    var total = 0, x = 0, rects = '';
-    modules.forEach(function (m) { total += m[0] + m[1]; });
-    modules.forEach(function (m) { rects += '<rect x="' + x + '" y="0" width="' + m[0] + '" height="' + height + '"/>'; x += m[0] + m[1]; });
-    return '<svg viewBox="0 0 ' + total + ' ' + height + '" preserveAspectRatio="none" style="display:block;width:100%;height:' + height + 'cqw" fill="#1f1f22" shape-rendering="crispEdges">' + rects + '</svg>';
-  }
-
-  function fmtDate(iso) {
-    if (!iso) return '';
-    try { return new Date(iso).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return String(iso).slice(0, 10); }
-  }
-
-  // Shrinks an ink block until it fits the room it has on the card.
-  function fitInk(el, maxCqw) {
-    var unit = $('card').clientWidth / 100;
-    if (!unit) return;
-    var size = parseFloat(el.dataset.base) || parseFloat(getComputedStyle(el).fontSize) / unit;
-    el.dataset.base = size;
-    el.style.fontSize = size + 'cqw';
-    for (var i = 0; i < 12 && el.scrollWidth > maxCqw * unit + 1; i++) {
-      size *= .93;
-      el.style.fontSize = size + 'cqw';
-    }
-  }
-
-  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  function fill(s, vars) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return k in vars ? String(vars[k]) : m; }); }
-
-  function drawCard(card) {
-    var plan = String(card.plan || '').toUpperCase();
-    var planName = plan.charAt(0) + plan.slice(1).toLowerCase();
-    var vars = { plan: planName, days: card.days, date: fmtDate(card.deadline) };
-    var made = linkDate(state.id);
-
-    // front
-    $('cardKind').textContent = t('cardKind');
-    $('cardPlan').textContent = plan + '\n' + card.days + ' ' + t('days');
-    $('cardTagline').textContent = t('cardTagline');
-    fitInk($('cardKind'), 29); fitInk($('cardPlan'), 29); fitInk($('cardTagline'), 94);
-
-    // back
-    $('bkH1').textContent = t('bkH1');
-    $('bkH2').textContent = card.deadline ? t('bkH2Deadline', vars) : t('bkH2NoDeadline');
-    $('bkNote').textContent = t('bkNote');
-    $('bkRedeemH').textContent = t('bkRedeemH');
-    $('bkSteps').innerHTML = t('bkSteps').map(function (s) { return '<li>' + esc(fill(s, vars)) + '</li>'; }).join('');
-    $('bkTerms').textContent = t('bkTerms', vars);
-    $('bkWarn').textContent = t('bkWarn');
-    $('scratchHint').textContent = t('scratchHint');
-    $('qrCap').textContent = t('bkQr');
-    $('cardCode').textContent = card.code || '';
-    // The QR opens the redeem page with the code already in it — the same
-    // thing the button in the panel does, for a phone pointed at a screen.
-    try { $('qr').innerHTML = card.code ? window.PlatelyQR.qrSvg(SITE_REDEEM + '?code=' + encodeURIComponent(card.code), { quiet: 1 }) : ''; } catch (e) { $('qr').innerHTML = ''; }
-    var stamp = pad(made.getFullYear(), 4) + pad(made.getMonth() + 1, 2) + pad(made.getDate(), 2) + pad(made.getHours(), 2) + pad(made.getMinutes(), 2);
-    var idDigits = state.id.slice(0, 8).split('').map(function (c) { return String(parseInt(c, 16) % 10); }).join('');
-    $('bars').innerHTML = barcodeSvg(stamp + idDigits, 10);
-    $('barNum').textContent = t('bkIssued') + ' ' + pad(made.getFullYear(), 4) + '-' + pad(made.getMonth() + 1, 2) + '-' + pad(made.getDate(), 2) + ' ' + pad(made.getHours(), 2) + ':' + pad(made.getMinutes(), 2) + '  ·  ' + t('bkId') + ' ' + state.id.slice(0, 8).toUpperCase();
-
-    // the panel
-    $('code').textContent = card.code || '';
-    $('metaLine').innerHTML = t('meta', { plan: planName, days: card.days, deadline: card.deadline ? t('metaDeadline', vars) : '' });
-    $('go').href = APP_REDEEM + '?code=' + encodeURIComponent(card.code || '');
-    $('how').innerHTML = t('how');
-
-    // The coating is painted once; repainting it after a language switch
-    // would put the silver back over a code somebody has already started
-    // scratching off.
-    if (!state.scratchStarted) paintScratch();
-  }
-
-  // --- the scratch panel -----------------------------------------------------------
-  //
-  // A canvas over the code and the QR. Painted like the foil on a real card
-  // — silver with the black wave print — and every pointer stroke erases a
-  // round patch (`destination-out`). Once about half is gone the rest lifts
-  // off on its own, because nobody wants to scrub the corners.
-
-  var scratch = { ctx: null, on: false, last: null, moves: 0 };
-
-  function paintScratch() {
-    var box = $('scratchBox'), c = $('scratch');
-    var w = box.clientWidth, h = box.clientHeight;
-    if (!w || !h) return;
-    var dpr = Math.min(window.devicePixelRatio || 1, 3);
-    c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
-    var ctx = c.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    scratch.ctx = ctx;
-    var g = ctx.createLinearGradient(0, 0, w, 0);
-    g.addColorStop(0, '#b4b4ae'); g.addColorStop(.35, '#d9d9d3'); g.addColorStop(.65, '#c2c2bc'); g.addColorStop(1, '#a9a9a3');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = '#17171a';
-    var bands = 7, period = w / 3.2, amp = h * .07, thick = h / (bands * 2.1);
-    for (var b = 0; b < bands; b++) {
-      var y0 = -thick + (h + thick * 2) * (b / (bands - 1)), phase = b * 1.3;
-      ctx.beginPath();
-      for (var x = 0; x <= w; x += 3) ctx.lineTo(x, y0 + Math.sin(x / period * Math.PI * 2 + phase) * amp);
-      for (var x2 = w; x2 >= 0; x2 -= 3) ctx.lineTo(x2, y0 + thick + Math.sin(x2 / period * Math.PI * 2 + phase + .35) * amp);
-      ctx.closePath(); ctx.fill();
-    }
-    for (var i = 0; i < w * h / 6; i++) { ctx.fillStyle = 'rgba(255,255,255,' + (Math.random() * .09) + ')'; ctx.fillRect(Math.random() * w, Math.random() * h, 1, 1); }
-    ctx.font = '800 ' + Math.round(h * .17) + 'px Montserrat, Inter, sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.lineWidth = Math.max(2, h * .035); ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineJoin = 'round';
-    ctx.strokeText(t('scratchLabel'), w / 2, h / 2 + 1);
-    ctx.fillStyle = 'rgba(255,255,255,.92)';
-    ctx.fillText(t('scratchLabel'), w / 2, h / 2 + 1);
-    ctx.globalCompositeOperation = 'source-over';
-  }
-
-  function scratchAt(e) {
-    var c = $('scratch'), ctx = scratch.ctx;
-    if (!ctx) return;
-    var r = c.getBoundingClientRect();
-    var x = e.clientX - r.left, y = e.clientY - r.top;
-    var radius = Math.max(12, r.height * .22);
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
-    if (scratch.last) { ctx.lineWidth = radius * 2; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(scratch.last.x, scratch.last.y); ctx.lineTo(x, y); ctx.stroke(); }
-    ctx.globalCompositeOperation = 'source-over';
-    scratch.last = { x: x, y: y };
-    if (++scratch.moves % 6 === 0) checkScratched();
-  }
-
-  function checkScratched() {
-    if (state.scratched) return;
-    var c = $('scratch'), ctx = scratch.ctx, data;
-    try { data = ctx.getImageData(0, 0, c.width, c.height).data; } catch (e) { return; }
-    var clear = 0, total = 0;
-    for (var i = 3; i < data.length; i += 16) { total++; if (data[i] < 128) clear++; }
-    if (total && clear / total > .5) finishScratch();
-  }
-
-  function finishScratch() {
-    if (state.scratched) return;
-    state.scratched = true;
-    $('scratchBox').classList.add('done');
-    $('lede').textContent = t('ledeDone');
-    setStatus('');
-    var reveal = $('reveal');
-    reveal.hidden = false;
-    requestAnimationFrame(function () { requestAnimationFrame(function () { reveal.classList.add('in'); }); });
-    setTimeout(function () { reveal.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 500);
-  }
-
-  (function wireScratch() {
-    var c = $('scratch');
-    var stop = function () { scratch.on = false; scratch.last = null; if (scratch.moves) checkScratched(); };
-    c.addEventListener('pointerdown', function (e) {
-      if (!$('cardWrap').classList.contains('flipped')) return;
-      e.preventDefault(); e.stopPropagation();
-      scratch.on = true; scratch.last = null; state.scratchStarted = true;
-      try { c.setPointerCapture(e.pointerId); } catch (err) {}
-      scratchAt(e);
-    });
-    c.addEventListener('pointermove', function (e) { if (!scratch.on) return; e.preventDefault(); scratchAt(e); });
-    c.addEventListener('pointerup', stop);
-    c.addEventListener('pointercancel', stop);
-    c.addEventListener('lostpointercapture', stop);
-    // A tap on the panel scratches; it must never turn the card back over.
-    // On the box, not just the canvas: once the coating is gone the canvas
-    // stops taking pointer events, and the click that ends the last stroke
-    // would otherwise land on the card underneath and flip it.
-    $('scratchBox').addEventListener('click', function (e) { e.stopPropagation(); });
-  })();
-
-  // --- opening -----------------------------------------------------------------
-
-  var gift = $('gift');
-  var statusEl = $('status');
-
-  function setStatus(text, busy) {
-    statusEl.innerHTML = '';
-    if (busy) { var s = document.createElement('span'); s.className = 'spinner'; statusEl.appendChild(s); }
-    statusEl.appendChild(document.createTextNode(text || ''));
-  }
-
-  function hidePanels() {
-    $('verifyPanel').hidden = true;
-    $('badPanel').hidden = true;
-    $('verifyWhy').hidden = true;
-  }
-
-  function showVerifyFailure(why) {
-    hidePanels();
-    gift.classList.remove('checking');
-    setStatus('');
-    var w = $('verifyWhy');
-    if (why) { w.textContent = why; w.hidden = false; }
-    $('verifyPanel').hidden = false;
-    $('verifyPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-
-  function showBad(kind, date) {
-    hidePanels();
-    gift.classList.remove('checking');
-    setStatus('');
-    state.lastBad = { kind: kind, date: date };
-    var keys = { not_found: 'badNotFound', redeemed: 'badRedeemed', voided: 'badVoided', expired: 'badExpired', missing: 'badMissing', rate_limited: 'badRate', server: 'badServer' };
-    var key = keys[kind] || 'badNotFound';
-    $('badTitle').textContent = t(key);
-    $('badBody').textContent = t(key + 'Body', { date: date || '' });
-    $('badPanel').hidden = false;
-    $('badPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-
-  function flip(force) {
-    var w = $('cardWrap');
-    if (!state.opened) return;
-    var to = typeof force === 'boolean' ? force : !w.classList.contains('flipped');
-    w.classList.toggle('flipped', to);
-    $('flipBtn').textContent = to ? t('flipBack') : t('flip');
-    // The panel is measured when it is painted; the first time the back is
-    // shown is the first time it has a size worth measuring.
-    if (to && !state.scratchStarted) setTimeout(paintScratch, 50);
-  }
-
-  function unwrap(card) {
-    state.card = card;
-    // Montserrat has to be in before the front is drawn, or the lettering
-    // lays out in the fallback face for a frame and jumps when the real one
-    // lands — on a card, that reads as a misprint.
-    var fonts = document.fonts && document.fonts.load ? Promise.all([
-      document.fonts.load('800 20px Montserrat'), document.fonts.load('900 20px Montserrat'), document.fonts.load('700 20px "JetBrains Mono"')
-    ]).catch(function () {}) : Promise.resolve();
-    Promise.race([fonts, new Promise(function (r) { setTimeout(r, 1500); })]).then(function () {
-      state.opened = true;
-      drawCard(card);
-      gift.classList.remove('checking');
-      gift.classList.add('open');
-      $('cardWrap').classList.add('opened');
-      $('tap').hidden = true;
-      $('lede').textContent = t('ledeOpen');
-      setStatus(t('opening'), false);
-      setTimeout(function () {
-        gift.hidden = true;
-        setStatus(t('turnHint'), false);
-        $('flipRow').hidden = false;
-      }, 1000);
-    });
-  }
-
-  function openGift() {
-    if (state.busy || state.opened) return;
-    if (!state.id) { showBad('missing'); return; }
-    state.busy = true;
-    hidePanels();
-    gift.classList.add('checking');
-    setStatus(t('checking'), true);
-
-    challenge().then(function (token) {
-      return fetch('/api/gift/open', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: state.id, turnstileToken: token })
-      }).then(function (res) {
-        return res.json().catch(function () { return {}; }).then(function (data) { return { status: res.status, data: data }; });
-      });
-    }).then(function (r) {
-      state.busy = false;
-      var d = r.data || {};
-      if (r.status === 403 && d.error === 'verification') return showVerifyFailure(d.reason);
-      if (r.status === 429) return showBad('rate_limited');
-      if (r.status >= 500) return showBad('server');
-      if (d.found !== true) return showBad('not_found');
-      if (d.state !== 'open') return showBad(d.state, fmtDate(d.state === 'redeemed' ? d.redeemedAt : d.deadline));
-      unwrap(d);
-    }).catch(function (err) {
-      state.busy = false;
-      // A challenge that did not produce a token is the same outcome as one
-      // Cloudflare refused: the server was never asked, the gift stays shut.
-      var msg = err && err.message ? err.message : String(err);
-      if (/failed to fetch|networkerror|load failed/i.test(msg)) return showBad('server');
-      showVerifyFailure(msg);
-    });
-  }
-
-  gift.addEventListener('click', openGift);
-  $('retry').addEventListener('click', function () {
-    hidePanels();
-    if (window.turnstile && state.widget !== null) { try { window.turnstile.reset(state.widget); } catch (e) {} }
-    state.token = null;
-    openGift();
-  });
-  $('card').addEventListener('click', function () { flip(); });
-  $('flipBtn').addEventListener('click', function () { flip(); });
-  window.addEventListener('resize', function () { if (state.opened && !state.scratchStarted) paintScratch(); });
-  $('copy').addEventListener('click', function () {
-    var code = $('code').textContent;
-    if (!code) return;
-    var done = function () { $('copy').textContent = t('copied'); setTimeout(function () { $('copy').textContent = t('copy'); }, 1500); };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, done); else done();
-  });
-
-  // --- boot --------------------------------------------------------------------
+  document.querySelectorAll('#planSeg button').forEach(function (b) { b.addEventListener('click', function () { plan = b.dataset.plan; draw(); }); });
 
   (function initLang() {
     var sel = $('lang');
-    LANGS.forEach(function (l) {
-      var o = document.createElement('option');
-      o.value = l[0]; o.textContent = l[1]; o.lang = l[0];
-      sel.appendChild(o);
-    });
-    sel.addEventListener('change', function () { applyLang(sel.value); });
+    LANGS.forEach(function (l) { var o = document.createElement('option'); o.value = l[0]; o.textContent = l[1]; o.lang = l[0]; sel.appendChild(o); });
+    sel.addEventListener('change', function () { lang = sel.value; try { localStorage.setItem('plately_landing_lang', lang); } catch (e) {} draw(); });
     var stored = null;
     try { stored = localStorage.getItem('plately_landing_lang'); } catch (e) {}
     var pick = stored && T[stored] ? stored : null;
@@ -689,27 +285,15 @@
       var wants = (navigator.languages || [navigator.language || 'en']).map(function (s) { return String(s).slice(0, 2).toLowerCase(); });
       for (var i = 0; i < wants.length && !pick; i++) if (T[wants[i]]) pick = wants[i];
     }
-    applyLang(pick || 'en');
+    lang = pick || 'en';
+    // ?plan=ultra&period=quarterly preselects, for a link from anywhere else on the site.
+    try {
+      var u = new URL(location.href);
+      if (PRICES[u.searchParams.get('plan')]) plan = u.searchParams.get('plan');
+      if (DAYS[u.searchParams.get('period')]) period = u.searchParams.get('period');
+    } catch (e) {}
+    draw();
   })();
-
-  state.id = readId();
-  if (!state.id) { showBad('missing'); gift.disabled = true; }
-
-  // The site key comes from the server so the page and the panel share one
-  // widget. Loading Cloudflare now, before the click, is what makes the click
-  // itself feel instant for the person who is not a bot.
-  fetch('/api/gift/session', { headers: { 'Accept': 'application/json' } })
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      state.siteKey = data.turnstileSiteKey || null;
-      state.botCheck = Boolean(data.botCheck);
-      return mountTurnstile();
-    })
-    .catch(function () {
-      // Left null: the click will report the check as unavailable, and the
-      // server — which requires a token whenever it has a secret — refuses.
-      // Failing towards "closed" is the whole point of the gate.
-    });
 </script>
 </body>
 </html>
