@@ -23,9 +23,9 @@ export const DAYS = { monthly: 31, quarterly: 92, yearly: 366 };
 
 /**
  * Promocja: procent zniżki od PRICES. Mirrors PROMO_PERCENT in the app's
- * plans.ts and paymentsHandler.ts. CHWILOWO 99 na czas testów; potem 0.
+ * plans.ts and paymentsHandler.ts. CHWILOWO 50 na czas testów; potem 0.
  */
-export const PROMO_PERCENT = 99;
+export const PROMO_PERCENT = 50;
 
 export const CURRENCY = "usd";
 
