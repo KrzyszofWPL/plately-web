@@ -23,7 +23,22 @@ https://www.plately.eu/app is a permanent redirect to the same place.
 - **Languages**: Polish, English, German, Ukrainian, Russian, French, Italian, Spanish,
   Portuguese, Japanese, Chinese, Korean.
 - **Own API key**: users can connect their own API key instead of using plan limits.
-- **Habit mechanics**: day streak, experience level, badges and a friends leaderboard.
+- **Habit mechanics**: day streak, experience level, badges, daily challenges and a
+  friends leaderboard. Strangers see only a nickname and what the user switches on.
+- **Barcode scanner**: nutrition facts for packaged food come from Open Food Facts,
+  always behind a confirmation step.
+- **Food library**: anything logged once comes back with one tap from the "Quick" tab,
+  with no photo, no AI request and nothing taken off the daily limit.
+- **Offline logging**: a meal logged without signal is queued and sent when the
+  connection returns, dated to the day it was eaten.
+- **Sleep**: a sleep diary with lights-out and wake-up times, cycle planning around
+  the next alarm, and a behavioural sleep-window programme adjusted weekly.
+- **Activity**: steps, heart rate and sleep are entered by hand; net calories burned
+  are estimated with the MET model and summarised in one AI report per day.
+- **Installation**: installs from the browser as a PWA (install prompt on Android,
+  Windows, macOS and Linux; "Add to Home Screen" on iPhone). Opens without signal.
+- **Export and deletion**: full JSON plus CSV files of meals and weight from settings;
+  deleting the account removes everything, the account included.
 
 ## Screens
 
@@ -71,14 +86,47 @@ runs in the browser, which has no access to Health Connect, Apple Health or Huaw
 Health, so there is no watch synchronisation on any tier. The AI Cooking Teacher is
 announced but not switched on, and is not part of any plan.
 
+Plans and gift cards are paid in cryptocurrency through NOWPayments; billing is in USD.
+There is no card payment.
+
+## What is not there yet
+
+The home page carries a section titled "What is not there yet — and why", with a status
+on each item. As of the day this file was updated:
+
+- **AI Cooking Teacher — soon.** Camera on the counter, cooking along with the AI out
+  loud in real time. The code exists; the feature is switched off for everyone until it
+  works reliably. It will be a separate service, not part of any plan.
+- **Google Play and App Store — planned.** Today the app installs from the browser as
+  a PWA. Store listings are planned; the browser install stays.
+- **Reminders and notifications — not yet.** A browser cannot schedule a notification
+  without a push server, so rather than a switch that would not ring there is none.
+  They return with Web Push.
+- **Automatic watch sync — not yet.** No browser access to Health Connect, Apple Health
+  or Huawei Health; figures are entered by hand. Sync returns with the store version.
+- **Dietitian panel: meal photos, comments, PDF export, staff accounts — planned.**
+  Today a practice sees a patient's diary, macros and hydration and sets targets.
+- **Card payments and euro invoices — planned.** Regional pricing too.
+
 ## Pages
 
 - [Home (Polish)](https://www.plately.eu/): what the product does, the four tabs with
-  screenshots, how to start, features, pricing, FAQ.
+  screenshots, what else is inside, how to start, features, pricing, what is not there
+  yet, FAQ, and a directory of every page on the site.
 - [Home (English)](https://www.plately.eu/en): the same page in English.
+- [Gift cards](https://www.plately.eu/giftcards): Premium or Ultra for 31, 92 or 366
+  days as a gift. No account needed to buy; the buyer receives a link to a wrapped card
+  with the code under a scratch panel.
+- [Redeem a code](https://www.plately.eu/redeem): enter a PLATELY-XXXX-XXXX-XXXX code
+  and be taken to the app with it already filled in.
+- [For dietitians](https://www.plately.eu/dietitian): the practice panel. Patients'
+  diaries, targets set remotely, seats in a programme; registration with business
+  verification, 14 days free without a card. Sign-in required.
 - [Help and contact](https://www.plately.eu/help): the support form. Pick a category,
   describe the problem, leave an e-mail address; a confirmation with a ticket reference
   is sent immediately and a person replies, usually within one business day.
+- [Service status](https://www.plately.eu/status): current state of the site, the app,
+  the database and e-mail, with response times and seven days of history.
 - [Terms of service](https://www.plately.eu/terms)
 - [Privacy policy](https://www.plately.eu/privacy)
 

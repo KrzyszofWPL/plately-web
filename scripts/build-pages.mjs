@@ -74,6 +74,12 @@ const PLANS = [
 
 const APP_URL = 'https://app.plately.eu/';
 
+// Ile razy szablon linkuje do poradnika: nawigacja, menu na telefonie, spis
+// stron, stopka. Liczba jest tu jawnie, żeby dodanie piątego linku bez
+// atrybutu data-guides-href (albo zgubienie jednego) zatrzymało build, zamiast
+// cicho wypuścić stronę koreańską z linkiem do polskiego poradnika.
+const GUIDES_LINKS = 4;
+
 // Sygnaly tozsamosci marki. Wspolne dla wszystkich jezykow, wiec nie leza w
 // content/seo/<lang>.json tylko obok, w brand.json — plik opisuje sam siebie.
 const BRAND = JSON.parse(
@@ -369,8 +375,11 @@ function jsonLd(lang, t) {
           availability: 'https://schema.org/InStock',
           offers,
         },
+        // Cztery filary, dwie karty pod nimi i osiem pozycji z sekcji
+        // „Więcej niż licznik" — ta sama lista, którą widać na stronie.
         featureList: [
           t.c1t, t.c2t, t.c3t, t.c4t, t.wLabel, t.coachLabel,
+          t.more1t, t.more2t, t.more3t, t.more4t, t.more5t, t.more6t, t.more7t, t.more8t,
         ].filter(Boolean),
       },
       {
@@ -516,9 +525,17 @@ function buildPage(template, lang, t) {
   // Poradnik istnieje w dwóch językach, landing w dwunastu. Każdy język bez
   // własnej wersji poradnika dostaje angielską, bo to ona jest x-default całej
   // witryny. Znacznik musi zniknąć: atrybut bez wartości zostałby w dokumencie.
+  //
+  // Globalnie, nie pierwszy: link do poradnika stoi w nawigacji, w menu na
+  // telefonie, w spisie stron i w stopce. Wersja z jednym wystąpieniem
+  // podmieniała tylko nawigację i zostawiała stopkę po polsku na jedenastu
+  // stronach — stąd asercja na liczbę wystąpień, a nie samo istnienie.
   const guidesHref = lang === DEFAULT_LANG ? '/poradnik' : '/guides';
-  const guidesRe = /<a href="\/poradnik" data-guides-href /;
-  if (!guidesRe.test(html)) throw new Error(`[${lang}] nie znaleziono linku data-guides-href`);
+  const guidesRe = /<a href="\/poradnik" data-guides-href /g;
+  const guidesCount = (html.match(guidesRe) || []).length;
+  if (guidesCount !== GUIDES_LINKS) {
+    throw new Error(`[${lang}] linków data-guides-href: ${guidesCount}, oczekiwano ${GUIDES_LINKS}`);
+  }
   html = html.replace(guidesRe, `<a href="${guidesHref}" `);
 
   // After the doctype, not before it: a comment ahead of the doctype is legal

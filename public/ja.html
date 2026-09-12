@@ -368,7 +368,15 @@
         "あなたを知るコーチ",
         "データはあなたのもの",
         "体重管理",
-        "コーチとの会話"
+        "コーチとの会話",
+        "バーコードスキャナー",
+        "食品ライブラリ",
+        "オフライン記録",
+        "睡眠と睡眠ウィンドウ",
+        "歩数・心拍・睡眠",
+        "レベル・バッジ・友達",
+        "アプリのようにインストール",
+        "エクスポートとアカウント削除"
       ]
     },
     {
@@ -641,10 +649,91 @@
   .pl-step h3 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -.015em; }
   .pl-step p { margin: 0; font-size: 14.5px; line-height: 1.6; color: #8a8a92; text-wrap: pretty; }
 
-  /* Piaty link w nawigacji miesci sie dopiero powyzej 1040 px — przy 880 px
-     niemieckie i francuskie etykiety zaczynaja sie zawijac. */
+  /* Trzy progi nawigacji. Kotwice w obrebie strony wchodza od 880 px, linki do
+     podstron (poradnik, karty, gabinety) od 1040 px — przy 880 px niemieckie i
+     francuskie etykiety zaczynaja sie zawijac — a kotwica „Aplikacja" dopiero
+     od 1180 px, bo jest najmniej potrzebna: sekcja, do ktorej prowadzi, jest
+     drugim ekranem strony. Ponizej 1040 px wszystko, czego nie widac, siedzi
+     w menu obok (.pl-menu), wiec zadna podstrona nie znika z naglowka na
+     zadnej szerokosci. */
+  .pl-navlink { white-space: nowrap; }
   .pl-navwide { display: none; }
   @media (min-width: 1040px) { .pl-navwide { display: inline-flex; } }
+  .pl-navxl { display: none; }
+  @media (min-width: 1180px) { .pl-navxl { display: inline-flex; } }
+
+  /* Menu na telefonie i na wąskim pulpicie. <details>, nie przycisk ze
+     skryptem: rozwija sie i bez JS, a landing.js tylko domyka je po kliknieciu
+     w link albo poza nim. To jedyne miejsce, z ktorego na telefonie widac
+     wszystkie podstrony serwisu bez przewijania do stopki. */
+  /* Panel pozycjonuje sie wzgledem calego paska naglowka (ma position:relative
+     w znaczniku), nie wzgledem przycisku: przycisk stoi 180 px od lewej
+     krawedzi telefonu, a panel ma 335 px szerokosci — zawieszony na
+     przycisku wystawal 115 px poza ekran. */
+  .pl-menu { position: static; flex: none; }
+  .pl-menu summary { list-style: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 14px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; color: #f4f4f5; font-size: 13px; font-weight: 500; letter-spacing: .02em; cursor: pointer; transition: border-color .2s ease, background-color .2s ease, color .2s ease; }
+  .pl-menu summary::-webkit-details-marker { display: none; }
+  .pl-menu summary:hover, .pl-menu[open] summary { border-color: rgba(52,211,153,.45); background: rgba(52,211,153,.08); color: #34d399; }
+  .pl-menu .i-close { display: none; }
+  .pl-menu[open] .i-close { display: block; }
+  .pl-menu[open] .i-open { display: none; }
+  .pl-menupanel { position: absolute; top: calc(100% + 2px); right: 20px; z-index: 70; width: min(360px, calc(100vw - 40px)); max-height: calc(100dvh - 90px); overflow-y: auto; padding: 10px; border-radius: 18px; border: 1px solid rgba(255,255,255,.1); background: rgba(16,16,19,.96); backdrop-filter: blur(20px); box-shadow: 0 24px 60px rgba(0,0,0,.65); animation: plMenu .2s cubic-bezier(.2,.8,.2,1); display: grid; grid-template-columns: 1fr; gap: 6px; }
+  .pl-menupanel h4 { margin: 0; padding: 8px 10px 4px; font-size: 9px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #8a8a92; }
+  .pl-menupanel a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; font-size: 13px; font-weight: 500; color: #e4e4e7; transition: background-color .15s ease, color .15s ease; }
+  .pl-menupanel a:hover { background: #1f2023; color: #34d399; }
+  .pl-menupanel a .i { width: 15px; height: 15px; color: #34d399; }
+  @media (min-width: 480px) { .pl-menupanel { width: min(560px, calc(100vw - 40px)); grid-template-columns: 1fr 1fr; gap: 6px 14px; } }
+  @media (min-width: 1040px) { .pl-menu { display: none; } }
+  /* Na 375 px naglowek mial 0 px zapasu, a przycisk menu potrzebuje 46.
+     Oddaja je przelacznik jezyka (zostaje sam globus; flaga, kod i strzalka
+     wracaja od 480 px) i napis „Plately" obok logo — logo zostaje, a nazwa
+     jest w tytule strony. Przycisk menu zostaje sama ikona. Zmierzone, nie
+     zgadywane: po tej zmianie francuska wersja ma na 375 px ok. 25 px luzu. */
+  @media (max-width: 479px) {
+    /* !important, bo #pl-langflag ma display w atrybucie style. */
+    #pl-langflag, #pl-langcode, .pl-langbtn > .i:last-child { display: none !important; }
+    .pl-langbtn { padding: 8px 11px; }
+    .pl-wordmark { display: none; }
+    .pl-menuword { display: none; }
+    .pl-menu summary { width: 38px; padding: 0; }
+  }
+
+  /* Siatka „Wiecej niz licznik": osiem drobniejszych kart niz filary wyzej,
+     bo to lista, a nie cztery argumenty — mniejszy padding i ciasniejsza
+     kolumna, zeby osiem pozycji nie zajelo trzech ekranow. */
+  .pl-mini { background: #131316; border: 1px solid rgba(255,255,255,.08); border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 10px; transition: border-color .3s ease, transform .3s cubic-bezier(.2,.8,.2,1); }
+  .pl-mini:hover { border-color: rgba(52,211,153,.4); transform: translateY(-4px); }
+  .pl-mini .pl-ico { width: 38px; height: 38px; border-radius: 12px; background: #17251f; color: #34d399; display: flex; align-items: center; justify-content: center; }
+  .pl-mini h3 { margin: 4px 0 0; font-size: 16px; font-weight: 600; letter-spacing: -.015em; }
+  .pl-mini p { margin: 0; font-size: 14px; line-height: 1.6; color: #8a8a92; text-wrap: pretty; }
+
+  /* Mapa drogowa. Kazda pozycja niesie status w plakietce — „wkrotce",
+     „w planach" albo „nie ma" — bo lista bez statusu czyta sie jak lista
+     obietnic, a chodzi o cos przeciwnego: powiedziec, czego jeszcze nie ma. */
+  .pl-road { list-style: none; margin: clamp(32px,4vw,52px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .pl-roaditem { background: #131316; border: 1px solid rgba(255,255,255,.08); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 12px; transition: border-color .3s ease, transform .3s cubic-bezier(.2,.8,.2,1); }
+  .pl-roaditem:hover { border-color: rgba(255,255,255,.2); transform: translateY(-4px); }
+  .pl-roadhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .pl-roadhead .pl-ico { width: 38px; height: 38px; border-radius: 12px; background: #1b1c1f; color: #e4e4e7; display: flex; align-items: center; justify-content: center; }
+  .pl-roaditem h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.015em; }
+  .pl-roaditem p { margin: 0; font-size: 14.5px; line-height: 1.6; color: #8a8a92; text-wrap: pretty; }
+  .pl-status { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; border: 1px solid transparent; }
+  .pl-status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .pl-status--soon { color: #34d399; border-color: rgba(52,211,153,.35); background: rgba(52,211,153,.08); }
+  .pl-status--soon::before { animation: plPulse 2.4s ease-in-out infinite; }
+  .pl-status--planned { color: #5b9cf6; border-color: rgba(91,156,246,.35); background: rgba(91,156,246,.08); }
+  .pl-status--missing { color: #a1a1aa; border-color: rgba(255,255,255,.14); background: rgba(255,255,255,.04); }
+
+  /* Spis stron. Cala karta jest linkiem, zeby na telefonie bylo w co trafic;
+     strzalka w rogu mowi, ze to wyjscie z tej strony, a nie kotwica. */
+  .pl-page { position: relative; display: flex; flex-direction: column; gap: 10px; background: #131316; border: 1px solid rgba(255,255,255,.08); border-radius: 22px; padding: 22px 22px 22px; color: #f4f4f5; transition: border-color .3s ease, transform .3s cubic-bezier(.2,.8,.2,1); }
+  .pl-page:hover { border-color: rgba(52,211,153,.4); transform: translateY(-4px); color: #f4f4f5; }
+  .pl-page .pl-ico { width: 38px; height: 38px; border-radius: 12px; background: #17251f; color: #34d399; display: flex; align-items: center; justify-content: center; }
+  .pl-page h3 { margin: 4px 0 0; font-size: 16px; font-weight: 600; letter-spacing: -.015em; display: flex; align-items: center; gap: 8px; }
+  .pl-page h3 .i { color: #34d399; width: 14px; height: 14px; opacity: 0; transform: translateX(-4px); transition: opacity .2s ease, transform .2s ease; }
+  .pl-page:hover h3 .i { opacity: 1; transform: none; }
+  .pl-page p { margin: 0; font-size: 14px; line-height: 1.6; color: #8a8a92; text-wrap: pretty; }
+  .pl-page .pl-url { margin-top: auto; padding-top: 6px; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .02em; color: #8a8a92; }
 
   .pl-store { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 11px; padding: 17px 22px; border-radius: 20px; background: linear-gradient(135deg, #34d399 0%, #10a37f 100%); color: #04140d; font-size: 16px; font-weight: 600; letter-spacing: -.005em; box-shadow: 0 14px 34px rgba(52,211,153,.28); transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease; }
   .pl-store:hover { transform: translateY(-2px); box-shadow: 0 20px 46px rgba(52,211,153,.4); color: #04140d; }
@@ -683,6 +772,30 @@
 <symbol id="i-scan-line" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></symbol>
 <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
 <symbol id="i-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+<symbol id="i-barcode" viewBox="0 0 24 24"><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></symbol>
+<symbol id="i-library" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></symbol>
+<symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><path d="m2 2 20 20"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+<symbol id="i-heart-pulse" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+<symbol id="i-monitor-smartphone" viewBox="0 0 24 24"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></symbol>
+<symbol id="i-file-down" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></symbol>
+<symbol id="i-ticket" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></symbol>
+<symbol id="i-stethoscope" viewBox="0 0 24 24"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></symbol>
+<symbol id="i-life-buoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></symbol>
+<symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></symbol>
+<symbol id="i-file-text" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
+<symbol id="i-chef-hat" viewBox="0 0 24 24"><path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z"/><path d="M6 17h12"/></symbol>
+<symbol id="i-store" viewBox="0 0 24 24"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2 2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/></symbol>
+<symbol id="i-bell-off" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M17 17H4a1 1 0 0 1-.74-1.673C4.59 13.956 6 12.499 6 8a6 6 0 0 1 .258-1.742"/><path d="m2 2 20 20"/><path d="M8.668 3.01A6 6 0 0 1 18 8c0 2.687.77 4.653 1.707 6.05"/></symbol>
+<symbol id="i-watch" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/><path d="M12 10v2l1 1"/><path d="m16.13 7.66-.81-4.05a2 2 0 0 0-2-1.61h-2.68a2 2 0 0 0-2 1.61l-.78 4.05"/><path d="m7.88 16.36.8 4a2 2 0 0 0 2 1.61h2.72a2 2 0 0 0 2-1.61l.81-4.05"/></symbol>
+<symbol id="i-credit-card" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
 </defs></svg>
 
 <a href="#tresc" class="pl-sr">本文へスキップ</a>
@@ -690,7 +803,7 @@
 <div style="min-height:100dvh; background:#0a0a0b; position:relative;">
 
   <header style="position:sticky; top:0; z-index:60; backdrop-filter:blur(18px); background:rgba(10,10,11,.72); border-bottom:1px solid rgba(255,255,255,.08);">
-    <div style="max-width:1180px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; gap:14px;">
+    <div style="position:relative; max-width:1180px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; gap:14px;">
       <div style="display:flex; align-items:center; gap:14px; min-width:0;">
         <div style="position:relative; flex:none;">
           <button type="button" id="pl-langbtn" class="pl-langbtn" aria-haspopup="true" aria-expanded="false" aria-controls="pl-langmenu">
@@ -709,14 +822,50 @@
           <div style="width:36px; height:36px; border-radius:12px; overflow:hidden; flex:none; border:1px solid rgba(255,255,255,.08);">
             <img src="/logo.png" alt="Logo Plately" width="36" height="36" style="width:100%; height:100%; object-fit:cover; display:block;">
           </div>
-          <div style="font-size:17px; font-weight:600; letter-spacing:-.01em;">Plately</div>
+          <div class="pl-wordmark" style="font-size:17px; font-weight:600; letter-spacing:-.01em;">Plately</div>
         </div>
       </div>
       <nav style="display:flex; align-items:center; gap:8px; flex:none;" aria-label="Nawigacja glowna">
-        <a href="#aplikacja" class="pl-navlink pl-navwide" data-i18n="navApp">アプリ</a>
+        <a href="#aplikacja" class="pl-navlink pl-navxl" data-i18n="navApp">アプリ</a>
         <a href="#klimat" class="pl-navlink pl-navdesk" data-i18n="navFeatures">機能</a>
         <a href="#cennik" class="pl-navlink pl-navdesk" data-i18n="navPricing">料金</a>
         <a href="#faq" class="pl-navlink pl-navdesk" data-i18n="navFaq">よくある質問</a>
+        <!-- Podstrony serwisu, nie kotwice. Do tej pory jedyna droga do
+             poradnika, sklepu z kartami i panelu gabinetu prowadzila przez
+             stopke — czyli dla wiekszosci odwiedzajacych nie istniala. -->
+        <a href="/guides" class="pl-navlink pl-navwide" data-i18n="ftGuides">ガイド</a>
+        <a href="/giftcards" class="pl-navlink pl-navwide" data-i18n="navGift">ギフト</a>
+        <a href="/dietitian" class="pl-navlink pl-navwide" data-i18n="navPro">管理栄養士向け</a>
+        <details class="pl-menu" id="pl-menu">
+          <summary>
+            <svg class="i i-open" style="width:16px; height:16px;" aria-hidden="true"><use href="#i-menu"/></svg>
+            <svg class="i i-close" style="width:16px; height:16px;" aria-hidden="true"><use href="#i-x"/></svg>
+            <span class="pl-menuword" data-i18n="menuLabel">メニュー</span>
+          </summary>
+          <div class="pl-menupanel">
+            <div>
+              <h4 data-i18n="menuOnPage">このページ内</h4>
+              <a href="#klimat"><svg class="i" aria-hidden="true"><use href="#i-sparkles"/></svg><span data-i18n="navFeatures">機能</span></a>
+              <a href="#aplikacja"><svg class="i" aria-hidden="true"><use href="#i-grid"/></svg><span data-i18n="navApp">アプリ</span></a>
+              <a href="#wiecej"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span data-i18n="moreEyebrow">カウンター以上のもの</span></a>
+              <a href="#cennik"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="navPricing">料金</span></a>
+              <a href="#w-drodze"><svg class="i" aria-hidden="true"><use href="#i-activity"/></svg><span data-i18n="roadEyebrow">これから</span></a>
+              <a href="#faq"><svg class="i" aria-hidden="true"><use href="#i-life-buoy"/></svg><span data-i18n="navFaq">よくある質問</span></a>
+            </div>
+            <div>
+              <h4 data-i18n="menuPages">サイトのページ</h4>
+              <a href="https://app.plately.eu/"><svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg><span data-i18n="ctaOpen">アプリを開く</span></a>
+              <a href="/guides" ><svg class="i" aria-hidden="true"><use href="#i-book-open"/></svg><span data-i18n="ftGuides">ガイド</span></a>
+              <a href="/giftcards"><svg class="i" aria-hidden="true"><use href="#i-gift"/></svg><span data-i18n="page3t">ギフトカード</span></a>
+              <a href="/redeem"><svg class="i" aria-hidden="true"><use href="#i-ticket"/></svg><span data-i18n="page4t">コードを使う</span></a>
+              <a href="/dietitian"><svg class="i" aria-hidden="true"><use href="#i-stethoscope"/></svg><span data-i18n="page5t">管理栄養士向け</span></a>
+              <a href="/help"><svg class="i" aria-hidden="true"><use href="#i-life-buoy"/></svg><span data-i18n="page6t">ヘルプとお問い合わせ</span></a>
+              <a href="/status"><svg class="i" aria-hidden="true"><use href="#i-activity"/></svg><span data-i18n="ftStatus">稼働状況</span></a>
+              <a href="/terms"><svg class="i" aria-hidden="true"><use href="#i-file-text"/></svg><span data-i18n="ftTerms">利用規約</span></a>
+              <a href="/privacy"><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg><span data-i18n="ftPrivacy">プライバシーポリシー</span></a>
+            </div>
+          </div>
+        </details>
         <a href="#pobierz" class="pl-navlink pl-navcta">
           <span data-i18n="navDownload">始める</span>
           <svg class="i" style="width:14px; height:14px;" aria-hidden="true"><use href="#i-arrow-right"/></svg>
@@ -1076,6 +1225,64 @@
     </div>
   </section>
 
+  <!-- Wszystko, co aplikacja umie, a czego nie widac na czterech zrzutach wyzej:
+       skaner kodow, biblioteka produktow, zapisy offline, sen, kroki, odznaki,
+       instalacja PWA, eksport. Kazda z tych rzeczy istnieje w README aplikacji
+       od miesiecy i zadna nie byla wspomniana na stronie — czyli dla kogos, kto
+       porownuje liczniki kalorii, nie istniala. -->
+  <section id="wiecej" style="padding:clamp(56px,7vw,110px) 24px; border-top:1px solid rgba(255,255,255,.08);">
+    <div style="max-width:1180px; margin:0 auto;">
+      <div class="pl-reveal" style="max-width:50ch;">
+        <p style="margin:0; font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#34d399;" data-i18n="moreEyebrow">カウンター以上のもの</p>
+        <h2 style="margin:16px 0 0; font-size:clamp(28px,3.6vw,44px); line-height:1.1; font-weight:700; letter-spacing:-.03em; text-wrap:balance;" data-i18n="moreH2">ほかに何が入っているか</h2>
+        <p style="margin:18px 0 0; font-size:17px; line-height:1.6; color:#8a8a92; text-wrap:pretty;" data-i18n="moreLead">最初の画面には見えないけれど、3週目に差がつくもの — ほとんどの食事記録が終わってしまう頃に。</p>
+      </div>
+
+      <div style="margin-top:clamp(32px,4vw,52px); display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px;">
+        <div class="pl-reveal pl-mini">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-barcode"/></svg></div>
+          <h3 data-i18n="more1t">バーコードスキャナー</h3>
+          <p data-i18n="more1d">パッケージのコードにかざすと、栄養成分が Open Food Facts のデータベースから届きます。登録内容が古いこともあるため、必ず確認ステップを挟みます。</p>
+        </div>
+        <div class="pl-reveal pl-mini">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-library"/></svg></div>
+          <h3 data-i18n="more2t">食品ライブラリ</h3>
+          <p data-i18n="more2d">一度記録したものは「クイック」タブからワンタップで戻ってきます — 写真なし、AIへの問い合わせなし、1日の上限も減りません。</p>
+        </div>
+        <div class="pl-reveal pl-mini">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-wifi-off"/></svg></div>
+          <h3 data-i18n="more3t">オフライン記録</h3>
+          <p data-i18n="more3d">地下鉄や飛行機で記録した食事はキューで待ち、電波が戻ると送信されます。届いた日ではなく、食べた日に入ります。</p>
+        </div>
+        <div class="pl-reveal pl-mini">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-moon"/></svg></div>
+          <h3 data-i18n="more4t">睡眠と睡眠ウィンドウ</h3>
+          <p data-i18n="more4d">就寝・起床時刻を記す睡眠日誌、明日のアラームに合わせたサイクル計画、そして毎週調整される行動療法ベースの睡眠ウィンドウ・プログラム。</p>
+        </div>
+        <div class="pl-reveal pl-mini">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-heart-pulse"/></svg></div>
+          <h3 data-i18n="more5t">歩数・心拍・睡眠</h3>
+          <p data-i18n="more5d">時計の数値は手で写します。Plately は MET モデルで正味の消費カロリーを計算し、1日1回 AI レポートで一日を振り返ります。</p>
+        </div>
+        <div class="pl-reveal pl-mini">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-trophy"/></svg></div>
+          <h3 data-i18n="more6t">レベル・バッジ・友達</h3>
+          <p data-i18n="more6d">連続日数、レベルと XP、バッジの陳列棚、毎日のチャレンジ、友達ランキング。見知らぬ人に見えるのはニックネームと、自分で公開したものだけです。</p>
+        </div>
+        <div class="pl-reveal pl-mini">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-monitor-smartphone"/></svg></div>
+          <h3 data-i18n="more7t">アプリのようにインストール</h3>
+          <p data-i18n="more7d">Android・Windows・macOS・Linux ではブラウザがインストールを提案し、iPhone では「ホーム画面に追加」だけ。アイコン、専用ウィンドウ、電波なしでも起動。</p>
+        </div>
+        <div class="pl-reveal pl-mini">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-file-down"/></svg></div>
+          <h3 data-i18n="more8t">エクスポートとアカウント削除</h3>
+          <p data-i18n="more8d">設定でワンクリック、完全な JSON と食事・体重の CSV。アカウント削除はアカウント自体を含めてすべて消去 — 誰かに連絡する必要はありません。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Instrukcja startu. Trzy kroki są tu również jako HowTo w JSON-LD: to jeden
        z niewielu typów danych strukturalnych, które wciąż dają wynik rozszerzony,
        a przy okazji jest to dokładnie ta forma, którą cytują wyszukiwarki AI. -->
@@ -1219,6 +1426,74 @@
     </div>
   </section>
 
+  <!-- Mapa drogowa, w tym to, czego nie ma. Kazda pozycja ma status, bo lista
+       bez statusu czyta sie jak lista obietnic. Zrodla: COOKING_ENABLED=false
+       w src/lib/plans.ts aplikacji (Kucharz AI), README aplikacji (PWA,
+       powiadomienia wyciete, brak Health Connect w przegladarce, platnosci
+       NOWPayments), docs/b2b-dietetycy.md (zakres panelu gabinetu, faza 2).
+       Gdy ktoras z tych rzeczy powstanie, karta ma stad zniknac, a nie zmienic
+       plakietke na „jest" — sekcja opisuje braki, nie historie. -->
+  <section id="w-drodze" style="padding:clamp(56px,7vw,110px) 24px; border-top:1px solid rgba(255,255,255,.08);">
+    <div style="max-width:1180px; margin:0 auto;">
+      <div class="pl-reveal" style="max-width:52ch;">
+        <p style="margin:0; font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#34d399;" data-i18n="roadEyebrow">これから</p>
+        <h2 style="margin:16px 0 0; font-size:clamp(28px,3.6vw,44px); line-height:1.1; font-weight:700; letter-spacing:-.03em; text-wrap:balance;" data-i18n="roadH2">まだないもの — そしてその理由</h2>
+        <p style="margin:18px 0 0; font-size:17px; line-height:1.6; color:#8a8a92; text-wrap:pretty;" data-i18n="roadLead">何もしないスイッチを設定に残すより、Plately にまだないものをはっきり言うほうを選びます。以下のステータスはこのページ公開日時点のものです。</p>
+      </div>
+
+      <ul class="pl-road">
+        <li class="pl-reveal pl-roaditem" style="border-color:rgba(52,211,153,.22);">
+          <div class="pl-roadhead">
+            <div class="pl-ico" style="background:#17251f; color:#34d399;"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-chef-hat"/></svg></div>
+            <span class="pl-status pl-status--soon" data-i18n="roadSoon">近日</span>
+          </div>
+          <h3 data-i18n="road1t">AI クッキング先生</h3>
+          <p data-i18n="road1d">カメラを調理台に向け、AI と声を出しながらリアルタイムで一緒に料理。コードは書き上がっていますが、安定して動くまで全員に対してオフにしています。プランの一部ではなく、別サービスになります。</p>
+        </li>
+        <li class="pl-reveal pl-roaditem">
+          <div class="pl-roadhead">
+            <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-store"/></svg></div>
+            <span class="pl-status pl-status--planned" data-i18n="roadPlanned">計画中</span>
+          </div>
+          <h3 data-i18n="road2t">Google Play と App Store</h3>
+          <p data-i18n="road2d">現在 Plately はブラウザから PWA としてインストールし、どの OS でも同じように動きます。ストア掲載は計画中。ブラウザからのインストールは残します — ストアと手数料を避けられるのはこちらだからです。</p>
+        </li>
+        <li class="pl-reveal pl-roaditem">
+          <div class="pl-roadhead">
+            <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-bell-off"/></svg></div>
+            <span class="pl-status pl-status--missing" data-i18n="roadMissing">未対応</span>
+          </div>
+          <h3 data-i18n="road3t">リマインダーと通知</h3>
+          <p data-i18n="road3d">ブラウザはプッシュサーバーなしに通知を予約できず、リマインダーはタブが開いている間しか鳴りません。鳴らないスイッチを置くくらいなら、置きません。Web Push とともに戻ります。</p>
+        </li>
+        <li class="pl-reveal pl-roaditem">
+          <div class="pl-roadhead">
+            <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-watch"/></svg></div>
+            <span class="pl-status pl-status--missing" data-i18n="roadMissing">未対応</span>
+          </div>
+          <h3 data-i18n="road4t">時計からの自動読み取り</h3>
+          <p data-i18n="road4d">ブラウザは Health Connect、Apple ヘルスケア、Huawei Health にアクセスできません。歩数・心拍・睡眠は手入力 — 時計のアプリで既に見ている数値と同じです。同期はストア版とともに戻ります。</p>
+        </li>
+        <li class="pl-reveal pl-roaditem">
+          <div class="pl-roadhead">
+            <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-stethoscope"/></svg></div>
+            <span class="pl-status pl-status--planned" data-i18n="roadPlanned">計画中</span>
+          </div>
+          <h3 data-i18n="road5t">栄養士パネル：写真・コメント・PDF</h3>
+          <p data-i18n="road5d">クリニックは既に患者の記録・マクロ・水分を見て、目標を遠隔で設定できます。パネル内の食事写真、日ごとのコメント、PDF 書き出し、スタッフ用アカウントは今後のバージョンで。</p>
+        </li>
+        <li class="pl-reveal pl-roaditem">
+          <div class="pl-roadhead">
+            <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-credit-card"/></svg></div>
+            <span class="pl-status pl-status--planned" data-i18n="roadPlanned">計画中</span>
+          </div>
+          <h3 data-i18n="road6t">カード決済とユーロ建て請求書</h3>
+          <p data-i18n="road6d">プランとギフトカードは現在 NOWPayments 経由の暗号資産で支払い、請求は米ドル建てです。カード決済、地域別価格、クリニック向けユーロ建て請求書は計画中です。</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
   <section id="faq" style="padding:clamp(56px,7vw,110px) 24px; border-top:1px solid rgba(255,255,255,.08);">
     <div style="max-width:1180px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:clamp(26px,4vw,64px); align-items:start;">
       <div class="pl-reveal">
@@ -1276,6 +1551,77 @@
     </div>
   </section>
 
+  <!-- Spis wszystkich podstron serwisu, na stronie glownej, z opisem. Stopka
+       linkowala do polowy z nich, a sklep z kartami, /redeem i panel gabinetu
+       nie byly podlinkowane znikad poza sitemapa — dla odwiedzajacego byly
+       niewidoczne, dla crawlera sierotami. Karta jest linkiem w calosci. -->
+  <section id="strony" style="padding:clamp(56px,7vw,110px) 24px; border-top:1px solid rgba(255,255,255,.08);">
+    <div style="max-width:1180px; margin:0 auto;">
+      <div class="pl-reveal" style="max-width:50ch;">
+        <p style="margin:0; font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#34d399;" data-i18n="pagesEyebrow">サイト全体</p>
+        <h2 style="margin:16px 0 0; font-size:clamp(28px,3.6vw,44px); line-height:1.1; font-weight:700; letter-spacing:-.03em; text-wrap:balance;" data-i18n="pagesH2">Plately のすべてのページを一か所に</h2>
+        <p style="margin:18px 0 0; font-size:17px; line-height:1.6; color:#8a8a92; text-wrap:pretty;" data-i18n="pagesLead">隠しているものはありません。サイトのすべてのページを、その目的とともにここに並べています。</p>
+      </div>
+
+      <div style="margin-top:clamp(32px,4vw,52px); display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px;">
+        <a href="https://app.plately.eu/" class="pl-reveal pl-page">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-grid"/></svg></div>
+          <h3><span data-i18n="page1t">アプリ</span><svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></h3>
+          <p data-i18n="page1d">食事記録、水分、体重、睡眠、AI コーチ。Google でログイン、インストール不要、スマホでもパソコンでも。</p>
+          <span class="pl-url">app.plately.eu</span>
+        </a>
+        <a href="/guides" class="pl-reveal pl-page">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-book-open"/></svg></div>
+          <h3><span data-i18n="page2t">ガイド</span><svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></h3>
+          <p data-i18n="page2d">カロリー赤字、マクロ栄養素、水分補給、食事日誌、写真によるカロリー計算についての記事 — 数式と数字つき。</p>
+          <span class="pl-url" data-i18n="page2url">plately.eu/guides</span>
+        </a>
+        <a href="/giftcards" class="pl-reveal pl-page">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-gift"/></svg></div>
+          <h3><span data-i18n="page3t">ギフトカード</span><svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></h3>
+          <p data-i18n="page3d">Premium または Ultra を 31・92・366 日分、贈り物として。アカウント不要：カードを選んで支払うと、包装されたカードとスクラッチ下のコードのリンクが届きます。</p>
+          <span class="pl-url">plately.eu/giftcards</span>
+        </a>
+        <a href="/redeem" class="pl-reveal pl-page">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-ticket"/></svg></div>
+          <h3><span data-i18n="page4t">コードを使う</span><svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></h3>
+          <p data-i18n="page4d">PLATELY-XXXX-XXXX-XXXX のコードをお持ちですか？ここに入力すると、コードが入力済みの状態でアプリへ移動します。</p>
+          <span class="pl-url">plately.eu/redeem</span>
+        </a>
+        <a href="/dietitian" class="pl-reveal pl-page">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-stethoscope"/></svg></div>
+          <h3><span data-i18n="page5t">管理栄養士向け</span><svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></h3>
+          <p data-i18n="page5d">クリニック用パネル：患者の記録、遠隔で設定する目標、プログラムの枠。事業者確認つきの登録、カード不要で 14 日間無料。</p>
+          <span class="pl-url">plately.eu/dietitian</span>
+        </a>
+        <a href="/help" class="pl-reveal pl-page">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-life-buoy"/></svg></div>
+          <h3><span data-i18n="page6t">ヘルプとお問い合わせ</span><svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></h3>
+          <p data-i18n="page6d">チームへのフォーム：カテゴリ、問題の説明、メールアドレス。人が返信します。通常 1 営業日以内。</p>
+          <span class="pl-url">plately.eu/help</span>
+        </a>
+        <a href="/status" class="pl-reveal pl-page">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-activity"/></svg></div>
+          <h3><span data-i18n="page7t">稼働状況</span><svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></h3>
+          <p data-i18n="page7d">Plately は動いている？サイト・アプリ・データベース・メールの現在の状態を、応答時間と過去 7 日の履歴とともに。</p>
+          <span class="pl-url">plately.eu/status</span>
+        </a>
+        <a href="/terms" class="pl-reveal pl-page">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-file-text"/></svg></div>
+          <h3><span data-i18n="page8t">利用規約</span><svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></h3>
+          <p data-i18n="page8d">アカウント、プランと上限、支払い、利用ルール、可用性、責任 — 10 項目、ポーランド語と英語で。</p>
+          <span class="pl-url">plately.eu/terms</span>
+        </a>
+        <a href="/privacy" class="pl-reveal pl-page">
+          <div class="pl-ico"><svg class="i" style="width:19px; height:19px;" aria-hidden="true"><use href="#i-lock"/></svg></div>
+          <h3><span data-i18n="page9t">プライバシーポリシー</span><svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></h3>
+          <p data-i18n="page9d">収集するデータとしないデータ、食事写真の扱い、共有先、保存期間、そしてあなたの権利。</p>
+          <span class="pl-url">plately.eu/privacy</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <section id="pobierz" style="padding:clamp(56px,7vw,110px) 24px clamp(80px,9vw,140px); border-top:1px solid rgba(255,255,255,.08); position:relative; overflow:hidden;">
     <div style="position:absolute; bottom:-320px; left:50%; width:820px; height:820px; margin-left:-410px; border-radius:50%; background:radial-gradient(circle, rgba(52,211,153,.13) 0%, rgba(52,211,153,0) 65%); pointer-events:none;"></div>
     <div class="pl-reveal" style="max-width:760px; margin:0 auto; text-align:center; position:relative;">
@@ -1323,14 +1669,24 @@
       <div class="pl-ftcol">
         <h4 data-i18n="ftProduct">プロダクト</h4>
         <a href="#klimat" data-i18n="navFeatures">機能</a>
+        <a href="#wiecej" data-i18n="moreEyebrow">カウンター以上のもの</a>
         <a href="#cennik" data-i18n="navPricing">料金</a>
+        <a href="#w-drodze" data-i18n="roadEyebrow">これから</a>
         <!-- Poradnik istnieje po polsku (/poradnik) i po angielsku (/guides).
              data-guides-href mowi buildPage(), zeby podmienil adres na wlasciwy
              dla jezyka; bez tego dziesiec stron linkowaloby do polskiej sekcji.
-             Ten link jest jedyna droga, ktora crawler dochodzi do poradnika poza
-             sitemapa — bez niego artykuly sa sierotami. -->
+             Ten sam atrybut nosi link w nawigacji i w spisie stron wyzej. -->
         <a href="/guides" data-i18n="ftGuides">ガイド</a>
         <a href="https://app.plately.eu/" data-i18n="ctaOpen">アプリを開く</a>
+      </div>
+
+      <!-- Sklep i gabinety: trzy strony, ktore do tej pory nie mialy zadnego
+           linku poza sitemapa. -->
+      <div class="pl-ftcol">
+        <h4 data-i18n="ftShopHead">ショップとクリニック</h4>
+        <a href="/giftcards" data-i18n="page3t">ギフトカード</a>
+        <a href="/redeem" data-i18n="page4t">コードを使う</a>
+        <a href="/dietitian" data-i18n="page5t">管理栄養士向け</a>
       </div>
 
       <!-- The Terms and the Privacy Policy live inside the app, under
@@ -1375,6 +1731,6 @@
 
 <!-- Deferred scripts run in order, so the dictionary is always complete before
      landing.js reads it. -->
-<script src="/landing.js?v=39e4b3d1" defer></script>
+<script src="/landing.js?v=44b7f4f1" defer></script>
 </body>
 </html>

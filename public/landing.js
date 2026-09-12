@@ -169,6 +169,49 @@
   });
 
   // --------------------------------------------------------------------------
+  // Site menu (phone and narrow desktop)
+  //
+  // A <details> element, so it opens and closes with no script at all. What
+  // the browser does not do on its own is close it again: after tapping an
+  // in-page anchor the panel would stay open over the section it just
+  // scrolled to, and a click anywhere else would leave it hanging. The three
+  // handlers below add exactly that and nothing else.
+  // --------------------------------------------------------------------------
+
+  var siteMenu = document.getElementById('pl-menu');
+
+  if (siteMenu) {
+    siteMenu.addEventListener('click', function (e) {
+      if (e.target.closest('a')) siteMenu.removeAttribute('open');
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!siteMenu.open) return;
+      if (e.target.closest('#pl-menu')) return;
+      siteMenu.removeAttribute('open');
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && siteMenu.open) {
+        siteMenu.removeAttribute('open');
+        var summary = siteMenu.querySelector('summary');
+        if (summary) summary.focus();
+      }
+    });
+
+    // One open menu at a time: the language list and this one sit side by
+    // side in the header and would otherwise overlap.
+    siteMenu.addEventListener('toggle', function () {
+      if (siteMenu.open) closeMenu();
+    });
+    if (btn) {
+      btn.addEventListener('click', function () {
+        siteMenu.removeAttribute('open');
+      });
+    }
+  }
+
+  // --------------------------------------------------------------------------
   // Scroll reveal
   // --------------------------------------------------------------------------
 
