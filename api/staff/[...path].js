@@ -484,6 +484,11 @@ async function health() {
     TURNSTILE_SECRET_KEY: Boolean(process.env.TURNSTILE_SECRET_KEY),
     RESEND_API_KEY: Boolean(process.env.RESEND_API_KEY),
     RESEND_WEBHOOK_SECRET: Boolean(process.env.RESEND_WEBHOOK_SECRET),
+    // The gift-card shop at /giftcards. Without the first the shop says
+    // payments are not switched on; without the second the provider's
+    // webhook is refused and no paid order ever becomes a card.
+    NOWPAYMENTS_API_KEY: Boolean(process.env.NOWPAYMENTS_API_KEY),
+    NOWPAYMENTS_IPN_SECRET: Boolean(process.env.NOWPAYMENTS_IPN_SECRET),
   };
 
   const database = { reachable: false, schema: null, staffRows: null, note: null };
