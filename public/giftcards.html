@@ -54,6 +54,8 @@
   .period .sub { font-size: 12px; opacity: .75; margin-top: 2px; }
   .period .price { margin-left: auto; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 15px; font-weight: 700; white-space: nowrap; }
   .period .chip { margin-left: 8px; }
+  .period .was { font-size: 12px; font-weight: 500; opacity: .6; text-decoration: line-through; margin-right: 6px; }
+  .period .chip.promo { margin: 0 8px 0 0; }
 
   .summary { margin: 16px 0 0; padding: 14px 16px; border-radius: 16px; background: var(--m3-surface-container-low); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; line-height: 20px; }
   .summary strong { color: var(--m3-on-surface); font-weight: 600; }
@@ -117,6 +119,11 @@
     premium: { monthly: 6.99, quarterly: 18.99, yearly: 59 },
     ultra: { monthly: 12.99, quarterly: 34.99, yearly: 119 }
   };
+  // Promocja: procent zniżki od PRICES. Mirrors PROMO_PERCENT in the app
+  // (src/lib/plans.ts and serverless/paymentsHandler.ts) — the app is what
+  // charges, this page only shows. CHWILOWO 99 na czas testów; potem 0.
+  var PROMO_PERCENT = 99;
+  function promo(n) { return Math.round(n * (100 - PROMO_PERCENT)) / 100; }
   var DAYS = { monthly: 31, quarterly: 92, yearly: 366 };
   var PERIODS = ['monthly', 'quarterly', 'yearly'];
 
@@ -253,18 +260,19 @@
     document.querySelectorAll('#planSeg button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.plan === plan ? 'true' : 'false'); });
 
     $('periods').innerHTML = PERIODS.map(function (p) {
-      var price = PRICES[plan][p];
+      var sticker = PRICES[plan][p], price = promo(sticker);
       var per = money(Math.round(price / (DAYS[p] / 30.4) * 100) / 100);
       var tag = p === 'yearly' ? '<span class="chip chip-ok">' + t('best') + '</span>' : p === 'quarterly' ? '<span class="chip">' + t('popular') + '</span>' : '';
+      var was = PROMO_PERCENT > 0 ? '<span class="was">' + money(sticker) + '</span><span class="chip chip-ok promo">-' + PROMO_PERCENT + '%</span> ' : '';
       return '<button type="button" class="period" data-period="' + p + '" aria-pressed="' + (p === period) + '">' +
         '<span class="dot" aria-hidden="true"></span>' +
         '<span><span class="days">' + t('days', { days: DAYS[p] }) + '</span>' + tag + '<span class="sub" style="display:block">' + t('perMonth', { price: per }) + '</span></span>' +
-        '<span class="price">' + money(price) + '</span></button>';
+        '<span class="price">' + was + money(price) + '</span></button>';
     }).join('');
     document.querySelectorAll('.period').forEach(function (b) { b.addEventListener('click', function () { period = b.dataset.period; draw(); }); });
 
     $('summary').innerHTML = t('summary', { plan: planName(plan), days: DAYS[period] });
-    $('total').textContent = money(PRICES[plan][period]);
+    $('total').textContent = money(promo(PRICES[plan][period]));
     $('buy').href = APP + '?gift=' + plan + '&period=' + period;
     $('payNote').textContent = d.payNote;
     $('steps').innerHTML = d.steps.map(function (s, i) { return '<li><i>' + (i + 1) + '</i><span>' + s + '</span></li>'; }).join('');
