@@ -38,6 +38,12 @@
 //                  years has a domain that has run for years; a domain bought
 //                  last week is exactly what a stranger after patient data
 //                  would show up with.
+//                  Not every registry publishes it: .eu, .de, .it, .es, .pt,
+//                  .sk and .ie have no RDAP, or one without a registration
+//                  event. That is "not published", never "young" — and for
+//                  those domains the VAT register (step two) is what says
+//                  "established" instead. A missing date only blocks the
+//                  auto-pass when the register did not vouch either.
 //
 //   AUTO-PASS = all three passed. Anything short after step one goes to the
 //   help desk as a ticket with the per-step summary, and the dietitian can
@@ -84,6 +90,12 @@ export const VIES_COUNTRIES = new Set([
   "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI",
   "SK", "XI",
 ]);
+
+/**
+ * RDAP outcomes that mean "this registry does not publish a registration
+ * date" — as opposed to a lookup that failed and is worth retrying.
+ */
+export const AGE_NOT_PUBLISHED = new Set(["no_rdap", "no_registration_event"]);
 
 /** The three steps and the verdicts a step can carry. */
 export const STEPS = ["domain", "company", "presence"];
@@ -287,13 +299,26 @@ export function evaluate(e) {
     reasons.push("site_unreachable");
   } else {
     const before = reasons.length;
-    if (!p.site || !p.site.reachable) reasons.push("site_unreachable");
-    else {
+    if (!p.site || !p.site.reachable) {
+      // A site that answers 403/429/503 to us exists and is up — it just
+      // refuses automated visitors (Cloudflare, a WAF, a hosting firewall).
+      // Different fix from "does not answer", so a different reason.
+      reasons.push(String(p.site?.error || "").startsWith("blocked_") ? "site_blocked" : "site_unreachable");
+    } else {
       if (!p.site.wellness) reasons.push("site_not_wellness");
       if (!p.site.mentionsName) reasons.push("site_no_name");
     }
-    if (p.domainAgeDays === null || p.domainAgeDays === undefined) reasons.push("domain_age_unknown");
-    else if (p.domainAgeDays < MIN_DOMAIN_AGE_DAYS) reasons.push("domain_too_young");
+    if (p.domainAgeDays === null || p.domainAgeDays === undefined) {
+      if (AGE_NOT_PUBLISHED.has(p.rdapError)) {
+        // The registry has no date to give. The VAT register stands in for
+        // "established"; without that, a person decides.
+        if (steps.company !== VERDICT.PASSED) reasons.push("domain_age_unavailable");
+      } else {
+        reasons.push("domain_age_unknown");
+      }
+    } else if (p.domainAgeDays < MIN_DOMAIN_AGE_DAYS) {
+      reasons.push("domain_too_young");
+    }
     steps.presence = reasons.length === before ? VERDICT.PASSED : VERDICT.FAILED;
   }
 
@@ -341,11 +366,15 @@ export function summariseForTicket(row, e) {
             `   Strona: odpowiada (${p.site.status})${p.site.title ? ` — „${p.site.title}”` : ""}`,
             `   O żywieniu / zdrowiu: ${yes(p.site.wellness)}, wymienia gabinet: ${yes(p.site.mentionsName)}`,
           ].join("\n")
-        : `   Strona: nie odpowiada (${p.site.error || p.site.status || "?"})`
+        : String(p.site.error || "").startsWith("blocked_")
+          ? `   Strona: odpowiada, ale odrzuca automatyczne sprawdzenie (HTTP ${p.site.status}) — do obejrzenia ręcznie`
+          : `   Strona: nie odpowiada (${p.site.error || p.site.status || "?"}; sprawdzono ${p.site.host || "?"})`
       : "   Strona: nie sprawdzano",
     p.domainRegisteredAt
       ? `   Domena zarejestrowana: ${p.domainRegisteredAt.slice(0, 10)} (${p.domainAgeDays} dni; próg ${MIN_DOMAIN_AGE_DAYS})`
-      : `   Wiek domeny: nieznany (${p.rdapError || "RDAP bez odpowiedzi"})`,
+      : AGE_NOT_PUBLISHED.has(p.rdapError)
+        ? "   Wiek domeny: rejestr nie publikuje daty rejestracji (brak RDAP) — nie liczy się przeciw gabinetowi"
+        : `   Wiek domeny: nieznany (${p.rdapError || "RDAP bez odpowiedzi"})`,
     "",
     `Czego zabrakło do automatycznej weryfikacji: ${(e.reasons || []).join(", ") || "—"}`,
     e.manualRequested ? "Dietetyk sam poprosił o weryfikację ręczną (nie może dodać rekordu TXT)." : null,
@@ -460,51 +489,96 @@ async function checkCompany(row, previous) {
   return { ...base, ...(await lookupVies(vat)) };
 }
 
-/** The practice's own front page, as an ordinary visitor would fetch it. */
+/**
+ * The practice's own front page, as an ordinary visitor would fetch it.
+ *
+ * Tried on the domain as typed AND on its www/apex twin, https first: plenty
+ * of small sites answer on exactly one of the two and let the other time out
+ * or reset, and the person typing "mojgabinet.pl" into the form does not
+ * know which one their hosting configured. The first host that returns an
+ * HTML page wins; otherwise the last failure is reported, with the host it
+ * happened on, so the ticket says what was actually tried.
+ */
 async function fetchSite(domain, businessName) {
-  for (const scheme of ["https", "http"]) {
-    try {
-      const res = await fetch(`${scheme}://${domain}/`, {
-        headers: { accept: "text/html,*/*;q=0.5", "user-agent": UA, "accept-language": "pl,en;q=0.8" },
-        redirect: "follow",
-        signal: timeoutSignal(8000),
-      });
-      const type = res.headers.get("content-type") || "";
-      const html = await res.text().catch(() => "");
-      const looked = inspectSite(html, businessName);
-      const reachable = res.ok && (type.includes("html") || looked.isHtml);
-      if (reachable || scheme === "http") {
-        return { reachable, status: res.status, scheme, finalHost: normaliseDomain(res.url) || domain, title: looked.title, wellness: looked.wellness, mentionsName: looked.mentionsName, error: reachable ? null : `not_html_or_${res.status}` };
-      }
-    } catch (err) {
-      if (scheme === "http") {
-        return { reachable: false, status: 0, scheme, error: err?.name === "TimeoutError" || err?.name === "AbortError" ? "timeout" : "network" };
+  const hosts = domain.startsWith("www.") ? [domain, domain.slice(4)] : [domain, `www.${domain}`];
+  let last = { reachable: false, status: 0, host: domain, error: "unreachable" };
+  for (const host of hosts) {
+    for (const scheme of ["https", "http"]) {
+      try {
+        const res = await fetch(`${scheme}://${host}/`, {
+          headers: { accept: "text/html,*/*;q=0.5", "user-agent": UA, "accept-language": "pl,en;q=0.8" },
+          redirect: "follow",
+          signal: timeoutSignal(8000),
+        });
+        const type = res.headers.get("content-type") || "";
+        const html = await res.text().catch(() => "");
+        const looked = inspectSite(html, businessName);
+        const isHtml = type.includes("html") || looked.isHtml;
+        if (res.ok && isHtml) {
+          return { reachable: true, status: res.status, scheme, host, finalHost: normaliseDomain(res.url) || host, title: looked.title, wellness: looked.wellness, mentionsName: looked.mentionsName, error: null };
+        }
+        // 403/429/503 with a page behind it: the site is up and turned us
+        // away. Named apart from "down", because the fix is different.
+        const blocked = [401, 403, 406, 429, 503].includes(res.status);
+        last = { reachable: false, status: res.status, scheme, host, title: looked.title, error: res.ok ? "not_html" : blocked ? `blocked_${res.status}` : `http_${res.status}` };
+      } catch (err) {
+        last = { reachable: false, status: 0, scheme, host, error: err?.name === "TimeoutError" || err?.name === "AbortError" ? "timeout" : "network" };
       }
     }
   }
-  return { reachable: false, status: 0, error: "unreachable" };
+  return last;
 }
+
+/**
+ * Registries with an RDAP service that IANA's bootstrap file (and so
+ * rdap.org) does not list. Checked September 2026: .us answers with a
+ * registration event; .de (rdap.denic.de) answers but publishes no dates,
+ * which comes back as `no_registration_event` below.
+ */
+const RDAP_FALLBACK = {
+  us: "https://rdap.nic.us/domain/",
+  de: "https://rdap.denic.de/domain/",
+};
 
 /**
  * Domain registration date over RDAP. rdap.org is the community redirector
  * that knows which registry answers for which TLD (it follows IANA's
- * bootstrap file); a registry with no RDAP yields no date, which the verdict
- * reads as "unknown", not "young".
+ * bootstrap file). Two outcomes are not failures and are named so the
+ * verdict can tell them from a lookup worth retrying:
+ *
+ *   no_rdap                the TLD has no RDAP service at all (rdap.org
+ *                          answers 404 for it: .eu, .it, .es, .pt, .sk, .ie …)
+ *   no_registration_event  the registry answered but publishes no dates (.de)
+ *
+ * A 404 for a domain that exists is what "no RDAP" looks like from here —
+ * by this point the domain has already proven itself through a mailbox or
+ * a TXT record, so "no such domain" is not on the table.
  */
 async function lookupRdap(domain) {
-  try {
-    const res = await fetch(`https://rdap.org/domain/${encodeURIComponent(domain)}`, {
-      headers: { accept: "application/rdap+json, application/json", "user-agent": UA },
-      redirect: "follow",
-      signal: timeoutSignal(8000),
-    });
-    if (!res.ok) return { registeredAt: null, error: `http_${res.status}` };
-    const data = await res.json();
-    return { registeredAt: registrationDateFrom(data), error: null };
-  } catch (err) {
-    console.error("practice: RDAP lookup failed", err?.message || err);
-    return { registeredAt: null, error: err?.name === "TimeoutError" || err?.name === "AbortError" ? "timeout" : "network" };
+  const tld = domain.split(".").pop();
+  const urls = [`https://rdap.org/domain/${encodeURIComponent(domain)}`];
+  if (RDAP_FALLBACK[tld]) urls.push(RDAP_FALLBACK[tld] + encodeURIComponent(domain));
+
+  let last = { registeredAt: null, error: "no_rdap" };
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        headers: { accept: "application/rdap+json, application/json", "user-agent": UA },
+        redirect: "follow",
+        signal: timeoutSignal(8000),
+      });
+      if (res.status === 404) { last = { registeredAt: null, error: "no_rdap" }; continue; }
+      if (!res.ok) { last = { registeredAt: null, error: `http_${res.status}` }; continue; }
+      const data = await res.json();
+      const registeredAt = registrationDateFrom(data);
+      if (registeredAt) return { registeredAt, error: null };
+      last = { registeredAt: null, error: "no_registration_event" };
+    } catch (err) {
+      console.error("practice: RDAP lookup failed", url, err?.message || err);
+      last = { registeredAt: null, error: err?.name === "TimeoutError" || err?.name === "AbortError" ? "timeout" : "network" };
+    }
   }
+  return last;
 }
 
 /** Step three: the site and the domain's age, in parallel. */

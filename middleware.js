@@ -6,13 +6,14 @@ export const config = {
   // because during maintenance the *status code* matters more than the body and
   // that decision cannot be expressed in a matcher.
   //
-  // `admin` and `support` are still listed even though the panel moved on —
-  // first to /support, now to /staff. Both old paths are permanent redirects in
-  // vercel.json, and whether a redirect or the middleware sees a request first
-  // depends on Vercel's routing order. Leaving one out would mean a URL the
-  // team has bookmarked answers 503 during a maintenance window — which is
-  // exactly when they need it.
-  matcher: ["/((?!api/|admin|support|staff|_vercel/).*)"],
+  // Three doors to the same panel: /support (the desk), /dietitian (the
+  // practice panel) and /staff (the older shared entrance). `admin` is the
+  // door before those, a permanent redirect in vercel.json — and whether a
+  // redirect or the middleware sees a request first depends on Vercel's
+  // routing order. Leaving one out would mean a URL the team has bookmarked
+  // answers 503 during a maintenance window — which is exactly when they
+  // need it.
+  matcher: ["/((?!api/|admin|support|staff|dietitian|_vercel/).*)"],
 };
 
 // Files that must answer 200 in every mode.
@@ -32,6 +33,12 @@ const ALWAYS_PUBLIC = new Set([
   // link to the file must not fall through to a 503 either.
   "/help",
   "/help.html",
+  // Where a gift card's QR code and the button on the gift page land. The
+  // gift page itself stays up during maintenance (below); the page that
+  // takes its code to the app has to, too, or the QR on a card somebody is
+  // holding right now leads to a 503.
+  "/redeem",
+  "/redeem.html",
   // The status page, for the same reason and then some: a maintenance window
   // is the single moment it is most likely to be loaded, and a status page
   // that answers 503 during one has failed at the only job it has. It reads

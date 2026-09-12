@@ -8,106 +8,155 @@
 <link rel="canonical" href="https://www.plately.eu/redeem">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#0a0a0b">
-<meta name="color-scheme" content="dark">
 <link rel="icon" type="image/png" href="/logo.png">
 <link rel="apple-touch-icon" href="/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- The same stylesheet as /staff: the split hero, the box, the field and
+     the button are the panel's own, so a code typed here is typed in the
+     same room the rest of Plately lives in. -->
+<link rel="stylesheet" href="/staff/support.css?v=23">
+<script>document.documentElement.dataset.theme = 'dark';</script>
 <style>
-  /* Same skin as /help: this is the same site, and a redeem page that looks
-     like a different company is a redeem page nobody types a code into. */
-  *, *::before, *::after { box-sizing: border-box; }
-  html { background: #0a0a0b; -webkit-text-size-adjust: 100%; }
-  body { margin: 0; background: #0a0a0b; color: #f4f4f5; font-family: "Inter", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  a { color: #34d399; text-decoration: none; }
-  a:hover { color: #6ee7b7; }
-  ::selection { background: #34d399; color: #04140d; }
-  :focus-visible { outline: 2px solid #34d399; outline-offset: 3px; border-radius: 4px; }
-
-  header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(18px); background: rgba(10,10,11,.72); border-bottom: 1px solid rgba(255,255,255,.08); }
-  .bar { max-width: 820px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-  .brand { display: flex; align-items: center; gap: 11px; color: #f4f4f5; }
-  .brand img { width: 32px; height: 32px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); display: block; }
-  .brand span { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
-  .langs { display: flex; align-items: center; gap: 6px; }
-  .langs button { font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: #131316; color: #e4e4e7; cursor: pointer; transition: border-color .2s ease, background-color .2s ease, color .2s ease; }
-  .langs button:hover { border-color: rgba(52,211,153,.45); }
-  .langs button[aria-pressed="true"] { border-color: rgba(52,211,153,.5); background: #17251f; color: #34d399; }
-
-  main { max-width: 620px; margin: 0 auto; padding: clamp(36px,5vw,64px) 24px clamp(56px,7vw,88px); }
-  .back { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #8a8a92; margin-bottom: 26px; }
-  .back:hover { color: #34d399; }
-  h1 { margin: 0; font-size: clamp(30px,4.4vw,46px); line-height: 1.1; font-weight: 700; letter-spacing: -.03em; text-wrap: balance; }
-  .lede { margin: 14px 0 0; font-size: 16px; line-height: 1.65; color: #b6b6bd; max-width: 60ch; text-wrap: pretty; }
-
-  form { margin-top: clamp(30px,4vw,42px); display: flex; flex-direction: column; gap: 14px; }
-  label { font-size: 13px; font-weight: 600; letter-spacing: .02em; }
-  input { width: 100%; font: 500 20px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; padding: 16px 18px; border-radius: 16px; border: 1px solid rgba(255,255,255,.12); background: #131316; color: #f4f4f5; }
-  input:focus { outline: none; border-color: rgba(52,211,153,.65); }
-  input::placeholder { color: #55555c; letter-spacing: .08em; }
-  .hint { font-size: 13px; line-height: 1.6; color: #8a8a92; margin: 0; }
-  button.go { font: 600 15px/1 "Inter", sans-serif; padding: 16px 22px; border-radius: 999px; border: 0; background: #34d399; color: #04140d; cursor: pointer; }
-  button.go:disabled { opacity: .45; cursor: not-allowed; }
-  .error { color: #fda4af; font-size: 13px; margin: 0; min-height: 1.2em; }
-  .note { margin-top: 28px; font-size: 13px; line-height: 1.65; color: #8a8a92; }
   [hidden] { display: none !important; }
+  .redeem.auth { min-height: 100dvh; }
+  .redeem .auth-hero .auth-copy .gift-art { width: min(190px, 40%); height: auto; margin: 0 0 26px; border-radius: 12px; box-shadow: 0 26px 44px -18px rgba(0,0,0,.55); display: block; }
+  @media (max-height: 820px) { .redeem .auth-hero .auth-copy .gift-art { width: 140px; margin-bottom: 20px; } }
+  @media (max-width: 900px) { .redeem .auth-hero .auth-copy .gift-art { display: none; } }
+  .redeem .auth-box { max-width: 440px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .top a { font-size: 13px; font-weight: 600; }
+  .top select.field { width: auto; min-height: 36px; padding: 0 32px 0 12px; font-size: 12px; font-weight: 600; border-radius: 999px; background: var(--m3-surface-container) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a8a92' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center; }
+  .code-field { font: 600 20px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; min-height: 56px; }
+  .code-field::placeholder { letter-spacing: .08em; color: var(--m3-outline); text-transform: none; font-weight: 500; }
+  .hint { font-size: 12px; line-height: 18px; color: var(--m3-on-surface-variant); margin: 8px 0 0; }
+  .err { font-size: 13px; line-height: 19px; color: var(--m3-error); margin: 8px 0 0; min-height: 19px; }
+  .go { width: 100%; min-height: 52px; margin-top: 14px; font-size: 14px; }
+  .steps { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; line-height: 20px; color: var(--m3-on-surface-variant); }
+  .steps i { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-style: normal; font-size: 11px; font-weight: 700; background: var(--m3-primary-container); color: var(--m3-on-primary-container); margin-top: -1px; }
+  .steps b { color: var(--m3-on-surface); font-weight: 600; }
+  .auth-note p { font-size: 12px; line-height: 18px; }
 </style>
 </head>
 <body>
-<header>
-  <div class="bar">
-    <a class="brand" href="/">
-      <img src="/logo.png" alt="" width="32" height="32">
-      <span>Plately</span>
-    </a>
-    <div class="langs" role="group" aria-label="Language / Język">
-      <button type="button" data-lang="pl" lang="pl" aria-pressed="true">Polski</button>
-      <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
+<div class="auth redeem">
+  <div class="auth-hero">
+    <img class="auth-mark" src="/logo.png" alt="Plately">
+    <div class="auth-copy">
+      <img class="gift-art" src="/giftcard/front.webp" alt="" width="800" height="1152" decoding="async">
+      <h1 id="heroTitle"></h1>
+      <p id="heroBody"></p>
     </div>
   </div>
-</header>
-
-<main>
-  <a class="back" href="/">← <span data-t="back">Strona główna</span></a>
-  <h1 data-t="title">Zrealizuj kartę podarunkową</h1>
-  <p class="lede" data-t="lede">Wpisz kod z karty, z maila albo od znajomego. Przeniesiemy Cię do aplikacji z kodem już wypełnionym — wystarczy się zalogować.</p>
-
-  <form id="f" novalidate>
-    <label for="code" data-t="label">Kod</label>
-    <input id="code" name="code" placeholder="PLATELY-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
-    <p class="hint" data-t="hint">Dwanaście znaków po „PLATELY-”. Wielkość liter nie ma znaczenia; 0/O i 1/I/L traktujemy tak samo.</p>
-    <p class="error" id="err" aria-live="polite"></p>
-    <button class="go" type="submit" id="go" disabled data-t="go">Przejdź do aplikacji</button>
-  </form>
-
-  <p class="note" data-t="note">Nie masz jeszcze konta? Nic nie szkodzi — założysz je w aplikacji w jedno kliknięcie, a kod poczeka. Chcesz kupić więcej kart ze zniżką? Napisz na <a href="/help">plately.eu/help</a> i wybierz kategorię „Business”.</p>
-</main>
+  <div class="auth-panel"><div class="auth-box">
+    <div class="top">
+      <a href="/" id="back"></a>
+      <select class="field" id="lang" aria-label="Language"></select>
+    </div>
+    <h2 id="title"></h2>
+    <p class="lede" id="lede"></p>
+    <form id="f" novalidate>
+      <label class="field-label" for="code" id="label" style="margin-top:0"></label>
+      <input class="field code-field" id="code" name="code" placeholder="PLATELY-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+      <p class="hint" id="hint"></p>
+      <p class="err" id="err" aria-live="polite"></p>
+      <button class="btn btn-primary go" type="submit" id="go" disabled></button>
+    </form>
+    <ol class="steps" id="steps"></ol>
+    <div class="auth-note"><p id="note"></p></div>
+  </div></div>
+</div>
 
 <script>
   // Client-side only. No Supabase, no session, no API — the actual redemption
   // needs a signed-in account and lives in the app at app.plately.eu/redeem.
-  // This page exists so a link on a flyer, on a marketplace or in an e-mail
+  // This page exists so a link on a card, in an e-mail or under a QR code
   // points at the brand's own domain and still lands with the code filled in.
   var APP = 'https://app.plately.eu/redeem';
+
+  var LANGS = [["pl", "Polski"], ["en", "English"], ["de", "Deutsch"], ["uk", "Українська"], ["ru", "Русский"], ["fr", "Français"], ["it", "Italiano"], ["es", "Español"], ["pt", "Português"], ["ja", "日本語"], ["zh", "中文"], ["ko", "한국어"]];
   var T = {
-    pl: {
-      back: 'Strona główna', title: 'Zrealizuj kartę podarunkową',
-      lede: 'Wpisz kod z karty, z maila albo od znajomego. Przeniesiemy Cię do aplikacji z kodem już wypełnionym — wystarczy się zalogować.',
-      label: 'Kod', hint: 'Dwanaście znaków po „PLATELY-”. Wielkość liter nie ma znaczenia; 0/O i 1/I/L traktujemy tak samo.',
-      go: 'Przejdź do aplikacji', bad: 'Kod ma dwanaście znaków — sprawdź, czy niczego nie brakuje.',
-      note: 'Nie masz jeszcze konta? Nic nie szkodzi — założysz je w aplikacji w jedno kliknięcie, a kod poczeka. Chcesz kupić więcej kart ze zniżką? Napisz na <a href="/help">plately.eu/help</a> i wybierz kategorię „Business”.',
-      docTitle: 'Zrealizuj kartę podarunkową — Plately'
-    },
-    en: {
-      back: 'Home', title: 'Redeem a gift card',
-      lede: 'Type the code from a card, an e-mail or a friend. We will take you to the app with the code already filled in — just sign in.',
-      label: 'Code', hint: 'Twelve characters after “PLATELY-”. Case does not matter; 0/O and 1/I/L are treated the same.',
-      go: 'Continue to the app', bad: 'A code has twelve characters — check nothing is missing.',
-      note: 'No account yet? No problem — you create one in the app with a single click, and the code waits. Want more cards at a discount? Write to <a href="/help">plately.eu/help</a> and pick the “Business” category.',
-      docTitle: 'Redeem a gift card — Plately'
-    }
+    pl: { docTitle: "Zrealizuj kartę podarunkową — Plately", back: "← Strona główna", heroTitle: "Masz kartę podarunkową?", heroBody: "Wpisz kod z karty, z maila albo od znajomego. Przeniesiemy Cię do aplikacji z kodem już wpisanym — wystarczy się zalogować.",
+      title: "Zrealizuj kod", lede: "Dwanaście znaków po „PLATELY-”. Wielkość liter nie ma znaczenia; 0/O i 1/I/L traktujemy tak samo.", label: "Kod z karty", hint: "Znajdziesz go na odwrocie karty, pod zdrapką, albo w wiadomości z linkiem do prezentu.", bad: "Kod ma dwanaście znaków — sprawdź, czy niczego nie brakuje.", go: "Przejdź do aplikacji →",
+      steps: ["<b>Wpisz kod</b> i przejdź do aplikacji — otworzy się z kodem już wypełnionym.", "<b>Zaloguj się</b> albo załóż konto w jedno kliknięcie. Kod poczeka.", "<b>Potwierdź</b> — dni dopisują się od razu. Jeśli masz już plan, dodają się do pozostałych."],
+      note: "Chcesz kupić więcej kart ze zniżką? Napisz na plately.eu/help i wybierz kategorię „Business”." },
+    en: { docTitle: "Redeem a gift card — Plately", back: "← Home", heroTitle: "Have a gift card?", heroBody: "Type the code from a card, an e-mail or a friend. We take you to the app with the code already filled in — just sign in.",
+      title: "Redeem a code", lede: "Twelve characters after “PLATELY-”. Case does not matter; 0/O and 1/I/L are treated the same.", label: "Code from the card", hint: "It is on the back of the card under the scratch panel, or in the message with your gift link.", bad: "A code has twelve characters — check nothing is missing.", go: "Continue to the app →",
+      steps: ["<b>Type the code</b> and continue — the app opens with it already filled in.", "<b>Sign in</b> or create an account with one click. The code waits.", "<b>Confirm</b> — the days are added right away. If you already have a plan, they are added to what is left."],
+      note: "Want more cards at a discount? Write to plately.eu/help and pick the “Business” category." },
+    de: { docTitle: "Geschenkkarte einlösen — Plately", back: "← Startseite", heroTitle: "Hast du eine Geschenkkarte?", heroBody: "Gib den Code von der Karte, aus der E-Mail oder von Freunden ein. Wir bringen dich mit bereits eingetragenem Code in die App — nur noch anmelden.",
+      title: "Code einlösen", lede: "Zwölf Zeichen nach „PLATELY-“. Groß-/Kleinschreibung ist egal; 0/O und 1/I/L behandeln wir gleich.", label: "Code von der Karte", hint: "Er steht auf der Rückseite der Karte unter dem Rubbelfeld oder in der Nachricht mit deinem Geschenk-Link.", bad: "Ein Code hat zwölf Zeichen — prüfe, ob nichts fehlt.", go: "Weiter zur App →",
+      steps: ["<b>Code eingeben</b> und weiter — die App öffnet sich mit eingetragenem Code.", "<b>Anmelden</b> oder mit einem Klick ein Konto anlegen. Der Code wartet.", "<b>Bestätigen</b> — die Tage werden sofort gutgeschrieben. Hast du schon einen Plan, kommen sie zur Restlaufzeit dazu."],
+      note: "Mehr Karten mit Rabatt? Schreib an plately.eu/help und wähle die Kategorie „Business“." },
+    uk: { docTitle: "Активувати подарункову картку — Plately", back: "← На головну", heroTitle: "Маєте подарункову картку?", heroBody: "Введіть код з картки, з листа або від друга. Ми відкриємо застосунок з уже введеним кодом — залишиться лише увійти.",
+      title: "Активувати код", lede: "Дванадцять символів після «PLATELY-». Регістр не має значення; 0/O та 1/I/L вважаємо однаковими.", label: "Код з картки", hint: "Він на звороті картки під захисним шаром або в повідомленні з посиланням на подарунок.", bad: "Код має дванадцять символів — перевірте, чи нічого не бракує.", go: "Перейти до застосунку →",
+      steps: ["<b>Введіть код</b> і перейдіть далі — застосунок відкриється з уже введеним кодом.", "<b>Увійдіть</b> або створіть обліковий запис одним натисканням. Код зачекає.", "<b>Підтвердьте</b> — дні додаються одразу. Якщо план уже є, вони додаються до залишку."],
+      note: "Хочете більше карток зі знижкою? Напишіть на plately.eu/help і виберіть категорію «Business»." },
+    ru: { docTitle: "Активировать подарочную карту — Plately", back: "← На главную", heroTitle: "Есть подарочная карта?", heroBody: "Введите код с карты, из письма или от друга. Мы откроем приложение с уже введённым кодом — останется только войти.",
+      title: "Активировать код", lede: "Двенадцать символов после «PLATELY-». Регистр не важен; 0/O и 1/I/L считаем одинаковыми.", label: "Код с карты", hint: "Он на обороте карты под защитным слоем или в сообщении со ссылкой на подарок.", bad: "В коде двенадцать символов — проверьте, ничего ли не пропущено.", go: "Перейти в приложение →",
+      steps: ["<b>Введите код</b> и перейдите дальше — приложение откроется с уже введённым кодом.", "<b>Войдите</b> или создайте аккаунт в одно нажатие. Код подождёт.", "<b>Подтвердите</b> — дни добавятся сразу. Если план уже есть, они добавятся к остатку."],
+      note: "Хотите больше карт со скидкой? Напишите на plately.eu/help и выберите категорию «Business»." },
+    fr: { docTitle: "Utiliser une carte cadeau — Plately", back: "← Accueil", heroTitle: "Vous avez une carte cadeau ?", heroBody: "Saisissez le code de la carte, de l'e-mail ou d'un ami. Nous ouvrons l'application avec le code déjà rempli — il ne reste qu'à vous connecter.",
+      title: "Utiliser un code", lede: "Douze caractères après « PLATELY- ». La casse n'a pas d'importance ; 0/O et 1/I/L sont traités de la même façon.", label: "Code de la carte", hint: "Il se trouve au dos de la carte, sous la zone à gratter, ou dans le message contenant votre lien cadeau.", bad: "Un code compte douze caractères — vérifiez qu'il n'en manque aucun.", go: "Continuer vers l'application →",
+      steps: ["<b>Saisissez le code</b> et continuez — l'application s'ouvre avec le code déjà rempli.", "<b>Connectez-vous</b> ou créez un compte en un clic. Le code attend.", "<b>Confirmez</b> — les jours sont ajoutés immédiatement. Si vous avez déjà un forfait, ils s'ajoutent au reste."],
+      note: "Vous voulez plus de cartes à prix réduit ? Écrivez à plately.eu/help et choisissez la catégorie « Business »." },
+    it: { docTitle: "Riscatta una carta regalo — Plately", back: "← Home", heroTitle: "Hai una carta regalo?", heroBody: "Inserisci il codice dalla carta, dall'e-mail o da un amico. Ti portiamo nell'app con il codice già inserito — basta accedere.",
+      title: "Riscatta un codice", lede: "Dodici caratteri dopo “PLATELY-”. Maiuscole e minuscole non contano; 0/O e 1/I/L sono trattati allo stesso modo.", label: "Codice della carta", hint: "Si trova sul retro della carta, sotto il riquadro da grattare, o nel messaggio con il link del regalo.", bad: "Un codice ha dodici caratteri — controlla che non manchi nulla.", go: "Continua nell'app →",
+      steps: ["<b>Inserisci il codice</b> e continua — l'app si apre con il codice già inserito.", "<b>Accedi</b> o crea un account con un clic. Il codice aspetta.", "<b>Conferma</b> — i giorni vengono aggiunti subito. Se hai già un piano, si sommano a quelli rimasti."],
+      note: "Vuoi più carte a prezzo scontato? Scrivi a plately.eu/help e scegli la categoria “Business”." },
+    es: { docTitle: "Canjear una tarjeta regalo — Plately", back: "← Inicio", heroTitle: "¿Tienes una tarjeta regalo?", heroBody: "Escribe el código de la tarjeta, del correo o de un amigo. Te llevamos a la app con el código ya escrito — solo tienes que iniciar sesión.",
+      title: "Canjear un código", lede: "Doce caracteres después de “PLATELY-”. Las mayúsculas no importan; 0/O y 1/I/L se tratan igual.", label: "Código de la tarjeta", hint: "Está en el reverso de la tarjeta, bajo el panel para rascar, o en el mensaje con tu enlace del regalo.", bad: "Un código tiene doce caracteres — comprueba que no falte ninguno.", go: "Continuar a la app →",
+      steps: ["<b>Escribe el código</b> y continúa — la app se abre con el código ya escrito.", "<b>Inicia sesión</b> o crea una cuenta con un clic. El código espera.", "<b>Confirma</b> — los días se añaden al instante. Si ya tienes un plan, se suman a los que te quedan."],
+      note: "¿Quieres más tarjetas con descuento? Escribe a plately.eu/help y elige la categoría “Business”." },
+    pt: { docTitle: "Resgatar um cartão-presente — Plately", back: "← Início", heroTitle: "Tem um cartão-presente?", heroBody: "Introduza o código do cartão, do e-mail ou de um amigo. Levamo-lo à app com o código já preenchido — basta iniciar sessão.",
+      title: "Resgatar um código", lede: "Doze caracteres depois de “PLATELY-”. Maiúsculas não importam; 0/O e 1/I/L são tratados da mesma forma.", label: "Código do cartão", hint: "Está no verso do cartão, sob o painel de raspar, ou na mensagem com a ligação do presente.", bad: "Um código tem doze caracteres — confirme que não falta nenhum.", go: "Continuar para a app →",
+      steps: ["<b>Introduza o código</b> e continue — a app abre com o código já preenchido.", "<b>Inicie sessão</b> ou crie uma conta com um clique. O código espera.", "<b>Confirme</b> — os dias são adicionados de imediato. Se já tem um plano, somam-se aos que restam."],
+      note: "Quer mais cartões com desconto? Escreva para plately.eu/help e escolha a categoria “Business”." },
+    ja: { docTitle: "ギフトカードを引き換える — Plately", back: "← ホーム", heroTitle: "ギフトカードをお持ちですか？", heroBody: "カード、メール、または友人から受け取ったコードを入力してください。コードが入力された状態でアプリが開きます — あとはログインするだけです。",
+      title: "コードを引き換える", lede: "「PLATELY-」の後の 12 文字です。大文字・小文字は区別せず、0/O と 1/I/L は同じものとして扱います。", label: "カードのコード", hint: "カード裏面のスクラッチの下、またはギフトリンクのメッセージにあります。", bad: "コードは 12 文字です — 抜けがないか確認してください。", go: "アプリへ進む →",
+      steps: ["<b>コードを入力</b>して進むと、コードが入力された状態でアプリが開きます。", "<b>ログイン</b>するか、ワンクリックでアカウントを作成します。コードはそのまま残ります。", "<b>確定</b>すると日数がすぐに追加されます。すでにプランがある場合は残り日数に加算されます。"],
+      note: "割引でカードをまとめて購入したい場合は plately.eu/help から「Business」カテゴリでご連絡ください。" },
+    zh: { docTitle: "兑换礼品卡 — Plately", back: "← 首页", heroTitle: "有礼品卡吗？", heroBody: "输入卡片、邮件或朋友给你的兑换码。我们会带你进入已填好兑换码的应用 — 只需登录即可。",
+      title: "兑换码", lede: "“PLATELY-”之后的 12 个字符。不区分大小写；0/O 和 1/I/L 视为相同。", label: "卡片上的兑换码", hint: "在卡片背面的刮刮涂层下，或在包含礼物链接的消息中。", bad: "兑换码有 12 个字符 — 请检查是否有遗漏。", go: "进入应用 →",
+      steps: ["<b>输入兑换码</b>并继续 — 应用会以已填好的兑换码打开。", "<b>登录</b>或一键创建账户。兑换码会保留。", "<b>确认</b> — 天数立即到账。如果你已有套餐，将累加到剩余时长。"],
+      note: "想以优惠价购买更多卡片？请通过 plately.eu/help 联系我们并选择“Business”类别。" },
+    ko: { docTitle: "기프트 카드 사용하기 — Plately", back: "← 홈", heroTitle: "기프트 카드가 있나요?", heroBody: "카드, 이메일 또는 친구에게 받은 코드를 입력하세요. 코드가 입력된 상태로 앱이 열려요 — 로그인만 하면 돼요.",
+      title: "코드 사용하기", lede: "“PLATELY-” 뒤의 12자예요. 대소문자는 상관없고, 0/O와 1/I/L은 같게 취급해요.", label: "카드의 코드", hint: "카드 뒷면 스크래치 아래 또는 선물 링크가 담긴 메시지에 있어요.", bad: "코드는 12자예요 — 빠진 글자가 없는지 확인하세요.", go: "앱으로 이동 →",
+      steps: ["<b>코드를 입력</b>하고 계속하면 코드가 입력된 상태로 앱이 열려요.", "<b>로그인</b>하거나 클릭 한 번으로 계정을 만드세요. 코드는 그대로 남아 있어요.", "<b>확인</b>하면 일수가 바로 추가돼요. 이미 플랜이 있다면 남은 기간에 더해져요."],
+      note: "할인된 가격으로 카드를 더 구매하고 싶다면 plately.eu/help에서 “Business” 카테고리로 문의하세요." }
   };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var lang = 'en';
+
+  function applyLang(code) {
+    lang = T[code] ? code : 'en';
+    var t = T[lang];
+    document.documentElement.lang = lang;
+    document.title = t.docTitle;
+    ['back', 'heroTitle', 'heroBody', 'title', 'lede', 'label', 'hint', 'go'].forEach(function (k) { $(k).textContent = t[k]; });
+    $('steps').innerHTML = t.steps.map(function (s, i) { return '<li><i>' + (i + 1) + '</i><span>' + s + '</span></li>'; }).join('');
+    $('note').textContent = t.note;
+    $('lang').value = lang;
+    if ($('err').textContent) $('err').textContent = t.bad;
+    try { localStorage.setItem('plately_landing_lang', lang); } catch (e) {}
+  }
+
+  (function initLang() {
+    var sel = $('lang');
+    LANGS.forEach(function (l) { var o = document.createElement('option'); o.value = l[0]; o.textContent = l[1]; o.lang = l[0]; sel.appendChild(o); });
+    sel.addEventListener('change', function () { applyLang(sel.value); });
+    var stored = null;
+    try { stored = localStorage.getItem('plately_landing_lang'); } catch (e) {}
+    var pick = stored && T[stored] ? stored : null;
+    if (!pick) {
+      var wants = (navigator.languages || [navigator.language || 'en']).map(function (s) { return String(s).slice(0, 2).toLowerCase(); });
+      for (var i = 0; i < wants.length && !pick; i++) if (T[wants[i]]) pick = wants[i];
+    }
+    applyLang(pick || 'en');
+  })();
 
   // Mirrors src/lib/programCode.ts in the app: Crockford alphabet, confusable
   // letters folded, brand prefix stripped in both of its spellings.
@@ -131,30 +180,7 @@
     return ['PLATELY'].concat(g).join('-');
   }
 
-  var input = document.getElementById('code');
-  var go = document.getElementById('go');
-  var err = document.getElementById('err');
-  var lang = 'pl';
-
-  function applyLang(code) {
-    lang = T[code] ? code : 'pl';
-    document.documentElement.lang = lang;
-    document.title = T[lang].docTitle;
-    document.querySelectorAll('[data-t]').forEach(function (el) {
-      var key = el.getAttribute('data-t');
-      if (key === 'note') el.innerHTML = T[lang][key]; else el.textContent = T[lang][key];
-    });
-    document.querySelectorAll('.langs button').forEach(function (b) {
-      b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
-    });
-    try { localStorage.setItem('plately_landing_lang', lang); } catch (e) {}
-  }
-  document.querySelectorAll('.langs button').forEach(function (b) {
-    b.addEventListener('click', function () { applyLang(b.getAttribute('data-lang')); });
-  });
-  var stored = null;
-  try { stored = localStorage.getItem('plately_landing_lang'); } catch (e) {}
-  applyLang(stored === 'en' || (!stored && !/^pl/i.test(navigator.language || '')) ? 'en' : 'pl');
+  var input = $('code'), go = $('go'), err = $('err');
 
   input.addEventListener('input', function () {
     var norm = normalise(input.value);
@@ -163,13 +189,14 @@
     err.textContent = '';
   });
 
-  // A code can arrive in the address too, e.g. from a marketplace link.
+  // A code can arrive in the address too — from the QR on the card, from a
+  // marketplace link. Filled in, never sent anywhere from here.
   try {
     var pre = new URL(location.href).searchParams.get('code');
     if (pre) { input.value = pretty(normalise(pre)); go.disabled = !valid(normalise(pre)); }
   } catch (e) {}
 
-  document.getElementById('f').addEventListener('submit', function (ev) {
+  $('f').addEventListener('submit', function (ev) {
     ev.preventDefault();
     var norm = normalise(input.value);
     if (!valid(norm)) { err.textContent = T[lang].bad; return; }

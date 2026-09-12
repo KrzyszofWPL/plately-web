@@ -270,6 +270,27 @@ describe("evaluate — three steps in order", () => {
     assert.equal(r.autopass, false);
     assert.deepEqual(r.reasons, ["domain_age_unknown"]);
   });
+  test("a registry that publishes no dates (.eu, .de …) does not make a practice look young when the VAT register vouched", () => {
+    for (const rdapError of ["no_rdap", "no_registration_event"]) {
+      const r = evaluate({ ...base, presence: { ...passedPresence, domainRegisteredAt: null, domainAgeDays: null, rdapError } });
+      assert.equal(r.autopass, true, rdapError);
+      assert.deepEqual(r.reasons, []);
+    }
+  });
+  test("…but without the register it goes to a person, under its own reason", () => {
+    const r = evaluate({ ...base, company: { applicable: false, reason: "not_given" }, presence: { ...passedPresence, domainRegisteredAt: null, domainAgeDays: null, rdapError: "no_rdap" } });
+    assert.equal(r.autopass, false);
+    assert.deepEqual(r.reasons, ["company_not_given", "domain_age_unavailable"]);
+  });
+  test("an RDAP lookup that merely failed is still 'unknown' — worth retrying, never waived", () => {
+    const r = evaluate({ ...base, presence: { ...passedPresence, domainRegisteredAt: null, domainAgeDays: null, rdapError: "timeout" } });
+    assert.deepEqual(r.reasons, ["domain_age_unknown"]);
+  });
+  test("a site that turns the check away is 'blocked', not 'unreachable'", () => {
+    const r = evaluate({ ...base, presence: { ...passedPresence, site: { reachable: false, status: 403, error: "blocked_403" } } });
+    assert.equal(r.steps.presence, "failed");
+    assert.deepEqual(r.reasons, ["site_blocked"]);
+  });
   test("the age threshold is closed from below", () => {
     assert.equal(evaluate({ ...base, presence: { ...passedPresence, domainAgeDays: MIN_DOMAIN_AGE_DAYS - 1 } }).autopass, false);
     assert.equal(evaluate({ ...base, presence: { ...passedPresence, domainAgeDays: MIN_DOMAIN_AGE_DAYS } }).autopass, true);

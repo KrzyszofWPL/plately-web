@@ -237,13 +237,26 @@ export default async function handler(request) {
 
 // --- 1. start ---------------------------------------------------------------
 
+/**
+ * The two front doors. /support is the desk, /dietitian is the practice
+ * panel; /staff is the older, shared entrance that still works. Google is
+ * the same behind all three, and which room opens is still decided by the
+ * address — but the page the person is sent back to on an error, and the
+ * page a successful sign-in lands on, should be the one for who they are.
+ */
+const DOORS = { support: "/support", dietitian: "/dietitian" };
+const doorFor = (from) => DOORS[from] || "/staff";
+
 async function startSignIn(request) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) return json({ error: "Google sign-in is not configured" }, 500);
 
+  const body = await request.json().catch(() => ({}));
+  const from = body && DOORS[body.from] ? body.from : null;
+
   const state = randomHex(16);
   const nonce = randomHex(16);
-  const cookie = await packState({ state, nonce, exp: Date.now() + OAUTH_TTL_MS });
+  const cookie = await packState({ state, nonce, from, exp: Date.now() + OAUTH_TTL_MS });
 
   const authorize = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authorize.searchParams.set("client_id", clientId);
@@ -269,11 +282,14 @@ async function startSignIn(request) {
 async function handleCallback(request) {
   const url = new URL(request.url);
   const drop = clearCookie(OAUTH_COOKIE);
-  const fail = (reason) => redirect(`/staff?error=${reason}`, { "Set-Cookie": drop });
+  const stored = await unpackState(parseCookies(request)[OAUTH_COOKIE]);
+  // Errors go back to the door the person used, so the message lands on the
+  // page they recognise rather than on the shared one.
+  const back = doorFor(stored?.from);
+  const fail = (reason) => redirect(`${back}?error=${reason}`, { "Set-Cookie": drop });
 
   if (url.searchParams.get("error")) return fail("google_denied");
 
-  const stored = await unpackState(parseCookies(request)[OAUTH_COOKIE]);
   const state = url.searchParams.get("state");
   const code = url.searchParams.get("code");
   // SameSite=Lax lets the cookie ride along on Google's top-level redirect back
@@ -342,7 +358,8 @@ async function handleCallback(request) {
   const preCookie = await issuePreSession(staff);
   await logEvent({ staff_id: staff.id, actor: email, action: "signin.google" });
 
-  return withCookies(null, [drop, preCookie], 302, { Location: "/staff" });
+  // Staff land on the desk's own door whichever one they came in by.
+  return withCookies(null, [drop, preCookie], 302, { Location: DOORS.support });
 }
 
 /**
@@ -355,7 +372,7 @@ async function practiceSignIn(claims, email, dropOauth) {
   const dietitian = await selectOne("dietitians", `select=*&email=eq.${q(email)}`);
   if (dietitian) {
     if (dietitian.google_sub && !timingSafeEqual(dietitian.google_sub, String(claims.sub))) {
-      return redirect("/staff?error=account_mismatch", { "Set-Cookie": dropOauth });
+      return redirect(`${DOORS.dietitian}?error=account_mismatch`, { "Set-Cookie": dropOauth });
     }
     await update(
       "dietitians",
@@ -369,10 +386,10 @@ async function practiceSignIn(claims, email, dropOauth) {
       { returning: false }
     );
     const cookie = await issuePracticeSession(dietitian);
-    return withCookies(null, [dropOauth, cookie], 302, { Location: "/staff" });
+    return withCookies(null, [dropOauth, cookie], 302, { Location: DOORS.dietitian });
   }
   const pending = await issuePracticePending(claims);
-  return withCookies(null, [dropOauth, pending], 302, { Location: "/staff" });
+  return withCookies(null, [dropOauth, pending], 302, { Location: DOORS.dietitian });
 }
 
 // --- 3. session -------------------------------------------------------------

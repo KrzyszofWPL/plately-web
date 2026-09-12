@@ -1,7 +1,10 @@
 # Plately Support — uruchomienie krok po kroku
 
-Panel supportu żyje pod `https://plately.eu/staff` (stare adresy `/admin` i `/support`
-przekierowują tam na stałe). Logowanie ma teraz **trzy kroki**: **Google → 6-cyfrowy kod z aplikacji
+Panel supportu żyje pod `https://plately.eu/support`, a panel gabinetu (dietetycy) pod
+`https://plately.eu/dietitian`. To ten sam kod (`public/staff/app.js`) za dwoma
+drzwiami: strona czyta adres i mówi do właściwej osoby, a po Google serwer i tak
+odsyła na drzwi pasujące do konta. Stare, wspólne wejście `/staff` dalej działa;
+`/admin` przekierowuje na `/support`. Logowanie ma teraz **trzy kroki**: **Google → 6-cyfrowy kod z aplikacji
 uwierzytelniającej → 4-cyfrowy PIN**, z **Cloudflare Turnstile** przed dwoma ostatnimi.
 
 Dwa pierwsze kroki dzieją się na tej samej stronie logowania — po Google przycisk zamienia
@@ -49,7 +52,7 @@ Showcase WEB/
   api/_lib/email-templates.js      ← co każdy z nich mówi i od kogo przychodzi
   scripts/build-email-previews.mjs ← renderuje te maile do email-templates/ (npm run emails)
   .env.example                     ← opis każdej zmiennej środowiskowej
-  vercel.json                      ← przekierowania /admin i /support → /staff, CSP dla obu stron
+  vercel.json                      ← /admin → /support, CSP dla /support, /dietitian i /staff
 
 Application APK/
   src/lib/staff.ts                 ← useStaff() / can() — te same role w aplikacji

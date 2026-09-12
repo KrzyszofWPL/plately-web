@@ -18,8 +18,12 @@ i Ultra, każdą długość i oba języki. Pozycje i rozmiary w `.over` w
 wyśrodkowane same w sobie („KOD” nad „CYFROWY”), a hasło na dole ma kilka
 warstw cienia — to odpowiednik potrójnej kopii warstwy z PSD.
 
-Rewers jest biały i rysowany w całości w HTML (regulamin, kroki, kody
-kreskowe, pasek magnetyczny, zdrapka z kodem) — z PSD bierze tylko wykrój.
+Rewers jest biały i rysowany w całości w HTML — z PSD bierze tylko wykrój.
+Pod zdrapką jest kod i kod QR prowadzący na `plately.eu/redeem?code=…` (kod
+wpisuje się sam), a kod kreskowy niesie tylko datę wydania i ID karty (obie
+rzeczy wypisane pod nim). Napisy na stronie i na karcie są w dwunastu
+językach aplikacji — słownik w `public/giftcard/i18n.js`, generator QR w
+`public/giftcard/qr.js`.
 
 ## Po zmianie projektu
 

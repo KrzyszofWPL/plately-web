@@ -7,11 +7,14 @@
 User-agent: *
 Allow: /
 
-# The support panel is a private login, not content. It is behind auth anyway;
-# this just keeps it out of the crawl budget and out of the index. /admin is
-# still listed because it permanently redirects here and a crawler that follows
-# it should stop rather than queue the destination.
+# The support desk and the practice panel are private logins, not content.
+# They are behind auth anyway; this just keeps them out of the crawl budget
+# and out of the index. /admin is still listed because it permanently
+# redirects to /support and a crawler that follows it should stop rather than
+# queue the destination.
 Disallow: /support
+Disallow: /staff
+Disallow: /dietitian
 Disallow: /admin
 Disallow: /api/
 

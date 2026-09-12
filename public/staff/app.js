@@ -446,6 +446,14 @@
     api("/api/staff/session").then(function (data) {
       S.auth = data;
       S.turnstile.siteKey = data.turnstileSiteKey || null;
+      // A practice session on the desk's door, or a staff session on the
+      // practice's: the cookie is right, the address is not. Go to the door
+      // that matches before drawing anything, so the URL in the bar is the
+      // one the person will bookmark.
+      var isPractice = data.state === "practice" || data.state === "practice_register";
+      var isStaff = data.state === "signed_in" || data.state === "pin_required" || data.state === "pin_setup" || data.state === "totp_required" || data.state === "totp_setup";
+      if (isPractice && DOOR === "support") { location.replace("/dietitian" + location.search); return; }
+      if (isStaff && DOOR === "dietitian") { location.replace("/support" + location.search); return; }
       if (data.state === "signed_in") {
         S.staff = data.staff;
         S.perms = data.permissions || {};
@@ -575,15 +583,27 @@
   }
 
   function heroSide() {
+    var practice = DOOR === "dietitian";
     return '' +
       '<div class="auth-hero">' +
         '<img class="auth-mark" src="/logo.png" alt="Plately">' +
         '<div class="auth-copy">' +
-          "<h1>Every customer e-mail, one shared inbox</h1>" +
-          "<p>Ticket list and full conversation side by side, with the customer's history and their actual plan. No tab switching, no lost threads.</p>" +
+          (practice
+            ? "<h1>" + esc(pt("heroTitle")) + "</h1><p>" + esc(pt("heroBody")) + "</p>"
+            : "<h1>Every customer e-mail, one shared inbox</h1>" +
+              "<p>Ticket list and full conversation side by side, with the customer's history and their actual plan. No tab switching, no lost threads.</p>") +
         "</div>" +
       "</div>";
   }
+
+  // Which front door this page is. Read once from the address: /support and
+  // /dietitian are the two named doors, anything else (/staff, the older
+  // shared entrance) is the generic one. Sent along when Google sign-in
+  // starts, so the server can bring the person back to the same door.
+  var DOOR = /^\/dietitian(\/|$)/.test(location.pathname) ? "dietitian"
+    : /^\/support(\/|$)/.test(location.pathname) ? "support"
+    : "staff";
+  var DOOR_PATH = DOOR === "dietitian" ? "/dietitian" : DOOR === "support" ? "/support" : "/staff";
 
   var AUTH_ERRORS = {
     not_staff: "That Google account is not on the support team. Ask an owner to add it first.",
@@ -607,33 +627,49 @@
     var code = params.get("error");
     var message = code ? (AUTH_ERRORS[code] || "Sign-in failed (" + code + ").") : S.error;
 
-    // One box, one button. Two audiences use it — Plately staff and dietitians
-    // — and which room the button opens is decided by the address after
-    // Google, not by anything chosen here. The one thing worth saying up front
-    // is the e-mail hint: a Google account on the practice's own domain proves
-    // control of that domain, which is what verification needs before it will
-    // skip the DNS record. Gmail proves nothing about any domain.
+    // One button, but three doors. /support is the desk and speaks to staff;
+    // /dietitian is the practice panel and speaks to dietitians, in their
+    // language; /staff is the older shared entrance and explains both. Which
+    // room actually opens is still decided by the address after Google, not
+    // by anything chosen here — the door only changes what the page says and
+    // where an error comes back to. The one thing worth saying up front on
+    // the practice side is the e-mail hint: a Google account on the practice's
+    // own domain proves control of that domain, which is what verification
+    // needs before it will skip the DNS record. Gmail proves nothing.
+    var copy;
+    if (DOOR === "support") {
+      copy = "<h2>Sign in to the desk</h2>" +
+        '<p class="lede">Plately staff only, with your <strong>@plately.eu</strong> Google account. ' +
+          'Running a practice? Your panel is at <a class="auth-link" href="/dietitian">plately.eu/dietitian</a>.</p>';
+    } else if (DOOR === "dietitian") {
+      copy = "<h2>" + esc(pt("signInTitle")) + "</h2>" +
+        '<p class="lede">' + pt("signInLede") + "</p>";
+    } else {
+      copy = "<h2>Sign in to Plately</h2>" +
+        '<p class="lede">For Plately staff and for dietitians. Staff use their <strong>@plately.eu</strong> account. ' +
+          'Dietitians: we recommend your practice\u2019s Google account (<code class="mono">name@your-practice.com</code>) \u2014 ' +
+          'a mailbox on your own domain confirms ownership on the spot. You can continue with Gmail, but domain ownership will then have to be proven with a DNS record.</p>';
+    }
     root.innerHTML =
       '<div class="auth">' +
         heroSide() +
         '<div class="auth-panel"><div class="auth-box">' +
-          "<h2>Sign in to Plately</h2>" +
-          '<p class="lede">For Plately staff and for dietitians. Staff use their <strong>@plately.eu</strong> account. ' +
-            'Dietitians: we recommend your practice\u2019s Google account (<code class="mono">name@your-practice.com</code>) \u2014 ' +
-            'a mailbox on your own domain confirms ownership on the spot. You can continue with Gmail, but domain ownership will then have to be proven with a DNS record.</p>' +
+          copy +
           (S.auth.googleConfigured === false
             ? '<div class="auth-error">Google sign-in is not configured yet. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel.</div>'
             : "") +
           '<button type="button" class="google-btn" data-act="google">' +
             '<svg width="18" height="18" viewBox="0 0 48 48" style="flex:none;display:block"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"></path><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C39.9 37.4 44 31.4 44 24c0-1.3-.1-2.7-.4-3.5z"></path></svg>' +
-            "Continue with Google" +
+            (DOOR === "dietitian" ? esc(pt("signInGoogle")) : "Continue with Google") +
           "</button>" +
           (message ? '<div class="auth-error">' + esc(message) + "</div>" : "") +
-          '<div class="auth-note">' + ICON.info +
-            "<p><strong style=\"color:var(--m3-on-surface)\">Looking for help with Plately?</strong><br>" +
-            "This page is not customer support. If you need assistance, " +
-            'please write to us at <a class="auth-link" href="/help">plately.eu/help</a>.</p>' +
-          "</div>" +
+          (DOOR === "dietitian"
+            ? '<div class="auth-note">' + ICON.info + "<p>" + pt("signInNote") + "</p></div>"
+            : '<div class="auth-note">' + ICON.info +
+                "<p><strong style=\"color:var(--m3-on-surface)\">Looking for help with Plately?</strong><br>" +
+                "This page is not customer support. If you need assistance, " +
+                'please write to us at <a class="auth-link" href="/help">plately.eu/help</a>.</p>' +
+              "</div>") +
         "</div></div>" +
       "</div>";
   }
@@ -2123,6 +2159,9 @@
   var PT = {
     en: {
       signedInAs: "Signed in as", switchAccount: "Sign out and use a different account", langOther: "Polski",
+      heroTitle: "Your patients, their days, one panel", heroBody: "Diaries, weight, goals and a code you hand over at the first visit \u2014 for every patient in your practice, without a spreadsheet.",
+      signInTitle: "Sign in to your practice", signInLede: "With Google. We recommend your practice\u2019s own account (<code class=\"mono\">name@your-practice.com</code>) \u2014 a mailbox on your own domain confirms ownership on the spot. Gmail works too, but the domain then has to be proven with a DNS record.",
+      signInGoogle: "Continue with Google", signInNote: "<strong style=\"color:var(--m3-on-surface)\">Looking for help with Plately?</strong><br>This page is for dietitians. If you are a patient or need assistance, write to us at <a class=\"auth-link\" href=\"/help\">plately.eu/help</a>. Plately staff sign in at <a class=\"auth-link\" href=\"/support\">plately.eu/support</a>.",
       regTitle: "Register your practice", regSubtitle: "Fourteen days free, three patients, no card. Most practices are verified within a minute.",
       accountBusiness: "A mailbox on your own domain. If your website is on this domain, ownership is confirmed on the spot \u2014 no DNS record needed.",
       accountPublic: "A mailbox on a public provider proves nothing about your domain, so you will be asked to add a TXT record. If you have an address on your practice\u2019s own domain (anna@your-practice.com), sign out and use that one \u2014 verification then usually completes immediately.",
@@ -2144,8 +2183,8 @@
       companySkipped: "No VAT number given \u2014 a person will check the company instead.", companyOutside: "A number from outside the EU cannot be checked automatically.",
       companyUnavailable: "The register did not answer. Try again in a few minutes.",
       presencePassed: "The site answers and is about nutrition; the domain has been registered since {date}.",
-      r_site_unreachable: "The website did not answer.", r_site_not_wellness: "The site does not read as nutrition or health.", r_site_no_name: "The practice\u2019s name is not on the site.",
-      r_domain_too_young: "The domain is younger than a year.", r_domain_age_unknown: "The domain\u2019s age could not be read.",
+      r_site_unreachable: "The website did not answer ({detail}).", r_site_blocked: "The website answers, but turns away automated checks ({detail}) \u2014 a person will look at it.", r_site_not_wellness: "The site does not read as nutrition or health.", r_site_no_name: "The practice\u2019s name is not on the site.",
+      r_domain_too_young: "The domain is younger than a year.", r_domain_age_unknown: "The domain\u2019s age could not be read ({detail}).", r_domain_age_unavailable: "This registry does not publish domain registration dates, so a person checks the company instead \u2014 or add your VAT number and check again.",
       txtHost: "Host", txtType: "Type", txtValue: "Value", recheck: "Check again", recheckLimit: "Too many checks. Try again in an hour.",
       rejectedTitle: "We could not verify this practice", rejectedBody: "The note below is from the person who reviewed it. If you think this is a mistake, write to us.", contact: "Contact support",
       panelTitle: "Practice", panelSubtitle: "Your patients, and what needs attention today.", signOut: "Sign out",
@@ -2161,6 +2200,9 @@
     },
     pl: {
       signedInAs: "Zalogowano jako", switchAccount: "Wyloguj i u\u017cyj innego konta", langOther: "English",
+      heroTitle: "Twoi pacjenci, ich dni, jeden panel", heroBody: "Dzienniki, waga, cele i kod, kt\u00f3ry wr\u0119czasz na pierwszej wizycie \u2014 dla ka\u017cdego pacjenta gabinetu, bez arkusza.",
+      signInTitle: "Zaloguj si\u0119 do gabinetu", signInLede: "Przez Google. Polecamy konto gabinetu (<code class=\"mono\">imie@twoj-gabinet.pl</code>) \u2014 skrzynka na w\u0142asnej domenie od razu potwierdza jej w\u0142asno\u015b\u0107. Gmail te\u017c zadzia\u0142a, ale domen\u0119 trzeba b\u0119dzie potwierdzi\u0107 rekordem DNS.",
+      signInGoogle: "Kontynuuj z Google", signInNote: "<strong style=\"color:var(--m3-on-surface)\">Szukasz pomocy z Plately?</strong><br>Ta strona jest dla dietetyk\u00f3w. Je\u015bli jeste\u015b pacjentem albo potrzebujesz pomocy, napisz na <a class=\"auth-link\" href=\"/help\">plately.eu/help</a>. Zesp\u00f3\u0142 Plately loguje si\u0119 na <a class=\"auth-link\" href=\"/support\">plately.eu/support</a>.",
       regTitle: "Zarejestruj gabinet", regSubtitle: "Czterna\u015bcie dni za darmo, trzech pacjent\u00f3w, bez karty. Wi\u0119kszo\u015b\u0107 gabinet\u00f3w weryfikuje si\u0119 w minut\u0119.",
       accountBusiness: "Skrzynka na w\u0142asnej domenie. Je\u015bli strona gabinetu jest na tej domenie, w\u0142asno\u015b\u0107 potwierdzi si\u0119 od r\u0119ki \u2014 bez rekordu DNS.",
       accountPublic: "Skrzynka u publicznego dostawcy nie dowodzi niczego o Twojej domenie, wi\u0119c poprosimy o rekord TXT. Je\u015bli masz adres na domenie gabinetu (anna@twoj-gabinet.pl), wyloguj si\u0119 i zaloguj nim \u2014 weryfikacja zwykle ko\u0144czy si\u0119 wtedy od razu.",
@@ -2182,8 +2224,8 @@
       companySkipped: "Nie podano numeru VAT \u2014 firm\u0119 sprawdzi cz\u0142owiek.", companyOutside: "Numeru spoza UE nie da si\u0119 sprawdzi\u0107 automatycznie.",
       companyUnavailable: "Rejestr nie odpowiedzia\u0142. Spr\u00f3buj za kilka minut.",
       presencePassed: "Strona odpowiada i jest o \u017cywieniu; domena zarejestrowana od {date}.",
-      r_site_unreachable: "Strona nie odpowiada.", r_site_not_wellness: "Strona nie wygl\u0105da na dietetyczn\u0105 ani zdrowotn\u0105.", r_site_no_name: "Na stronie nie ma nazwy gabinetu.",
-      r_domain_too_young: "Domena m\u0142odsza ni\u017c rok.", r_domain_age_unknown: "Nie uda\u0142o si\u0119 odczyta\u0107 wieku domeny.",
+      r_site_unreachable: "Strona nie odpowiada ({detail}).", r_site_blocked: "Strona odpowiada, ale odrzuca automatyczne sprawdzenie ({detail}) \u2014 obejrzy j\u0105 cz\u0142owiek.", r_site_not_wellness: "Strona nie wygl\u0105da na dietetyczn\u0105 ani zdrowotn\u0105.", r_site_no_name: "Na stronie nie ma nazwy gabinetu.",
+      r_domain_too_young: "Domena m\u0142odsza ni\u017c rok.", r_domain_age_unknown: "Nie uda\u0142o si\u0119 odczyta\u0107 wieku domeny ({detail}).", r_domain_age_unavailable: "Ten rejestr nie publikuje daty rejestracji domeny, wi\u0119c firm\u0119 sprawdzi cz\u0142owiek \u2014 albo podaj numer VAT i sprawd\u017a ponownie.",
       txtHost: "Host", txtType: "Typ", txtValue: "Warto\u015b\u0107", recheck: "Sprawd\u017a ponownie", recheckLimit: "Za du\u017co sprawdze\u0144. Spr\u00f3buj za godzin\u0119.",
       rejectedTitle: "Nie uda\u0142o si\u0119 zweryfikowa\u0107 tego gabinetu", rejectedBody: "Notatka ni\u017cej pochodzi od osoby, kt\u00f3ra to sprawdza\u0142a. Je\u015bli to pomy\u0142ka, napisz do nas.", contact: "Napisz do supportu",
       panelTitle: "Gabinet", panelSubtitle: "Twoi pacjenci i to, co dzi\u015b wymaga uwagi.", signOut: "Wyloguj",
@@ -2393,8 +2435,18 @@
     if (steps.presence === "waiting") presenceDetail = esc(pt("afterDomain"));
     else if (steps.presence === "passed") presenceDetail = esc(pt("presencePassed", { date: String(pr.domainRegisteredAt || "").slice(0, 10) }));
     else {
+      // The reason carries what was actually observed — "timeout on
+      // www.example.pl", "HTTP 403" — because "did not answer" alone sends
+      // the person off to check a site that, from their browser, is fine.
+      var site = (pr && pr.site) || {};
+      var detail = function (r) {
+        if (r === "site_unreachable") return (site.error || "?") + (site.host ? " \u00b7 " + site.host : "");
+        if (r === "site_blocked") return "HTTP " + (site.status || "?") + (site.host ? " \u00b7 " + site.host : "");
+        if (r === "domain_age_unknown") return (pr && pr.rdapError) || "RDAP";
+        return "";
+      };
       var why = (ev.reasons || []).filter(function (r) { return (r.indexOf("site_") === 0 || r.indexOf("domain_") === 0) && PT.en["r_" + r]; })
-        .map(function (r) { return esc(pt("r_" + r)); });
+        .map(function (r) { return esc(pt("r_" + r, { detail: detail(r) })); });
       presenceDetail = (pr && pr.site && pr.site.reachable && pr.site.title ? '<span class="mono">' + esc(pr.site.title) + "</span> \u2014 " : "") + why.join(" ");
     }
 
@@ -2561,7 +2613,7 @@
     },
     "practice-signout": function (el) {
       busy(el, true);
-      api("/api/staff/logout", { method: "POST" }).then(function () { location.href = "/staff"; });
+      api("/api/staff/logout", { method: "POST" }).then(function () { location.href = DOOR_PATH; });
     },
     "practice-dpa": function (el, event) { if (event) event.preventDefault(); showDpa(); },
     "practice-copy": function (el) {
@@ -2646,7 +2698,7 @@
     google: function () {
       var button = document.querySelector('[data-act="google"]');
       if (button) button.disabled = true;
-      api("/api/staff/start", { method: "POST" })
+      api("/api/staff/start", { method: "POST", body: { from: DOOR } })
         .then(function (data) { location.href = data.url; })
         .catch(function (err) {
           S.error = err.message;
@@ -2766,7 +2818,7 @@
     },
 
     signout: function () {
-      api("/api/staff/logout", { method: "POST" }).then(function () { location.href = "/staff"; });
+      api("/api/staff/logout", { method: "POST" }).then(function () { location.href = DOOR_PATH; });
     },
 
     nav: function (el) { closeOverlay(); loadScreen(el.dataset.screen); },

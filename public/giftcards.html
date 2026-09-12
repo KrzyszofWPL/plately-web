@@ -9,66 +9,72 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#0a0a0b">
-<meta name="color-scheme" content="dark">
 <link rel="icon" type="image/png" href="/logo.png">
 <link rel="apple-touch-icon" href="/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Montserrat is the face on the card itself — the printed artwork uses it,
      and the text laid over the picture has to match what the picture would
-     have said. Everything around the card is the site's usual Inter. -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+     have said. Everything around the card is the panel's Inter. -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- The same stylesheet as /staff: this page is drawn with the panel's tokens
+     and components (the split hero, .auth-box, .btn, .field, .chip), so the
+     gift is received in the same room the rest of Plately lives in. -->
+<link rel="stylesheet" href="/staff/support.css?v=23">
 <link rel="preload" as="image" href="/giftcard/wrapped.webp">
 <link rel="preload" as="image" href="/giftcard/front.webp">
+<script>document.documentElement.dataset.theme = 'dark';</script>
 <style>
-  /* Same skin as /help and /redeem: this is the same site. A gift page that
-     looks like somebody else's site is a gift page people are afraid to click. */
-  *, *::before, *::after { box-sizing: border-box; }
-  html { background: #0a0a0b; -webkit-text-size-adjust: 100%; }
-  body { margin: 0; min-height: 100vh; background: #0a0a0b; color: #f4f4f5; font-family: "Inter", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  a { color: #34d399; text-decoration: none; }
-  a:hover { color: #6ee7b7; }
-  ::selection { background: #34d399; color: #04140d; }
-  :focus-visible { outline: 2px solid #34d399; outline-offset: 3px; border-radius: 4px; }
   [hidden] { display: none !important; }
+  .gift.auth { min-height: 100dvh; }
+  /* The hero holds the card, not a headline. */
+  .gift .auth-hero { display: flex; flex-direction: column; align-items: stretch; }
+  .gift .auth-hero .stage { margin: auto 0; display: flex; flex-direction: column; align-items: center; }
+  .gift .auth-hero .hint { margin-top: 22px; font-size: 13px; font-weight: 600; letter-spacing: .02em; opacity: .75; text-align: center; }
+  .gift .flip-row { margin-top: 18px; display: flex; gap: 10px; justify-content: center; }
+  .gift .auth-hero .btn { border-color: rgba(0,0,0,.18); color: var(--m3-on-primary-container); background: rgba(255,255,255,.08); }
+  .gift .auth-hero .btn:hover:not(:disabled) { background: rgba(255,255,255,.16); }
+  .ts-slot { margin-top: 18px; min-height: 0; display: flex; justify-content: center; }
 
-  header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(18px); background: rgba(10,10,11,.72); border-bottom: 1px solid rgba(255,255,255,.08); }
-  .bar { max-width: 820px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-  .brand { display: flex; align-items: center; gap: 11px; color: #f4f4f5; }
-  .brand img { width: 32px; height: 32px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); display: block; }
-  .brand span { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
-  .langs { display: flex; align-items: center; gap: 6px; }
-  .langs button { font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: #131316; color: #e4e4e7; cursor: pointer; transition: border-color .2s ease, background-color .2s ease, color .2s ease; }
-  .langs button:hover { border-color: rgba(52,211,153,.45); }
-  .langs button[aria-pressed="true"] { border-color: rgba(52,211,153,.5); background: #17251f; color: #34d399; }
+  /* -- the panel -------------------------------------------------------- */
+  .gift .auth-box { max-width: 460px; }
+  .gift-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .gift-top select.field { width: auto; min-height: 36px; padding: 0 32px 0 12px; font-size: 12px; font-weight: 600; border-radius: 999px; background: var(--m3-surface-container) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a8a92' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center; }
+  .status { min-height: 22px; margin: 0 0 6px; font-size: 13px; color: var(--m3-on-surface-variant); display: flex; align-items: center; gap: 10px; }
+  .reveal { opacity: 0; transform: translateY(10px); transition: opacity .5s ease, transform .5s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  .code-row { display: flex; align-items: stretch; gap: 8px; }
+  .code-box { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 14px; border-radius: 16px; border: 1px solid var(--m3-outline-variant); background: var(--m3-surface-container); font: 700 clamp(15px,3.8vw,19px)/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; overflow-wrap: anywhere; user-select: all; }
+  .code-row .btn { min-height: 52px; border-radius: 16px; }
+  .meta-line { margin: 12px 0 0; font-size: 13px; line-height: 20px; color: var(--m3-on-surface-variant); }
+  .meta-line strong { color: var(--m3-on-surface); font-weight: 600; }
+  .go { width: 100%; min-height: 52px; margin-top: 18px; font-size: 14px; }
+  .how { margin: 18px 0 0; padding: 14px 16px; border-radius: 16px; font-size: 13px; line-height: 20px; color: var(--m3-on-surface-variant); background: var(--m3-surface-container-low); border: 1px solid var(--card-border); }
+  .how b { color: var(--m3-on-surface); font-weight: 600; }
+  .panel .why { margin-top: 8px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; opacity: .8; word-break: break-word; }
+  .panel .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .panel h2 { font-size: 15px; line-height: 22px; margin: 0; font-weight: 700; }
+  .panel p { margin: 6px 0 0; }
+  .auth-warn { margin-top: 16px; padding: 12px 14px; border-radius: 14px; font-size: 13px; line-height: 19px; background: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
+  .auth-note p { font-size: 12px; line-height: 18px; }
 
-  main { max-width: 640px; margin: 0 auto; padding: clamp(32px,5vw,56px) 24px clamp(56px,7vw,88px); text-align: center; }
-  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #34d399; background: #17251f; border: 1px solid rgba(52,211,153,.25); border-radius: 999px; padding: 7px 14px; }
-  h1 { margin: 18px 0 0; font-size: clamp(32px,5vw,50px); line-height: 1.08; font-weight: 700; letter-spacing: -.03em; text-wrap: balance; }
-  .lede { margin: 14px auto 0; font-size: 16px; line-height: 1.65; color: #b6b6bd; max-width: 46ch; text-wrap: pretty; }
-
-  /* ---- the stage ---------------------------------------------------------
-     One card-shaped thing in the middle of the page, in three states:
-     wrapped (the paper with the bow), the front, the back. The wrapping is
-     its own layer on top of the card, so unwrapping is the paper coming
-     apart and the card being underneath the whole time. */
-  .stage { position: relative; margin: clamp(28px,5vw,44px) auto 0; display: flex; flex-direction: column; align-items: center; }
-  .glow { position: absolute; inset: -10% -20%; border-radius: 50%; background: radial-gradient(closest-side, rgba(52,211,153,.16), transparent 70%); z-index: 0; animation: breathe 3.2s ease-in-out infinite; pointer-events: none; }
-  @keyframes breathe { 0%, 100% { transform: scale(.94); opacity: .7; } 50% { transform: scale(1.04); opacity: 1; } }
-
-  .card-wrap { position: relative; z-index: 1; width: min(400px, 86vw); aspect-ratio: 1017 / 1465; perspective: 1700px; }
-  .card { position: absolute; inset: 0; transform-style: preserve-3d; transform: scale(.94); transition: transform .9s cubic-bezier(.4,0,.2,1); container-type: inline-size; }
-  .card-wrap.opened .card { transform: none; cursor: pointer; }
-  .card-wrap.opened.flipped .card { transform: rotateY(180deg); }
+  /* -- the card ----------------------------------------------------------
+     One card-shaped thing in three states: wrapped, front, back. The
+     wrapping is its own layer on top, so unwrapping is the paper coming
+     apart with the card underneath it the whole time. */
+  .card-wrap { position: relative; z-index: 1; width: min(400px, 80vw); aspect-ratio: 1017 / 1465; perspective: 1700px; }
+  /* `.gc`, not `.card`: the panel's stylesheet already owns `.card` (a padded, bordered box), and a 26px padding on the card's container would make every cqw on it 13% short. */
+  .gc { position: absolute; inset: 0; transform-style: preserve-3d; transform: scale(.94); transition: transform .9s cubic-bezier(.4,0,.2,1); container-type: inline-size; }
+  .card-wrap.opened .gc { transform: none; cursor: pointer; }
+  .card-wrap.opened.flipped .gc { transform: rotateY(180deg); }
   /* Each face sits one pixel in front of the card plane on its own side, so
      the visible face is unambiguously the one on top for hit-testing. */
   .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: translateZ(1px); }
   .face.back { transform: rotateY(180deg) translateZ(1px); }
-  .face .die { display: block; width: 100%; height: 100%; filter: drop-shadow(0 34px 50px rgba(0,0,0,.6)); }
+  .face .die { display: block; width: 100%; height: 100%; filter: drop-shadow(0 30px 44px rgba(0,0,0,.55)); }
 
-  /* -- the wrapping ------------------------------------------------------- */
   .wrap { position: absolute; inset: 0; z-index: 3; border: 0; padding: 0; background: none; cursor: pointer; font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
-  .wrap .half { position: absolute; inset: 0; width: 100%; height: 100%; display: block; filter: drop-shadow(0 30px 50px rgba(0,0,0,.55)); transition: transform 1s cubic-bezier(.2,.8,.2,1), opacity .8s ease; will-change: transform, opacity; }
+  .wrap .half { position: absolute; inset: 0; width: 100%; height: 100%; display: block; filter: drop-shadow(0 26px 44px rgba(0,0,0,.5)); transition: transform 1s cubic-bezier(.2,.8,.2,1), opacity .8s ease; will-change: transform, opacity; }
   .wrap .half.l { clip-path: inset(0 50% 0 0); }
   .wrap .half.r { clip-path: inset(0 0 0 50%); }
   .wrap:hover .half.l { transform: translate(-1.5%, -1%) rotate(-.6deg); }
@@ -79,352 +85,194 @@
   .wrap.open .half.r { transform: translate(58%, 8%) rotate(12deg); opacity: 0; }
   @keyframes wobble { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-1.6deg) translateY(-2px); } 40% { transform: rotate(1.6deg); } 60% { transform: rotate(-1.2deg); } 80% { transform: rotate(1.2deg) translateY(-1px); } }
 
-  .tap { margin-top: 22px; font-size: 13px; font-weight: 600; color: #8a8a92; letter-spacing: .02em; }
-  .flip-row { margin-top: 18px; display: flex; gap: 10px; justify-content: center; align-items: center; }
-  .btn { font: 600 13px/1 "Inter", sans-serif; padding: 11px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: #131316; color: #e4e4e7; cursor: pointer; transition: border-color .2s ease, color .2s ease; }
-  .btn:hover { border-color: rgba(52,211,153,.5); color: #34d399; }
-  .btn.primary { background: #34d399; color: #04140d; border-color: transparent; }
-  .btn.primary:hover { background: #6ee7b7; color: #04140d; }
-
-  /* Cloudflare lives here. With `interaction-only` it stays empty for almost
-     everyone; when a challenge does need a click, it appears right under the
-     card rather than somewhere off in a corner. */
-  .ts-slot { margin-top: 18px; min-height: 0; display: flex; justify-content: center; }
-  .status { margin-top: 18px; min-height: 22px; font-size: 14px; color: #b6b6bd; display: flex; align-items: center; justify-content: center; gap: 10px; }
-  .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.18); border-top-color: #34d399; animation: spin .8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* -- the front ----------------------------------------------------------
-     Text laid over the printed card. Sizes are in container units, so the
-     lettering scales with the picture exactly like ink would. Each block is
-     centred on itself — "KOD" sits centred over "CYFROWY", "ULTRA" over
-     "366 DNI" — which is how the finished artwork stacks them. */
+  /* -- the front: ink over the picture ------------------------------------
+     The two corner blocks are each centred on themselves ("KOD" over
+     "CYFROWY") and set the same distance in from their own edge, at the
+     same size and the same height — mirror images of each other, whatever
+     the words are. A block that comes out wider than its room (Cyrillic,
+     German) is shrunk by fitInk() below rather than allowed to spill. */
   .front { overflow: hidden; border-radius: 4.5cqw; }
   .over { position: absolute; z-index: 1; color: #fff; font-family: "Montserrat", "Inter", sans-serif; font-weight: 800; text-transform: uppercase; line-height: 1.1; letter-spacing: .005em; white-space: pre-line; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
-  .over.kind { left: 3.5%; top: 4.3%; width: 28%; font-size: 4.6cqw; }
-  .over.plan { right: 3.5%; top: 4.3%; width: 28%; font-size: 4.6cqw; }
+  .over.kind { left: 5.2%; top: 4.4%; font-size: 4.6cqw; max-width: 29%; }
+  .over.plan { right: 5.2%; top: 4.4%; font-size: 4.6cqw; max-width: 29%; }
   /* The strapline sits on the vegetables. Ink would not be legible there
      either; the artwork solves it with the same text stacked three times
      with a shadow, and these layered shadows are that, without the copies. */
   .over.tagline { left: 3%; right: 3%; bottom: 5.4%; font-size: 6.3cqw; font-weight: 900; line-height: 1.14; letter-spacing: -.01em; text-transform: none; text-shadow: 0 0 2px rgba(0,0,0,.95), 0 1px 3px rgba(0,0,0,.9), 0 3px 8px rgba(0,0,0,.85), 0 6px 18px rgba(0,0,0,.75), 0 12px 34px rgba(0,0,0,.6); }
   .front::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(to top, rgba(0,0,0,.34), transparent); pointer-events: none; }
 
-  /* -- the back -------------------------------------------------------------
-     A plain white card, the way the back of a real one is: the terms, the
-     steps, the barcodes, the magnetic strip, and the code under a scratch
-     panel. Everything is sized in container units, which at card scale means
-     small print — that is what the back of a gift card looks like. */
-  .bk { position: absolute; inset: 0; padding: 18.5cqw 6.2cqw 5cqw; color: #1f1f22; font-family: "Inter", ui-sans-serif, system-ui, sans-serif; text-align: left; display: flex; flex-direction: column; }
-  .bk p, .bk ol { margin: 0; }
-  .bk-ean { display: flex; flex-direction: column; align-items: center; gap: .6cqw; }
-  .bk-ean.top { position: absolute; right: 6.5cqw; top: 5.2cqw; width: 22cqw; }
-  .bk-ean .bars { display: block; width: 100%; }
-  .bk-ean .num { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 2.05cqw; letter-spacing: .12em; color: #2a2a2e; white-space: nowrap; }
-  .bk-h { font-weight: 800; font-size: 2.45cqw; line-height: 1.32; letter-spacing: .01em; text-transform: uppercase; color: #2a2a2e; }
-  .bk-h + .bk-h { margin-top: .5cqw; }
-  .bk-note { margin-top: 1.9cqw; font-size: 2.2cqw; line-height: 1.38; color: #3d3d42; }
-  .bk-note i { font-weight: 700; font-style: italic; color: #1f1f22; }
-  .bk-redeem { margin-top: 2.2cqw; }
-  .bk-steps { margin: .5cqw 0 0; padding-left: 3.2cqw; font-size: 2.3cqw; line-height: 1.45; color: #2a2a2e; }
-  .bk-steps b { font-weight: 700; }
-  .bk-terms { margin-top: 2.2cqw; font-size: 1.95cqw; line-height: 1.36; color: #45454a; text-wrap: pretty; }
-  .bk-addr { margin-top: 3cqw; font-size: 2.15cqw; color: #3d3d42; }
-  .bk-meta { margin-top: 1cqw; display: flex; justify-content: space-between; align-items: center; font-size: 2.05cqw; color: #3d3d42; }
-  .bk-meta .mono { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: .04em; }
-  .bk-meta .rc { width: 4.2cqw; height: 4.2cqw; border-radius: 50%; background: #1f9d55; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 2.6cqw; font-weight: 800; line-height: 1; }
-  .bk-warn { margin-top: 2.4cqw; font-weight: 800; font-size: 2.35cqw; letter-spacing: .02em; text-transform: uppercase; text-align: center; color: #1f1f22; }
+  /* -- the back: a plain white card ---------------------------------------
+     What a real one carries and nothing it does not: what the card is, how
+     to use it, the terms in small print, the code under a scratch panel
+     with a QR that fills it in, a barcode that carries the issue time and
+     the card id, a magnetic strip. */
+  .bk { position: absolute; inset: 0; padding: 18.5cqw 6.4cqw 5cqw; color: #1f1f22; font-family: "Inter", ui-sans-serif, system-ui, sans-serif; text-align: left; display: flex; flex-direction: column; }
+  /* `.auth-hero p` in the panel's stylesheet sizes (and on phones hides)
+     every paragraph in the hero; the print on the card outranks it. */
+  .gift .bk p, .gift .bk ol { margin: 0; display: block; }
+  .gift .bk .bk-h { font-weight: 800; font-size: 2.95cqw; line-height: 1.32; letter-spacing: .01em; text-transform: uppercase; color: #2a2a2e; }
+  .gift .bk .bk-h + .bk-h { margin-top: .6cqw; }
+  .gift .bk .bk-note { margin-top: 2.2cqw; font-size: 2.55cqw; line-height: 1.4; color: #3d3d42; }
+  .gift .bk .bk-redeem { margin-top: 2.6cqw; }
+  .gift .bk .bk-steps { margin: .8cqw 0 0; padding-left: 3.6cqw; font-size: 2.65cqw; line-height: 1.45; color: #2a2a2e; }
+  .gift .bk .bk-terms { margin-top: 2.6cqw; font-size: 2.3cqw; line-height: 1.38; color: #45454a; text-wrap: pretty; }
+  .gift .bk .bk-warn { flex: none; margin-top: auto; padding-top: 2.4cqw; font-weight: 800; font-size: 2.6cqw; letter-spacing: .02em; text-transform: uppercase; text-align: center; color: #1f1f22; }
 
-  .scratch { position: relative; margin: 1.8cqw auto 0; width: 88%; height: 9.6cqw; border-radius: 1.2cqw; overflow: hidden; background: #f3f3f0; border: .35cqw solid #dcdcd6; user-select: none; -webkit-user-select: none; }
-  .scratch .code { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 700; font-size: 4.1cqw; letter-spacing: .06em; color: #0b845a; white-space: nowrap; }
-  .scratch canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; transition: opacity .5s ease; }
+  .scratch { flex: none; position: relative; margin: 1.8cqw auto 0; width: 100%; height: 24cqw; border-radius: 1.6cqw; overflow: hidden; background: #f3f3f0; border: .35cqw solid #dcdcd6; user-select: none; -webkit-user-select: none; }
+  .scratch .inner { position: absolute; inset: 0; display: flex; align-items: center; gap: 3cqw; padding: 2cqw 2.4cqw; }
+  .scratch .qr { flex: 0 0 auto; width: 19.5cqw; height: 19.5cqw; border-radius: 1cqw; overflow: hidden; background: #fff; }
+  .scratch .qr svg { display: block; width: 100%; height: 100%; }
+  .scratch .right { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4cqw; text-align: center; }
+  .scratch .code { font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 700; font-size: 3.55cqw; letter-spacing: .05em; color: #0b845a; white-space: nowrap; }
+  .scratch .qr-cap { font-size: 2cqw; line-height: 1.35; color: #6b6b73; }
+  .scratch canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; transition: opacity .5s ease; z-index: 2; }
   .scratch canvas:active { cursor: grabbing; }
   .scratch.done canvas { opacity: 0; pointer-events: none; }
-  .scratch-hint { margin-top: 1cqw; font-size: 1.9cqw; color: #6b6b73; text-align: center; }
+  .gift .bk .scratch-hint { flex: none; margin-top: 1cqw; font-size: 2cqw; color: #6b6b73; text-align: center; }
 
-  .bk-row { margin-top: 2.2cqw; display: flex; align-items: center; justify-content: space-between; }
-  .bk-row .dm { width: 12cqw; height: 12cqw; }
-  .bk-row .dm svg { display: block; width: 100%; height: 100%; }
-  .bk-row .serial { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 3.4cqw; letter-spacing: .06em; color: #1f1f22; }
-  .bk-ean.big { margin-top: 1.6cqw; width: 100%; }
-  .bk-ean.big .num { font-size: 3.1cqw; letter-spacing: .32em; }
-  .mag { margin: 2.4cqw -3.4% 0; height: 9.4cqw; background: linear-gradient(180deg, #2a2a2c 0%, #050506 45%, #1a1a1c 100%); border-radius: .6cqw; }
-  .bk-foot { margin-top: 1.4cqw; display: flex; justify-content: space-between; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 2.2cqw; letter-spacing: .08em; color: #2a2a2e; }
+  .bk-bar { flex: none; margin-top: 2.6cqw; display: flex; flex-direction: column; align-items: center; gap: .8cqw; }
+  .bk-bar .bars { display: block; width: 100%; }
+  .bk-bar .num { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 2.35cqw; letter-spacing: .1em; color: #2a2a2e; white-space: nowrap; }
+  .mag { flex: none; margin: 2.6cqw -3.4% 0; height: 9.4cqw; background: linear-gradient(180deg, #2a2a2c 0%, #050506 45%, #1a1a1c 100%); border-radius: .6cqw; }
 
-  /* ---- what you can do with it ------------------------------------------ */
-  .reveal { margin: 26px auto 0; max-width: 460px; opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
-  .reveal.in { opacity: 1; transform: none; }
-  .code-row { display: flex; align-items: stretch; gap: 8px; }
-  .code-box { flex: 1; min-width: 0; font: 700 clamp(16px,4.6vw,20px)/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,.12); background: #131316; color: #f4f4f5; text-align: center; overflow-wrap: anywhere; user-select: all; }
-  .copy { flex: 0 0 auto; font: 600 13px/1 "Inter", sans-serif; padding: 0 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,.12); background: #131316; color: #e4e4e7; cursor: pointer; transition: border-color .2s ease, color .2s ease; }
-  .copy:hover { border-color: rgba(52,211,153,.5); color: #34d399; }
-  .meta-line { margin: 12px 0 0; font-size: 13px; line-height: 1.6; color: #8a8a92; }
-  .meta-line strong { color: #d4d4d8; font-weight: 600; }
-  .go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 18px; width: 100%; font: 600 15px/1 "Inter", sans-serif; padding: 17px 22px; border-radius: 999px; border: 0; background: #34d399; color: #04140d; cursor: pointer; transition: background-color .2s ease; }
-  .go:hover { background: #6ee7b7; color: #04140d; }
-  .how { margin: 22px 0 0; font-size: 13px; line-height: 1.65; color: #8a8a92; text-align: left; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.02); }
-  .how b { color: #d4d4d8; font-weight: 600; }
-
-  /* ---- when it does not work ---------------------------------------------- */
-  .panel { margin: 26px auto 0; max-width: 460px; padding: 18px 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,.1); background: #131316; text-align: left; }
-  .panel.bad { border-color: rgba(253,164,175,.35); background: #1b1113; }
-  .panel.warn { border-color: rgba(245,197,66,.35); background: #1a1710; }
-  .panel h2 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
-  .panel p { margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: #b6b6bd; }
-  .panel .why { font-size: 12px; color: #6b6b73; font-family: "JetBrains Mono", ui-monospace, monospace; word-break: break-word; }
-  .panel .actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
-  .panel .btn { background: #0a0a0b; }
-
-  .foot { margin-top: 40px; font-size: 12px; line-height: 1.7; color: #55555c; }
-
+  @media (max-width: 900px) {
+    .gift .auth-hero { padding: 28px 20px 30px; }
+    .gift .auth-hero .stage { margin: 0 auto; }
+    .gift .auth-panel { padding: 28px 22px 40px; }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .wrap.checking, .glow { animation: none; }
-    .wrap .half, .card, .reveal { transition-duration: .01s; }
+    .wrap.checking { animation: none; }
+    .wrap .half, .gc, .reveal { transition-duration: .01s; }
   }
 </style>
 </head>
 <body>
-<header>
-  <div class="bar">
-    <a class="brand" href="/">
-      <img src="/logo.png" alt="" width="32" height="32">
-      <span>Plately</span>
-    </a>
-    <div class="langs" role="group" aria-label="Language / Język">
-      <button type="button" data-lang="pl" lang="pl" aria-pressed="true">Polski</button>
-      <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
-    </div>
-  </div>
-</header>
-
-<main>
-  <span class="eyebrow">🎁 <span data-t="eyebrow">Karta podarunkowa Plately</span></span>
-  <h1 data-t="title">Dostałeś prezent!</h1>
-  <p class="lede" id="lede" data-t="lede">Ktoś podarował Ci kartę podarunkową Plately. Kliknij, żeby ją rozpakować.</p>
-
-  <div class="stage" id="stage">
-    <span class="glow" aria-hidden="true"></span>
-
-    <div class="card-wrap" id="cardWrap">
-      <div class="card" id="card">
-        <div class="face front">
-          <img class="die" src="/giftcard/front.webp" alt="" width="800" height="1152" decoding="async">
-          <span class="over kind" data-t="cardKind">KOD
-CYFROWY</span>
-          <span class="over plan" id="cardPlan"></span>
-          <span class="over tagline" data-t="cardTagline">Mądrzejsze Odżywianie
-ze Sztuczną Inteligencją</span>
-        </div>
-
-        <div class="face back">
-          <img class="die" src="/giftcard/back.webp" alt="" width="800" height="1152" decoding="async" loading="lazy">
-          <div class="bk">
-            <div class="bk-ean top"><span class="bars" id="eanTop"></span><span class="num" id="eanTopNum"></span></div>
-            <p class="bk-h" data-t="bkH1">Karta cyfrowa — kod jednorazowy, ważny po realizacji w aplikacji</p>
-            <p class="bk-h" id="bkH2"></p>
-            <p class="bk-note" id="bkNote"></p>
-            <p class="bk-h bk-redeem" data-t="bkRedeemH">Aby zrealizować kod:</p>
-            <ol class="bk-steps" id="bkSteps"></ol>
-            <p class="bk-terms" id="bkTerms"></p>
-            <p class="bk-addr" data-t="bkAddr">Plately · plately.eu · pomoc: plately.eu/help · regulamin: plately.eu/terms</p>
-            <div class="bk-meta">
-              <span class="mono" id="bkRef"></span>
-              <span class="mono" id="bkSku"></span>
-              <span data-t="bkMade">Wydano w UE</span>
-              <span class="rc" aria-hidden="true">♻</span>
+<div class="auth gift">
+  <div class="auth-hero">
+    <img class="auth-mark" src="/logo.png" alt="Plately">
+    <div class="stage" id="stage">
+      <div class="card-wrap" id="cardWrap">
+        <div class="gc" id="card">
+          <div class="face front">
+            <img class="die" src="/giftcard/front.webp" alt="" width="800" height="1152" decoding="async">
+            <span class="over kind" id="cardKind"></span>
+            <span class="over plan" id="cardPlan"></span>
+            <span class="over tagline" id="cardTagline"></span>
+          </div>
+          <div class="face back">
+            <img class="die" src="/giftcard/back.webp" alt="" width="800" height="1152" decoding="async" loading="lazy">
+            <div class="bk">
+              <p class="bk-h" id="bkH1"></p>
+              <p class="bk-h" id="bkH2"></p>
+              <p class="bk-note" id="bkNote"></p>
+              <p class="bk-h bk-redeem" id="bkRedeemH"></p>
+              <ol class="bk-steps" id="bkSteps"></ol>
+              <p class="bk-terms" id="bkTerms"></p>
+              <p class="bk-warn" id="bkWarn"></p>
+              <div class="scratch" id="scratchBox">
+                <div class="inner">
+                  <span class="qr" id="qr" aria-hidden="true"></span>
+                  <span class="right"><span class="code" id="cardCode"></span><span class="qr-cap" id="qrCap"></span></span>
+                </div>
+                <canvas id="scratch" role="img" aria-label=""></canvas>
+              </div>
+              <p class="scratch-hint" id="scratchHint"></p>
+              <div class="bk-bar"><span class="bars" id="bars"></span><span class="num" id="barNum"></span></div>
+              <div class="mag" aria-hidden="true"></div>
             </div>
-            <p class="bk-warn" data-t="bkWarn">Nie przyjmuj karty ze zdrapanym kodem</p>
-            <div class="scratch" id="scratchBox">
-              <span class="code" id="cardCode"></span>
-              <canvas id="scratch" role="img" aria-label=""></canvas>
-            </div>
-            <p class="scratch-hint" data-t="scratchHint">Zdrap pole myszką albo palcem, żeby odsłonić kod</p>
-            <div class="bk-row">
-              <span class="dm" id="dm" aria-hidden="true"></span>
-              <span class="serial" id="serial"></span>
-            </div>
-            <div class="bk-ean big"><span class="bars" id="eanBig"></span><span class="num" id="eanBigNum"></span></div>
-            <div class="mag" aria-hidden="true"></div>
-            <div class="bk-foot"><span id="lot"></span><span id="upc"></span><span id="ym"></span></div>
           </div>
         </div>
+        <button type="button" class="wrap" id="gift" aria-describedby="status">
+          <img class="half l" src="/giftcard/wrapped.webp" alt="" width="800" height="1152" decoding="async">
+          <img class="half r" src="/giftcard/wrapped.webp" alt="" width="800" height="1152" decoding="async">
+        </button>
       </div>
-
-      <button type="button" class="wrap" id="gift" aria-describedby="status">
-        <img class="half l" src="/giftcard/wrapped.webp" alt="" width="800" height="1152" decoding="async">
-        <img class="half r" src="/giftcard/wrapped.webp" alt="" width="800" height="1152" decoding="async">
-      </button>
+      <div class="hint" id="tap"></div>
+      <div class="flip-row" id="flipRow" hidden><button type="button" class="btn" id="flipBtn"></button></div>
+      <div class="ts-slot" id="ts-widget"></div>
     </div>
-
-    <p class="tap" id="tap" data-t="tap">Kliknij prezent, żeby go rozpakować</p>
-    <div class="flip-row" id="flipRow" hidden>
-      <button type="button" class="btn" id="flipBtn" data-t="flip">Obróć kartę</button>
-    </div>
-    <div class="ts-slot" id="ts-widget"></div>
   </div>
-  <p class="status" id="status" aria-live="polite"></p>
 
-  <section class="reveal" id="reveal" hidden>
-    <div class="code-row">
-      <div class="code-box" id="code"></div>
-      <button type="button" class="copy" id="copy" data-t="copy">Skopiuj</button>
+  <div class="auth-panel"><div class="auth-box">
+    <div class="gift-top">
+      <span class="chip chip-ok" id="eyebrow"></span>
+      <select class="field" id="lang" aria-label="Language"></select>
     </div>
-    <p class="meta-line" id="metaLine"></p>
-    <a class="go" id="go" href="#" data-t="go">Zrealizuj w aplikacji →</a>
-    <p class="how" id="how"></p>
-  </section>
+    <h2 id="title"></h2>
+    <p class="lede" id="lede"></p>
+    <p class="status" id="status" aria-live="polite"></p>
 
-  <section class="panel warn" id="verifyPanel" hidden>
-    <h2>🛡️ <span data-t="verifyTitle">Nie udało się zweryfikować sesji</span></h2>
-    <p data-t="verifyBody">Nie potwierdziliśmy, że po drugiej stronie jest człowiek, więc prezent zostaje zamknięty. Odśwież stronę albo spróbuj w innej przeglądarce — bez trybu prywatnego i bez blokowania skryptów.</p>
-    <p class="why" id="verifyWhy" hidden></p>
-    <div class="actions">
-      <button type="button" class="btn primary" id="retry" data-t="retry">Spróbuj ponownie</button>
+    <section class="reveal" id="reveal" hidden>
+      <div class="code-row">
+        <div class="code-box" id="code"></div>
+        <button type="button" class="btn" id="copy"></button>
+      </div>
+      <p class="meta-line" id="metaLine"></p>
+      <a class="btn btn-primary go" id="go" href="#"></a>
+      <div class="how" id="how"></div>
+    </section>
+
+    <div class="auth-warn panel" id="verifyPanel" hidden>
+      <h2>🛡️ <span id="verifyTitle"></span></h2>
+      <p id="verifyBody"></p>
+      <p class="why" id="verifyWhy" hidden></p>
+      <div class="actions"><button type="button" class="btn btn-primary btn-sm" id="retry"></button></div>
     </div>
-  </section>
 
-  <section class="panel bad" id="badPanel" hidden>
-    <h2>😕 <span id="badTitle"></span></h2>
-    <p id="badBody"></p>
-    <div class="actions">
-      <a class="btn" href="/help" data-t="help">Napisz do nas</a>
+    <div class="auth-error panel" id="badPanel" hidden>
+      <h2>😕 <span id="badTitle"></span></h2>
+      <p id="badBody"></p>
+      <div class="actions"><a class="btn btn-sm" href="/help" id="helpBtn"></a></div>
     </div>
-  </section>
 
-  <p class="foot" data-t="foot">Karta podarunkowa Plately. Nie podlega wymianie na gotówkę. Realizacja w aplikacji app.plately.eu — kod można też wpisać ręcznie na plately.eu/redeem.</p>
-</main>
+    <div class="auth-note"><p id="foot"></p></div>
+  </div></div>
+</div>
 
+<script src="/giftcard/i18n.js"></script>
+<script src="/giftcard/qr.js"></script>
 <script>
   var APP_REDEEM = 'https://app.plately.eu/redeem';
-
-  var T = {
-    pl: {
-      docTitle: 'Dostałeś prezent — Plately',
-      eyebrow: 'Karta podarunkowa Plately', title: 'Dostałeś prezent!',
-      lede: 'Ktoś podarował Ci kartę podarunkową Plately. Kliknij, żeby ją rozpakować.',
-      ledeOpen: 'Twoja karta. Obróć ją i zdrap pole na odwrocie — tam jest kod.',
-      ledeDone: 'Kod odsłonięty. Zrealizuj go w aplikacji — dni dopisują się od razu.',
-      tap: 'Kliknij prezent, żeby go rozpakować', giftAria: 'Rozpakuj prezent',
-      flip: 'Obróć kartę', flipBack: 'Pokaż przód',
-      checking: 'Sprawdzam prezent…', opening: 'Rozpakowuję…', turnHint: 'Kod jest na odwrocie karty',
-      cardKind: 'KOD\nCYFROWY', cardTagline: 'Mądrzejsze Odżywianie\nze Sztuczną Inteligencją',
-      days: 'DNI', scratchLabel: 'ZDRAP TUTAJ',
-      bkH1: 'Karta cyfrowa — kod jednorazowy, ważny po realizacji w aplikacji',
-      bkH2NoDeadline: 'Bez daty ważności i opłat serwisowych', bkH2Deadline: 'Kod aktywuj do {date} · bez opłat serwisowych',
-      bkNote: '*Działa w aplikacji Plately na app.plately.eu (wymagane konto) — telefon, tablet, komputer. <i>Nie do realizacji w sklepach stacjonarnych.</i>',
-      bkRedeemH: 'Aby zrealizować kod:',
-      bkSteps: ['Wejdź na <b>plately.eu/redeem</b>', 'Ostrożnie zdrap pole i wpisz kod', 'Korzystaj z planu <b>{plan}</b> przez <b>{days} dni</b>'],
-      bkTerms: 'Po realizacji na koncie Plately pełna wartość karty ({plan}, {days} dni) zostaje dopisana do planu i może być wykorzystana we wszystkich funkcjach tego planu. Kod jest jednorazowy. Jeśli konto ma już aktywny plan tego samego rodzaju, dni dodają się do pozostałego okresu; przy innym planie liczą się od dnia realizacji. Karty nie można wymienić na gotówkę, doładować ani zwrócić, chyba że prawo stanowi inaczej. Konto prowadzone w programie dietetyka nie może zrealizować karty. Wymagane połączenie z internetem. Ograniczenia wiekowe mogą mieć zastosowanie. Pełny regulamin, który może się zmieniać: plately.eu/terms. Karty i kody wydaje Plately.',
-      bkAddr: 'Plately · plately.eu · pomoc: plately.eu/help · regulamin: plately.eu/terms',
-      bkMade: 'Wydano w UE', bkWarn: 'Nie przyjmuj karty ze zdrapanym kodem',
-      scratchHint: 'Zdrap pole myszką albo palcem, żeby odsłonić kod',
-      copy: 'Skopiuj', copied: 'Skopiowano ✓', go: 'Zrealizuj w aplikacji →',
-      meta: 'Plan <strong>{plan}</strong> · <strong>{days} dni</strong>{deadline}',
-      metaDeadline: ' · aktywuj do <strong>{date}</strong>',
-      how: '<b>Jak to działa:</b> przycisk otwiera aplikację z kodem już wpisanym. Zaloguj się albo załóż konto w jedno kliknięcie i potwierdź — dni dopisują się od razu. Kod działa raz; jeśli masz już plan, dni dodadzą się do tego, co zostało.',
-      verifyTitle: 'Nie udało się zweryfikować sesji',
-      verifyBody: 'Nie potwierdziliśmy, że po drugiej stronie jest człowiek, więc prezent zostaje zamknięty. Odśwież stronę albo spróbuj w innej przeglądarce — bez trybu prywatnego i bez blokowania skryptów.',
-      retry: 'Spróbuj ponownie', help: 'Napisz do nas',
-      badNotFound: 'Ten link nie prowadzi do ważnej karty',
-      badNotFoundBody: 'Sprawdź, czy adres został skopiowany w całości. Jeśli dostałeś go od kogoś, poproś o link jeszcze raz — a jeśli to Ty kupiłeś kartę, znajdziesz ją w aplikacji w Ustawienia → Moje karty podarunkowe.',
-      badRedeemed: 'Ta karta została już wykorzystana',
-      badRedeemedBody: 'Ktoś zrealizował ją {date}. Jeśli to nie Ty, a link miał trafić tylko do Ciebie, napisz do nas.',
-      badVoided: 'Ta karta została unieważniona',
-      badVoidedBody: 'Wydawca wycofał tę partię kart. Jeśli zapłaciłeś za nią u sprzedawcy, zgłoś się do niego po zwrot — i daj nam znać.',
-      badExpired: 'Termin aktywacji tej karty minął',
-      badExpiredBody: 'Kartę trzeba było aktywować do {date}. Napisz do nas — zobaczymy, co da się zrobić.',
-      badMissing: 'Ten link jest niepełny',
-      badMissingBody: 'Adres karty wygląda tak: plately.eu/giftcards/… i kończy się długim ciągiem znaków. Skopiuj go w całości z wiadomości, którą dostałeś.',
-      badRate: 'Za dużo prób',
-      badRateBody: 'Z tego adresu otwarto w ostatniej godzinie zbyt wiele prezentów. Odczekaj chwilę i spróbuj ponownie.',
-      badServer: 'Coś poszło nie tak po naszej stronie',
-      badServerBody: 'Prezent nie przepadł — odśwież stronę za chwilę. Jeśli to się powtarza, napisz do nas.',
-      foot: 'Karta podarunkowa Plately. Nie podlega wymianie na gotówkę. Realizacja w aplikacji app.plately.eu — kod można też wpisać ręcznie na plately.eu/redeem.'
-    },
-    en: {
-      docTitle: 'You have a gift — Plately',
-      eyebrow: 'Plately gift card', title: 'You have a gift!',
-      lede: 'Somebody gave you a Plately gift card. Click to unwrap it.',
-      ledeOpen: 'Your card. Turn it over and scratch the panel on the back — the code is there.',
-      ledeDone: 'Code revealed. Redeem it in the app — the days are added right away.',
-      tap: 'Click the gift to unwrap it', giftAria: 'Unwrap the gift',
-      flip: 'Turn the card over', flipBack: 'Show the front',
-      checking: 'Checking the gift…', opening: 'Unwrapping…', turnHint: 'The code is on the back of the card',
-      cardKind: 'DIGITAL\nCODE', cardTagline: 'Smarter Nutrition\nwith Artificial Intelligence',
-      days: 'DAYS', scratchLabel: 'SCRATCH HERE',
-      bkH1: 'Digital card — single-use code, valid once redeemed in the app',
-      bkH2NoDeadline: 'No expiration date or service fees', bkH2Deadline: 'Activate the code by {date} · no service fees',
-      bkNote: '*Works in the Plately app at app.plately.eu (account required) — phone, tablet, computer. <i>Not redeemable in physical stores.</i>',
-      bkRedeemH: 'To redeem the code:',
-      bkSteps: ['Go to <b>plately.eu/redeem</b>', 'Carefully scratch the panel and enter the code', 'Enjoy the <b>{plan}</b> plan for <b>{days} days</b>'],
-      bkTerms: 'Once redeemed to your Plately account, the full value of the card ({plan}, {days} days) is applied to your plan and may be used across every feature of that plan. The code works once. If the account already has an active plan of the same kind, the days are added to what remains; with a different plan they count from the day of redemption. Cards cannot be exchanged for cash, reloaded or refunded except where required by law. An account managed within a dietitian programme cannot redeem a card. Internet connection required. Age restrictions may apply. Full terms, which may change: plately.eu/terms. Cards and codes are issued by Plately.',
-      bkAddr: 'Plately · plately.eu · help: plately.eu/help · terms: plately.eu/terms',
-      bkMade: 'Issued in the EU', bkWarn: 'Do not accept a card if the code is revealed',
-      scratchHint: 'Scratch the panel with your mouse or finger to reveal the code',
-      copy: 'Copy', copied: 'Copied ✓', go: 'Redeem in the app →',
-      meta: '<strong>{plan}</strong> plan · <strong>{days} days</strong>{deadline}',
-      metaDeadline: ' · activate by <strong>{date}</strong>',
-      how: '<b>How it works:</b> the button opens the app with the code already filled in. Sign in or create an account with one click and confirm — the days are added right away. A code works once; if you already have a plan, the days are added to what is left.',
-      verifyTitle: 'We could not verify this session',
-      verifyBody: 'We could not confirm there is a person on the other end, so the gift stays closed. Reload the page or try another browser — no private mode, no script blockers.',
-      retry: 'Try again', help: 'Write to us',
-      badNotFound: 'This link does not lead to a valid card',
-      badNotFoundBody: 'Check that the whole address was copied. If somebody sent it to you, ask for the link again — and if you bought the card yourself, it is in the app under Settings → My gift cards.',
-      badRedeemed: 'This card has already been used',
-      badRedeemedBody: 'Somebody redeemed it on {date}. If that was not you and the link was meant for you alone, write to us.',
-      badVoided: 'This card has been voided',
-      badVoidedBody: 'The issuer withdrew this batch of cards. If you paid a seller for it, ask them for a refund — and let us know.',
-      badExpired: 'The activation deadline for this card has passed',
-      badExpiredBody: 'It had to be activated by {date}. Write to us — we will see what can be done.',
-      badMissing: 'This link is incomplete',
-      badMissingBody: 'A card address looks like plately.eu/giftcards/… and ends in a long string of characters. Copy the whole thing from the message you received.',
-      badRate: 'Too many attempts',
-      badRateBody: 'Too many gifts were opened from this address in the last hour. Wait a little and try again.',
-      badServer: 'Something went wrong on our side',
-      badServerBody: 'The gift is not lost — reload the page in a moment. If it keeps happening, write to us.',
-      foot: 'Plately gift card. Not exchangeable for cash. Redeemed in the app at app.plately.eu — the code can also be typed by hand at plately.eu/redeem.'
-    }
-  };
+  var SITE_REDEEM = 'https://plately.eu/redeem';
+  var I18N = window.PlatelyGiftI18n, T = I18N.T, LANGS = I18N.LANGS;
 
   var $ = function (id) { return document.getElementById(id); };
-  var lang = 'pl';
+  var lang = 'en';
   var state = {
-    id: null,
-    siteKey: null,
-    botCheck: false,
-    widget: null,
-    token: null,
-    pending: null,   // { resolve, reject, timer } while a challenge is running
-    busy: false,
-    card: null,
-    opened: false,
-    scratched: false,
-    scratchStarted: false
+    id: null, siteKey: null, botCheck: false, widget: null, token: null,
+    pending: null, busy: false, card: null, opened: false, scratched: false, scratchStarted: false, lastBad: null
   };
 
   // --- language -------------------------------------------------------------
+  //
+  // Twelve, the same twelve as the app. Taken from the landing page's own
+  // preference when there is one, otherwise from the browser; the picker at
+  // the top of the panel overrides both.
+
+  var STATIC = { eyebrow: 'eyebrow', title: 'title', foot: 'foot', copy: 'copy', go: 'go', retry: 'retry', helpBtn: 'help', verifyTitle: 'verifyTitle', verifyBody: 'verifyBody', tap: 'tap' };
+
+  function t(key, vars) {
+    var str = (T[lang] && T[lang][key]) || T.en[key] || key;
+    if (typeof str !== 'string') return str;
+    return str.replace(/\{(\w+)\}/g, function (m, k) { return vars && k in vars ? String(vars[k]) : m; });
+  }
 
   function applyLang(code) {
-    lang = T[code] ? code : 'pl';
+    lang = T[code] ? code : 'en';
     document.documentElement.lang = lang;
-    document.title = T[lang].docTitle;
-    document.querySelectorAll('[data-t]').forEach(function (el) {
-      var key = el.getAttribute('data-t');
-      if (key in T[lang]) el.textContent = T[lang][key];
-    });
-    document.querySelectorAll('.langs button').forEach(function (b) {
-      b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
-    });
-    $('gift').setAttribute('aria-label', T[lang].giftAria);
-    $('scratch').setAttribute('aria-label', T[lang].scratchHint);
+    document.title = t('docTitle');
+    Object.keys(STATIC).forEach(function (id) { $(id).textContent = t(STATIC[id]); });
+    $('gift').setAttribute('aria-label', t('giftAria'));
+    $('scratch').setAttribute('aria-label', t('scratchHint'));
+    $('lang').value = lang;
+    $('lang').setAttribute('aria-label', t('langLabel'));
+    $('lede').textContent = state.scratched ? t('ledeDone') : state.opened ? t('ledeOpen') : t('lede');
+    $('flipBtn').textContent = $('cardWrap').classList.contains('flipped') ? t('flipBack') : t('flip');
+    if (state.opened && !state.busy) setStatus(state.scratched ? '' : t('turnHint'));
     if (state.card) drawCard(state.card);
+    if (!$('badPanel').hidden && state.lastBad) showBad(state.lastBad.kind, state.lastBad.date);
     try { localStorage.setItem('plately_landing_lang', lang); } catch (e) {}
   }
-  document.querySelectorAll('.langs button').forEach(function (b) {
-    b.addEventListener('click', function () { applyLang(b.getAttribute('data-lang')); });
-  });
-  var stored = null;
-  try { stored = localStorage.getItem('plately_landing_lang'); } catch (e) {}
-  applyLang(stored === 'en' || (!stored && !/^pl/i.test(navigator.language || '')) ? 'en' : 'pl');
 
   // --- the link ---------------------------------------------------------------
 
@@ -449,13 +297,9 @@ ze Sztuczną Inteligencją</span>
   // Nothing about the card — valid or not — is learned that way.
 
   var TURNSTILE_CODES = {
-    '110100': 'the site key is not valid',
-    '110110': 'the site key is unknown',
-    '110200': 'this hostname is not registered for the widget',
-    '110500': 'the browser is not supported',
-    '110600': 'the challenge failed',
-    '300030': 'the challenge timed out',
-    '600010': 'the challenge was refused'
+    '110100': 'the site key is not valid', '110110': 'the site key is unknown',
+    '110200': 'this hostname is not registered for the widget', '110500': 'the browser is not supported',
+    '110600': 'the challenge failed', '300030': 'the challenge timed out', '600010': 'the challenge was refused'
   };
 
   function loadTurnstile() {
@@ -466,8 +310,7 @@ ze Sztuczną Inteligencją</span>
       window[CALLBACK] = function () { clearTimeout(timer); resolve(); };
       var script = document.createElement('script');
       script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=' + CALLBACK;
-      script.async = true;
-      script.defer = true;
+      script.async = true; script.defer = true;
       script.onerror = function () { clearTimeout(timer); reject(new Error('turnstile blocked')); };
       document.head.appendChild(script);
     });
@@ -485,12 +328,8 @@ ze Sztuczną Inteligencją</span>
     if (!state.siteKey) return Promise.resolve();
     return loadTurnstile().then(function () {
       state.widget = window.turnstile.render($('ts-widget'), {
-        sitekey: state.siteKey,
-        theme: 'dark',
-        size: 'flexible',
-        action: 'gift-open',
-        execution: 'execute',
-        appearance: 'interaction-only',
+        sitekey: state.siteKey, theme: 'dark', size: 'flexible', action: 'gift-open',
+        execution: 'execute', appearance: 'interaction-only',
         callback: function (token) { state.token = token; settleChallenge(null, token); },
         'expired-callback': function () { state.token = null; },
         'timeout-callback': function () { settleChallenge(new Error('timeout')); },
@@ -514,55 +353,13 @@ ze Sztuczną Inteligencją</span>
           // the server has already refused.
           if (state.token) { window.turnstile.reset(state.widget); state.token = null; }
           window.turnstile.execute(state.widget);
-        } catch (err) {
-          settleChallenge(err);
-        }
+        } catch (err) { settleChallenge(err); }
       };
       if (state.widget === null) mountTurnstile().then(start, reject); else start();
     });
   }
 
   // --- the printed details -------------------------------------------------------
-  //
-  // Serial numbers, barcodes and the data-matrix square are what the back of
-  // a real card carries, and here they are derived from the link itself, so
-  // the same card always prints the same numbers. None of them is the code:
-  // the code is under the scratch panel and nowhere else.
-
-  function hexDigits(id) {
-    return id.replace(/-/g, '').split('').map(function (c) { return String(parseInt(c, 16) % 10); }).join('');
-  }
-
-  function barcodeSvg(digits, height) {
-    var modules = [];
-    // guard bars, then one bar+gap pair per digit, then guard bars
-    modules.push([1, 1], [1, 1]);
-    for (var i = 0; i < digits.length; i++) {
-      var d = parseInt(digits[i], 10);
-      modules.push([1 + (d % 3), 1 + ((d * 7 + i) % 3)]);
-    }
-    modules.push([1, 1], [1, 1]);
-    var total = 0;
-    modules.forEach(function (m) { total += m[0] + m[1]; });
-    var x = 0, rects = '';
-    modules.forEach(function (m) {
-      rects += '<rect x="' + x + '" y="0" width="' + m[0] + '" height="' + height + '"/>';
-      x += m[0] + m[1];
-    });
-    return '<svg viewBox="0 0 ' + total + ' ' + height + '" preserveAspectRatio="none" style="display:block;width:100%;height:' + height + 'cqw" fill="#1f1f22" shape-rendering="crispEdges">' + rects + '</svg>';
-  }
-
-  function dataMatrixSvg(digits) {
-    var n = 14, cells = '';
-    for (var y = 0; y < n; y++) {
-      for (var x = 0; x < n; x++) {
-        var on = (x === 0) || (y === n - 1) || ((x === n - 1) && y % 2 === 0) || ((y === 0) && x % 2 === 0)
-          || (parseInt(digits[(y * n + x) % digits.length], 10) + x * 3 + y * 5) % 7 < 3;
-        if (on) cells += '<rect x="' + x + '" y="' + y + '" width="1" height="1"/>';
-      }
-    }
-    return '<svg viewBox="0 0 ' + n + ' ' + n + '" fill="#1f1f22" shape-rendering="crispEdges">' + cells + '</svg>';
-  }
 
   // A version-7 UUID carries its own creation time in the first 48 bits.
   function linkDate(id) {
@@ -570,58 +367,81 @@ ze Sztuczną Inteligencją</span>
     return isFinite(ms) && ms > 0 ? new Date(ms) : new Date();
   }
 
-  // --- drawing the card --------------------------------------------------------------
+  function pad(n, len) { var s = String(n); while (s.length < len) s = '0' + s; return s; }
+
+  // The barcode carries exactly two things: when the card was issued and its
+  // id — bars drawn from those digits, the same two things spelled out
+  // beneath. Nothing from the code goes into it.
+  function barcodeSvg(digits, height) {
+    var modules = [[1, 1], [1, 1]];
+    for (var i = 0; i < digits.length; i++) {
+      var d = parseInt(digits[i], 10) || 0;
+      modules.push([1 + (d % 3), 1 + ((d * 7 + i) % 3)]);
+    }
+    modules.push([1, 1], [1, 1]);
+    var total = 0, x = 0, rects = '';
+    modules.forEach(function (m) { total += m[0] + m[1]; });
+    modules.forEach(function (m) { rects += '<rect x="' + x + '" y="0" width="' + m[0] + '" height="' + height + '"/>'; x += m[0] + m[1]; });
+    return '<svg viewBox="0 0 ' + total + ' ' + height + '" preserveAspectRatio="none" style="display:block;width:100%;height:' + height + 'cqw" fill="#1f1f22" shape-rendering="crispEdges">' + rects + '</svg>';
+  }
 
   function fmtDate(iso) {
     if (!iso) return '';
-    try { return new Date(iso).toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return String(iso).slice(0, 10); }
+    try { return new Date(iso).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return String(iso).slice(0, 10); }
   }
 
-  function fill(text, card, planName) {
-    return text.replace(/\{plan\}/g, planName).replace(/\{days\}/g, String(card.days)).replace(/\{date\}/g, fmtDate(card.deadline));
+  // Shrinks an ink block until it fits the room it has on the card.
+  function fitInk(el, maxCqw) {
+    var unit = $('card').clientWidth / 100;
+    if (!unit) return;
+    var size = parseFloat(el.dataset.base) || parseFloat(getComputedStyle(el).fontSize) / unit;
+    el.dataset.base = size;
+    el.style.fontSize = size + 'cqw';
+    for (var i = 0; i < 12 && el.scrollWidth > maxCqw * unit + 1; i++) {
+      size *= .93;
+      el.style.fontSize = size + 'cqw';
+    }
   }
 
-  function pad(n, len) { var s = String(n); while (s.length < len) s = '0' + s; return s; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fill(s, vars) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return k in vars ? String(vars[k]) : m; }); }
 
   function drawCard(card) {
-    var t = T[lang];
     var plan = String(card.plan || '').toUpperCase();
     var planName = plan.charAt(0) + plan.slice(1).toLowerCase();
-    var digits = hexDigits(state.id);
+    var vars = { plan: planName, days: card.days, date: fmtDate(card.deadline) };
     var made = linkDate(state.id);
 
     // front
-    $('cardPlan').textContent = plan + '\n' + card.days + ' ' + t.days;
+    $('cardKind').textContent = t('cardKind');
+    $('cardPlan').textContent = plan + '\n' + card.days + ' ' + t('days');
+    $('cardTagline').textContent = t('cardTagline');
+    fitInk($('cardKind'), 29); fitInk($('cardPlan'), 29); fitInk($('cardTagline'), 94);
 
-    // back — the print
-    $('bkH2').textContent = card.deadline ? fill(t.bkH2Deadline, card, planName) : t.bkH2NoDeadline;
-    $('bkNote').innerHTML = t.bkNote;
-    $('bkSteps').innerHTML = t.bkSteps.map(function (s) { return '<li>' + fill(s, card, planName) + '</li>'; }).join('');
-    $('bkTerms').textContent = fill(t.bkTerms, card, planName);
-    $('bkRef').textContent = 'REF ' + state.id.slice(0, 8).toUpperCase();
-    $('bkSku').textContent = 'SKU PL' + plan.slice(0, 3) + '-' + pad(card.days, 4);
-    $('eanTop').innerHTML = barcodeSvg(digits.slice(0, 12), 6);
-    $('eanTopNum').textContent = '5 ' + digits.slice(0, 6) + ' ' + digits.slice(6, 12);
-    $('dm').innerHTML = dataMatrixSvg(digits);
-    $('serial').textContent = '1000' + digits.slice(12, 24);
-    $('eanBig').innerHTML = barcodeSvg(digits.slice(4, 24), 11);
-    $('eanBigNum').textContent = digits.slice(4, 20);
-    var dayOfYear = Math.floor((made - new Date(made.getFullYear(), 0, 0)) / 86400000);
-    $('lot').textContent = String(made.getFullYear()).slice(2) + pad(dayOfYear, 3) + digits.slice(24, 26);
-    $('upc').textContent = '0-' + digits.slice(26, 31) + '-' + digits.slice(20, 25) + '-' + digits.slice(31, 32);
-    $('ym').textContent = pad(made.getMonth() + 1, 2) + String(made.getFullYear()).slice(2);
-
-    // the code — under the panel on the card, and below it once scratched
+    // back
+    $('bkH1').textContent = t('bkH1');
+    $('bkH2').textContent = card.deadline ? t('bkH2Deadline', vars) : t('bkH2NoDeadline');
+    $('bkNote').textContent = t('bkNote');
+    $('bkRedeemH').textContent = t('bkRedeemH');
+    $('bkSteps').innerHTML = t('bkSteps').map(function (s) { return '<li>' + esc(fill(s, vars)) + '</li>'; }).join('');
+    $('bkTerms').textContent = t('bkTerms', vars);
+    $('bkWarn').textContent = t('bkWarn');
+    $('scratchHint').textContent = t('scratchHint');
+    $('qrCap').textContent = t('bkQr');
     $('cardCode').textContent = card.code || '';
+    // The QR opens the redeem page with the code already in it — the same
+    // thing the button in the panel does, for a phone pointed at a screen.
+    try { $('qr').innerHTML = card.code ? window.PlatelyQR.qrSvg(SITE_REDEEM + '?code=' + encodeURIComponent(card.code), { quiet: 1 }) : ''; } catch (e) { $('qr').innerHTML = ''; }
+    var stamp = pad(made.getFullYear(), 4) + pad(made.getMonth() + 1, 2) + pad(made.getDate(), 2) + pad(made.getHours(), 2) + pad(made.getMinutes(), 2);
+    var idDigits = state.id.slice(0, 8).split('').map(function (c) { return String(parseInt(c, 16) % 10); }).join('');
+    $('bars').innerHTML = barcodeSvg(stamp + idDigits, 10);
+    $('barNum').textContent = t('bkIssued') + ' ' + pad(made.getFullYear(), 4) + '-' + pad(made.getMonth() + 1, 2) + '-' + pad(made.getDate(), 2) + ' ' + pad(made.getHours(), 2) + ':' + pad(made.getMinutes(), 2) + '  ·  ' + t('bkId') + ' ' + state.id.slice(0, 8).toUpperCase();
+
+    // the panel
     $('code').textContent = card.code || '';
-    $('metaLine').innerHTML = t.meta
-      .replace('{plan}', planName)
-      .replace('{days}', String(card.days))
-      .replace('{deadline}', card.deadline ? t.metaDeadline.replace('{date}', fmtDate(card.deadline)) : '');
+    $('metaLine').innerHTML = t('meta', { plan: planName, days: card.days, deadline: card.deadline ? t('metaDeadline', vars) : '' });
     $('go').href = APP_REDEEM + '?code=' + encodeURIComponent(card.code || '');
-    $('how').innerHTML = t.how;
-    $('lede').textContent = state.scratched ? t.ledeDone : t.ledeOpen;
-    $('flipBtn').textContent = $('cardWrap').classList.contains('flipped') ? t.flipBack : t.flip;
+    $('how').innerHTML = t('how');
 
     // The coating is painted once; repainting it after a language switch
     // would put the silver back over a code somebody has already started
@@ -631,8 +451,8 @@ ze Sztuczną Inteligencją</span>
 
   // --- the scratch panel -----------------------------------------------------------
   //
-  // A canvas over the code. It is painted like the foil on a real card —
-  // silver with the black wave print — and every pointer stroke erases a
+  // A canvas over the code and the QR. Painted like the foil on a real card
+  // — silver with the black wave print — and every pointer stroke erases a
   // round patch (`destination-out`). Once about half is gone the rest lifts
   // off on its own, because nobody wants to scrub the corners.
 
@@ -647,35 +467,25 @@ ze Sztuczną Inteligencją</span>
     var ctx = c.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     scratch.ctx = ctx;
-
     var g = ctx.createLinearGradient(0, 0, w, 0);
     g.addColorStop(0, '#b4b4ae'); g.addColorStop(.35, '#d9d9d3'); g.addColorStop(.65, '#c2c2bc'); g.addColorStop(1, '#a9a9a3');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-
-    // the wave print
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = '#17171a';
-    var bands = 5, period = w / 3.2, amp = h * .16, thick = h / (bands * 2.1);
+    var bands = 7, period = w / 3.2, amp = h * .07, thick = h / (bands * 2.1);
     for (var b = 0; b < bands; b++) {
       var y0 = -thick + (h + thick * 2) * (b / (bands - 1)), phase = b * 1.3;
       ctx.beginPath();
       for (var x = 0; x <= w; x += 3) ctx.lineTo(x, y0 + Math.sin(x / period * Math.PI * 2 + phase) * amp);
       for (var x2 = w; x2 >= 0; x2 -= 3) ctx.lineTo(x2, y0 + thick + Math.sin(x2 / period * Math.PI * 2 + phase + .35) * amp);
-      ctx.closePath();
-      ctx.fill();
+      ctx.closePath(); ctx.fill();
     }
-    // grain
-    for (var i = 0; i < w * h / 6; i++) {
-      ctx.fillStyle = 'rgba(255,255,255,' + (Math.random() * .09) + ')';
-      ctx.fillRect(Math.random() * w, Math.random() * h, 1, 1);
-    }
-    // the label
-    ctx.font = '800 ' + Math.round(h * .3) + 'px Montserrat, Inter, sans-serif';
+    for (var i = 0; i < w * h / 6; i++) { ctx.fillStyle = 'rgba(255,255,255,' + (Math.random() * .09) + ')'; ctx.fillRect(Math.random() * w, Math.random() * h, 1, 1); }
+    ctx.font = '800 ' + Math.round(h * .17) + 'px Montserrat, Inter, sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.lineWidth = Math.max(2, h * .06); ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineJoin = 'round';
-    ctx.strokeText(T[lang].scratchLabel, w / 2, h / 2 + 1);
+    ctx.lineWidth = Math.max(2, h * .035); ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineJoin = 'round';
+    ctx.strokeText(t('scratchLabel'), w / 2, h / 2 + 1);
     ctx.fillStyle = 'rgba(255,255,255,.92)';
-    ctx.fillText(T[lang].scratchLabel, w / 2, h / 2 + 1);
+    ctx.fillText(t('scratchLabel'), w / 2, h / 2 + 1);
     ctx.globalCompositeOperation = 'source-over';
   }
 
@@ -684,15 +494,10 @@ ze Sztuczną Inteligencją</span>
     if (!ctx) return;
     var r = c.getBoundingClientRect();
     var x = e.clientX - r.left, y = e.clientY - r.top;
-    var radius = Math.max(10, r.height * .42);
+    var radius = Math.max(12, r.height * .22);
     ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fill();
-    if (scratch.last) {
-      ctx.lineWidth = radius * 2; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(scratch.last.x, scratch.last.y); ctx.lineTo(x, y); ctx.stroke();
-    }
+    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+    if (scratch.last) { ctx.lineWidth = radius * 2; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(scratch.last.x, scratch.last.y); ctx.lineTo(x, y); ctx.stroke(); }
     ctx.globalCompositeOperation = 'source-over';
     scratch.last = { x: x, y: y };
     if (++scratch.moves % 6 === 0) checkScratched();
@@ -700,8 +505,7 @@ ze Sztuczną Inteligencją</span>
 
   function checkScratched() {
     if (state.scratched) return;
-    var c = $('scratch'), ctx = scratch.ctx;
-    var data;
+    var c = $('scratch'), ctx = scratch.ctx, data;
     try { data = ctx.getImageData(0, 0, c.width, c.height).data; } catch (e) { return; }
     var clear = 0, total = 0;
     for (var i = 3; i < data.length; i += 16) { total++; if (data[i] < 128) clear++; }
@@ -712,7 +516,7 @@ ze Sztuczną Inteligencją</span>
     if (state.scratched) return;
     state.scratched = true;
     $('scratchBox').classList.add('done');
-    $('lede').textContent = T[lang].ledeDone;
+    $('lede').textContent = t('ledeDone');
     setStatus('');
     var reveal = $('reveal');
     reveal.hidden = false;
@@ -735,9 +539,9 @@ ze Sztuczną Inteligencją</span>
     c.addEventListener('pointercancel', stop);
     c.addEventListener('lostpointercapture', stop);
     // A tap on the panel scratches; it must never turn the card back over.
-    // On the box, not just the canvas: the moment the coating is gone the
-    // canvas stops taking pointer events, and the click that ends the last
-    // stroke would otherwise land on the card underneath and flip it.
+    // On the box, not just the canvas: once the coating is gone the canvas
+    // stops taking pointer events, and the click that ends the last stroke
+    // would otherwise land on the card underneath and flip it.
     $('scratchBox').addEventListener('click', function (e) { e.stopPropagation(); });
   })();
 
@@ -772,11 +576,11 @@ ze Sztuczną Inteligencją</span>
     hidePanels();
     gift.classList.remove('checking');
     setStatus('');
-    var t = T[lang];
-    var titles = { not_found: t.badNotFound, redeemed: t.badRedeemed, voided: t.badVoided, expired: t.badExpired, missing: t.badMissing, rate_limited: t.badRate, server: t.badServer };
-    var bodies = { not_found: t.badNotFoundBody, redeemed: t.badRedeemedBody, voided: t.badVoidedBody, expired: t.badExpiredBody, missing: t.badMissingBody, rate_limited: t.badRateBody, server: t.badServerBody };
-    $('badTitle').textContent = titles[kind] || t.badNotFound;
-    $('badBody').textContent = (bodies[kind] || t.badNotFoundBody).replace('{date}', date || '');
+    state.lastBad = { kind: kind, date: date };
+    var keys = { not_found: 'badNotFound', redeemed: 'badRedeemed', voided: 'badVoided', expired: 'badExpired', missing: 'badMissing', rate_limited: 'badRate', server: 'badServer' };
+    var key = keys[kind] || 'badNotFound';
+    $('badTitle').textContent = t(key);
+    $('badBody').textContent = t(key + 'Body', { date: date || '' });
     $('badPanel').hidden = false;
     $('badPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
@@ -786,7 +590,7 @@ ze Sztuczną Inteligencją</span>
     if (!state.opened) return;
     var to = typeof force === 'boolean' ? force : !w.classList.contains('flipped');
     w.classList.toggle('flipped', to);
-    $('flipBtn').textContent = to ? T[lang].flipBack : T[lang].flip;
+    $('flipBtn').textContent = to ? t('flipBack') : t('flip');
     // The panel is measured when it is painted; the first time the back is
     // shown is the first time it has a size worth measuring.
     if (to && !state.scratchStarted) setTimeout(paintScratch, 50);
@@ -801,16 +605,17 @@ ze Sztuczną Inteligencją</span>
       document.fonts.load('800 20px Montserrat'), document.fonts.load('900 20px Montserrat'), document.fonts.load('700 20px "JetBrains Mono"')
     ]).catch(function () {}) : Promise.resolve();
     Promise.race([fonts, new Promise(function (r) { setTimeout(r, 1500); })]).then(function () {
+      state.opened = true;
       drawCard(card);
       gift.classList.remove('checking');
       gift.classList.add('open');
-      state.opened = true;
       $('cardWrap').classList.add('opened');
       $('tap').hidden = true;
-      setStatus(T[lang].opening, false);
+      $('lede').textContent = t('ledeOpen');
+      setStatus(t('opening'), false);
       setTimeout(function () {
         gift.hidden = true;
-        setStatus(T[lang].turnHint, false);
+        setStatus(t('turnHint'), false);
         $('flipRow').hidden = false;
       }, 1000);
     });
@@ -822,12 +627,11 @@ ze Sztuczną Inteligencją</span>
     state.busy = true;
     hidePanels();
     gift.classList.add('checking');
-    setStatus(T[lang].checking, true);
+    setStatus(t('checking'), true);
 
     challenge().then(function (token) {
       return fetch('/api/gift/open', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: state.id, turnstileToken: token })
       }).then(function (res) {
         return res.json().catch(function () { return {}; }).then(function (data) { return { status: res.status, data: data }; });
@@ -858,25 +662,38 @@ ze Sztuczną Inteligencją</span>
     state.token = null;
     openGift();
   });
-
   $('card').addEventListener('click', function () { flip(); });
   $('flipBtn').addEventListener('click', function () { flip(); });
   window.addEventListener('resize', function () { if (state.opened && !state.scratchStarted) paintScratch(); });
-
   $('copy').addEventListener('click', function () {
     var code = $('code').textContent;
     if (!code) return;
-    var done = function () { $('copy').textContent = T[lang].copied; setTimeout(function () { $('copy').textContent = T[lang].copy; }, 1500); };
+    var done = function () { $('copy').textContent = t('copied'); setTimeout(function () { $('copy').textContent = t('copy'); }, 1500); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, done); else done();
   });
 
   // --- boot --------------------------------------------------------------------
 
+  (function initLang() {
+    var sel = $('lang');
+    LANGS.forEach(function (l) {
+      var o = document.createElement('option');
+      o.value = l[0]; o.textContent = l[1]; o.lang = l[0];
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', function () { applyLang(sel.value); });
+    var stored = null;
+    try { stored = localStorage.getItem('plately_landing_lang'); } catch (e) {}
+    var pick = stored && T[stored] ? stored : null;
+    if (!pick) {
+      var wants = (navigator.languages || [navigator.language || 'en']).map(function (s) { return String(s).slice(0, 2).toLowerCase(); });
+      for (var i = 0; i < wants.length && !pick; i++) if (T[wants[i]]) pick = wants[i];
+    }
+    applyLang(pick || 'en');
+  })();
+
   state.id = readId();
-  if (!state.id) {
-    showBad('missing');
-    gift.disabled = true;
-  }
+  if (!state.id) { showBad('missing'); gift.disabled = true; }
 
   // The site key comes from the server so the page and the panel share one
   // widget. Loading Cloudflare now, before the click, is what makes the click
