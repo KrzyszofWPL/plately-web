@@ -2261,11 +2261,21 @@
               '<small>' + pt("vatHint") + "</small></label>" +
             '<label class="practice-check"><input type="checkbox" id="pf-dpa"' + (p.dpa ? " checked" : "") + "><span>" + pt("dpaLabel") +
               ' <a href="#" data-act="practice-dpa">' + pt("dpaRead") + "</a></span></label>" +
+            (S.turnstile.siteKey
+              ? '<div class="ts-slot" id="ts-widget"></div>' +
+                '<div class="ts-note" id="ts-note"></div>'
+              : "") +
             (p.error ? '<div class="auth-error">' + esc(p.error) + "</div>" : "") +
             '<button type="submit" class="btn btn-primary" style="align-self:flex-start">' + pt("submit") + "</button>" +
           "</form>" +
         "</div>" +
       "</div>";
+
+    // The same widget the PIN and authenticator screens mount. Without it
+    // the server, which requires a token whenever it has a secret key,
+    // refused every registration with "the bot check did not finish in the
+    // browser" -- the form had simply never asked Cloudflare for one.
+    mountTurnstile();
 
     var form = document.getElementById("practice-form");
     form.addEventListener("submit", function (ev) {
@@ -2280,6 +2290,7 @@
       api("/api/practice/register", { method: "POST", body: {
         businessName: p.businessName, website: normDomain(p.website), city: p.city, country: p.country, vatNumber: p.vat,
         dpaVersion: DPA_VERSION, dpaAccepted: true,
+        turnstileToken: S.turnstile.token,
       } }).then(function (data) {
         S.practiceForm = null;
         S.phase = "practice";
@@ -2288,6 +2299,9 @@
       }).catch(function (err) {
         busy(btn, false);
         p.error = err.status === 401 ? "Session expired \u2014 sign in again." : (pt("regFailed") + " (" + err.message + ")");
+        // A token is single-use; the re-render below mounts a fresh widget,
+        // so the next attempt sends a token the server has not seen.
+        resetTurnstile();
         render();
       });
     });

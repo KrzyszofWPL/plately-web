@@ -423,7 +423,16 @@ async function readSession(request) {
   }
   const pending = await readPracticePending(request);
   if (pending) {
-    return json({ state: "practice_register", email: pending.em, displayName: pending.nm, avatarUrl: pending.pic });
+    return json({
+      state: "practice_register",
+      email: pending.em,
+      displayName: pending.nm,
+      avatarUrl: pending.pic,
+      // The registration form mounts the same widget the PIN screen does and
+      // /api/practice/register requires its token; without the key here the
+      // widget never rendered and every registration was refused.
+      turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || null,
+    });
   }
 
   return json({

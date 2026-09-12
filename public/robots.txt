@@ -15,6 +15,10 @@ Disallow: /support
 Disallow: /admin
 Disallow: /api/
 
+# Gift links. Each one is a private page somebody was given, not content;
+# the page also carries noindex, this just keeps crawlers from trying.
+Disallow: /giftcards
+
 # /help is deliberately NOT disallowed: "how do I contact Plately" is a real
 # search, and the page that answers it should be findable.
 
