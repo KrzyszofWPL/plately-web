@@ -235,6 +235,7 @@
 
 <script src="/giftcard/i18n.js"></script>
 <script src="/giftcard/qr.js"></script>
+<script src="/giftcard/confetti.js"></script>
 <script>
   var APP_REDEEM = 'https://app.plately.eu/redeem';
   var I18N = window.PlatelyGiftI18n, T = I18N.T, LANGS = I18N.LANGS;
@@ -613,6 +614,7 @@
       gift.classList.remove('checking');
       gift.classList.add('open');
       $('cardWrap').classList.add('opened');
+      if (window.PlatelyConfetti) setTimeout(function () { window.PlatelyConfetti.burst({ count: 180 }); }, 350);
       $('tap').hidden = true;
       $('lede').textContent = t('ledeOpen');
       setStatus(t('opening'), false);

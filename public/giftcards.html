@@ -160,6 +160,7 @@
   </div></div>
 </div>
 
+<script src="/giftcard/confetti.js"></script>
 <script>
   var LANGS = [["pl", "Polski"], ["en", "English"], ["de", "Deutsch"], ["uk", "Українська"], ["ru", "Русский"], ["fr", "Français"], ["it", "Italiano"], ["es", "Español"], ["pt", "Português"], ["ja", "日本語"], ["zh", "中文"], ["ko", "한국어"]];
   var T = {
@@ -527,6 +528,14 @@
       .then(function (d) {
         order.data = d;
         drawOrder();
+        // The moment the money lands — once per order, whether it happened
+        // while this page was watching or before the buyer got back from
+        // the provider. A reload later does not celebrate again.
+        if (d && d.found && d.status === 'paid' && window.PlatelyConfetti) {
+          var key = 'plately_gift_celebrated:' + order.id, seen = false;
+          try { seen = localStorage.getItem(key) === '1'; localStorage.setItem(key, '1'); } catch (e) {}
+          if (!seen) window.PlatelyConfetti.burst();
+        }
         var s = d && d.found ? d.status : 'missing';
         // Keep asking while the money can still arrive; give up after an hour.
         if ((s === 'pending' || s === 'confirming') && ++order.polls < 900) order.timer = setTimeout(pollOrder, s === 'confirming' ? 3000 : 5000);
