@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Karta podarunkowa Plately — sklep</title>
-<meta name="description" content="Podaruj plan Premium albo Ultra na 31, 92 lub 366 dni. Obdarowany dostaje link, rozpakowuje kartę i zdrapuje kod.">
+<meta name="description" content="Podaruj plan Premium albo Ultra na 31, 92 lub 366 dni. Bez konta: wybierasz kartę, płacisz, dostajesz link do prezentu.">
 <link rel="canonical" href="https://www.plately.eu/giftcards">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#0a0a0b">
@@ -16,12 +16,12 @@
 <!-- The gift-card shop. Same stylesheet as /staff, /redeem and the gift page
      itself: one room for everything the card touches.
 
-     What it sells is decided here (plan × period) and paid for in the app:
-     the button carries the choice to app.plately.eu as `?gift=<plan>&period=`,
-     the app opens its paywall on the gift tab with that choice made, the
-     existing crypto checkout does the rest, and the link to hand over
-     appears in the app under Settings → My gift cards. No second checkout to
-     keep in step with the first. -->
+     No account. The buyer picks a card, types the e-mail the link should go
+     to, and pays at the provider (api/gift/checkout raises the invoice; the
+     price comes from the server, never from this page). The provider sends
+     them back here with ?order=<id>, and this page polls the order until the
+     card is issued — then shows the gift link and the code, which the mail
+     carries too. -->
 <link rel="stylesheet" href="/staff/support.css?v=23">
 <script>document.documentElement.dataset.theme = 'dark';</script>
 <style>
@@ -57,17 +57,35 @@
   .period .was { font-size: 12px; font-weight: 500; opacity: .6; text-decoration: line-through; margin-right: 6px; }
   .period .chip.promo { margin: 0 8px 0 0; }
 
+  .email-field { font-size: 15px; min-height: 52px; }
+  .hint { font-size: 12px; line-height: 18px; color: var(--m3-on-surface-variant); margin: 8px 0 0; }
   .summary { margin: 16px 0 0; padding: 14px 16px; border-radius: 16px; background: var(--m3-surface-container-low); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; line-height: 20px; }
   .summary strong { color: var(--m3-on-surface); font-weight: 600; }
   .summary .total { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 20px; font-weight: 700; color: var(--m3-on-surface); }
   .buy { width: 100%; min-height: 52px; margin-top: 12px; font-size: 14px; }
   .pay-note { margin: 10px 0 0; font-size: 12px; line-height: 18px; color: var(--m3-on-surface-variant); }
+  .ts-slot { margin-top: 12px; min-height: 0; display: flex; justify-content: center; }
   .steps { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; line-height: 20px; color: var(--m3-on-surface-variant); }
   .steps i { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-style: normal; font-size: 11px; font-weight: 700; background: var(--m3-primary-container); color: var(--m3-on-primary-container); margin-top: -1px; }
   .steps b { color: var(--m3-on-surface); font-weight: 600; }
   .auth-note p { font-size: 12px; line-height: 18px; }
   .auth-note a { font-weight: 600; }
+  .panel h2 { font-size: 15px; line-height: 22px; margin: 0; font-weight: 700; }
+  .panel p { margin: 6px 0 0; }
+  .panel .why { margin-top: 8px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; opacity: .8; word-break: break-word; }
+  .panel .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .auth-warn { margin-top: 16px; padding: 12px 14px; border-radius: 14px; font-size: 13px; line-height: 19px; background: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
+
+  /* -- the order view ----------------------------------------------------- */
+  .status { display: flex; align-items: center; gap: 10px; margin: 18px 0 0; padding: 14px 16px; border-radius: 16px; background: var(--m3-surface-container-low); border: 1px solid var(--card-border); font-size: 14px; line-height: 20px; }
+  .status.ok { background: var(--m3-primary-container); color: var(--m3-on-primary-container); border-color: transparent; }
+  .status.bad { background: var(--m3-error-container); color: var(--m3-on-error-container); border-color: transparent; }
+  .link-row { display: flex; align-items: stretch; gap: 8px; margin-top: 8px; }
+  .link-box { flex: 1; min-width: 0; display: flex; align-items: center; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--m3-outline-variant); background: var(--m3-surface-container); font: 600 13px/1.3 "JetBrains Mono", ui-monospace, monospace; overflow-wrap: anywhere; user-select: all; }
+  .link-row .btn { min-height: 48px; border-radius: 14px; }
+  .code-line { margin: 14px 0 0; font-size: 12px; line-height: 18px; color: var(--m3-on-surface-variant); }
+  .code-line code { font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 700; color: var(--m3-on-surface); }
 </style>
 </head>
 <body>
@@ -86,161 +104,255 @@
       <a href="/" id="back"></a>
       <select class="field" id="lang" aria-label="Language"></select>
     </div>
-    <h2 id="title"></h2>
-    <p class="lede" id="lede"></p>
 
-    <label class="field-label" id="planLabel" style="margin-top:0"></label>
-    <div class="seg" role="group" id="planSeg">
-      <button type="button" data-plan="premium" aria-pressed="true">Premium</button>
-      <button type="button" data-plan="ultra" aria-pressed="false">Ultra</button>
-    </div>
-    <p class="blurb" id="blurb"></p>
+    <!-- the shop -->
+    <section id="shopView">
+      <h2 id="title"></h2>
+      <p class="lede" id="lede"></p>
 
-    <label class="field-label" id="periodLabel"></label>
-    <div class="periods" id="periods"></div>
+      <label class="field-label" id="planLabel" style="margin-top:0"></label>
+      <div class="seg" role="group" id="planSeg">
+        <button type="button" data-plan="premium" aria-pressed="true">Premium</button>
+        <button type="button" data-plan="ultra" aria-pressed="false">Ultra</button>
+      </div>
+      <p class="blurb" id="blurb"></p>
 
-    <div class="summary"><span id="summary"></span><span class="total" id="total"></span></div>
-    <a class="btn btn-primary buy" id="buy" href="#" rel="noopener"></a>
-    <p class="pay-note" id="payNote"></p>
+      <label class="field-label" id="periodLabel"></label>
+      <div class="periods" id="periods"></div>
 
-    <ol class="steps" id="steps"></ol>
-    <div class="auth-note"><p id="note"></p></div>
+      <label class="field-label" for="email" id="emailLabel"></label>
+      <input class="field email-field" id="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" placeholder="you@example.com">
+      <p class="hint" id="emailHint"></p>
+
+      <div class="summary"><span id="summary"></span><span class="total" id="total"></span></div>
+      <button type="button" class="btn btn-primary buy" id="buy"></button>
+      <div class="ts-slot" id="ts-widget"></div>
+      <p class="pay-note" id="payNote"></p>
+
+      <div class="auth-warn panel" id="verifyPanel" hidden>
+        <h2>🛡️ <span id="verifyTitle"></span></h2>
+        <p id="verifyBody"></p>
+        <p class="why" id="verifyWhy" hidden></p>
+      </div>
+      <div class="auth-error panel" id="errPanel" hidden>
+        <h2>😕 <span id="errTitle"></span></h2>
+        <p id="errBody"></p>
+      </div>
+
+      <ol class="steps" id="steps"></ol>
+      <div class="auth-note"><p id="note"></p></div>
+    </section>
+
+    <!-- the order, after the provider sends the buyer back -->
+    <section id="orderView" hidden>
+      <h2 id="orderTitle"></h2>
+      <p class="lede" id="orderLede"></p>
+      <div class="status" id="orderStatus"><span class="spinner" id="orderSpin"></span><span id="orderText"></span></div>
+      <div id="orderPaid" hidden>
+        <label class="field-label" id="linkLabel"></label>
+        <div class="link-row"><div class="link-box" id="orderLink"></div><button type="button" class="btn" id="copyLink"></button></div>
+        <a class="btn btn-primary buy" id="openGift" href="#" rel="noopener"></a>
+        <p class="code-line" id="codeLine"></p>
+        <p class="hint" id="mailedLine"></p>
+      </div>
+      <div class="auth-note"><p><a href="/giftcards" id="again"></a></p></div>
+    </section>
   </div></div>
 </div>
 
 <script>
-  var APP = 'https://app.plately.eu/main';
-
-  // Gross USD, as the app charges — mirrored from Application APK/src/lib/plans.ts
-  // (PLANS[plan].pricing) and shown the same way in every language, because the
-  // invoice says USD in every language and three spellings of one price look
-  // like three prices. Change them there first; this table follows.
-  var PRICES = {
-    premium: { monthly: 6.99, quarterly: 18.99, yearly: 59 },
-    ultra: { monthly: 12.99, quarterly: 34.99, yearly: 119 }
-  };
-  // Promocja: procent zniżki od PRICES. Mirrors PROMO_PERCENT in the app
-  // (src/lib/plans.ts and serverless/paymentsHandler.ts) — the app is what
-  // charges, this page only shows. CHWILOWO 99 na czas testów; potem 0.
-  var PROMO_PERCENT = 99;
-  function promo(n) { return Math.round(n * (100 - PROMO_PERCENT)) / 100; }
-  var DAYS = { monthly: 31, quarterly: 92, yearly: 366 };
-  var PERIODS = ['monthly', 'quarterly', 'yearly'];
-
   var LANGS = [["pl", "Polski"], ["en", "English"], ["de", "Deutsch"], ["uk", "Українська"], ["ru", "Русский"], ["fr", "Français"], ["it", "Italiano"], ["es", "Español"], ["pt", "Português"], ["ja", "日本語"], ["zh", "中文"], ["ko", "한국어"]];
   var T = {
     pl: { docTitle: "Karta podarunkowa Plately — sklep", back: "← Strona główna", heroTitle: "Podaruj komuś mądrzejsze odżywianie", heroBody: "Karta podarunkowa Plately to plan Premium albo Ultra na miesiąc, kwartał lub rok. Obdarowany dostaje link, rozpakowuje kartę i zdrapuje kod — jak prawdziwą.",
-      points: ["Link do prezentu od razu po zapłacie — wyślij go, jak chcesz", "Kod działa na każdym koncie, także nowym", "Dni dodają się do planu, który obdarowany już ma"],
-      title: "Wybierz kartę", lede: "Plan i długość. Zapłacisz w aplikacji Plately — link do prezentu i kod znajdziesz potem w Ustawienia → Moje karty podarunkowe.",
+      points: ["Bez konta — wybierasz, płacisz, dostajesz link", "Link do prezentu od razu po zapłacie, na stronie i mailem", "Kod działa na każdym koncie Plately, także nowym"],
+      title: "Wybierz kartę", lede: "Plan, długość i adres, na który wysłać link. Płatność kryptowalutą — cena w USD, jak na fakturze.",
       planLabel: "Plan", premiumBlurb: "8 analiz posiłków i 6 wiadomości do coacha dziennie, raporty na żądanie, bez kolejki.", ultraBlurb: "16 analiz i 18 wiadomości dziennie, podwójne limity raportów — dla tych, którzy logują wszystko.",
       periodLabel: "Długość", days: "{days} dni", perMonth: "{price} / mies.", popular: "najczęściej", best: "najtaniej",
-      summary: "Karta <strong>{plan}</strong> · <strong>{days} dni</strong>", buy: "Kup jako prezent →",
-      payNote: "Płatność w aplikacji (kryptowaluta). Potrzebne konto Plately — założysz je w jedno kliknięcie. Cena w USD, jak na fakturze.",
-      steps: ["<b>Zapłać w aplikacji</b> — przycisk otwiera ją z wybraną kartą.", "<b>Dostajesz link</b> plately.eu/giftcards/… i kod, w Ustawienia → Moje karty.", "<b>Wyślij link</b> — obdarowany rozpakuje prezent i zdrapie kod."],
-      note: "Masz już kod? <a href=\"/redeem\">Zrealizuj go tutaj</a>. Więcej kart ze zniżką? Napisz na <a href=\"/help\">plately.eu/help</a> i wybierz kategorię „Business”." },
+      emailLabel: "Twój e-mail", emailHint: "Tu przyjdzie link do prezentu i kod. Nic więcej — żadnego newslettera.", emailBad: "Wpisz poprawny adres e-mail.",
+      summary: "Karta <strong>{plan}</strong> · <strong>{days} dni</strong>", buy: "Kup i zapłać →", buying: "Tworzę zamówienie…",
+      payNote: "Po kliknięciu przejdziesz do strony płatności (NOWPayments). Po zapłacie wrócisz tutaj po link — wyślemy go też na e-mail.",
+      steps: ["<b>Zapłać</b> — kryptowalutą, na stronie dostawcy płatności.", "<b>Dostajesz link</b> plately.eu/giftcards/… — tutaj i mailem, razem z kodem.", "<b>Wyślij link</b> — obdarowany rozpakuje prezent i zdrapie kod."],
+      note: "Masz już kod? <a href=\"/redeem\">Zrealizuj go tutaj</a>. Więcej kart ze zniżką? Napisz na <a href=\"/help\">plately.eu/help</a> i wybierz kategorię „Business”.",
+      verifyTitle: "Nie udało się zweryfikować sesji", verifyBody: "Nie potwierdziliśmy, że po drugiej stronie jest człowiek. Odśwież stronę albo spróbuj w innej przeglądarce — bez trybu prywatnego i bez blokowania skryptów.",
+      errShopOff: "Sklep chwilowo niedostępny", errShopOffBody: "Płatności nie są jeszcze włączone. Spróbuj później albo napisz na plately.eu/help.", errRate: "Za dużo zamówień", errRateBody: "Z tego adresu utworzono w ostatniej godzinie zbyt wiele zamówień. Odczekaj chwilę.", errProvider: "Dostawca płatności odmówił", errProviderBody: "Nie udało się utworzyć faktury. Spróbuj ponownie za chwilę; jeśli to się powtarza, napisz do nas.", errGeneric: "Coś poszło nie tak", errGenericBody: "Spróbuj ponownie za chwilę.",
+      orderTitle: "Twoje zamówienie", orderLedePending: "Czekamy na potwierdzenie płatności. Ta strona odświeża się sama — możesz ją też zamknąć, link przyjdzie mailem.", orderLedePaid: "Zapłacone. Karta jest gotowa — link poniżej i w Twojej skrzynce.",
+      stPending: "Czekamy na płatność…", stConfirming: "Płatność w drodze, potwierdzamy…", stPaid: "Zapłacone — karta wydana", stFailed: "Płatność nie doszła do skutku", stExpired: "Faktura wygasła — zamówienie nieopłacone", stRefunded: "Płatność zwrócona", stCancelled: "Płatność anulowana. Możesz spróbować jeszcze raz.", stMissing: "Nie znaleźliśmy takiego zamówienia.",
+      linkLabel: "Link do prezentu", copy: "Skopiuj", copied: "Skopiowano ✓", openGift: "Otwórz prezent →", codeLine: "Na wszelki wypadek kod z karty: <code>{code}</code> — do wpisania ręcznie na plately.eu/redeem.", mailed: "Wysłaliśmy to samo na {email}.", mailedNot: "E-mail jeszcze w drodze — link masz tutaj.", again: "← Kup kolejną kartę" },
     en: { docTitle: "Plately gift card — shop", back: "← Home", heroTitle: "Give somebody smarter nutrition", heroBody: "A Plately gift card is the Premium or Ultra plan for a month, a quarter or a year. The recipient gets a link, unwraps the card and scratches the code — like a real one.",
-      points: ["A gift link right after payment — send it however you like", "The code works on any account, new ones included", "The days are added to whatever plan the recipient already has"],
-      title: "Choose a card", lede: "Plan and length. You pay in the Plately app — the gift link and the code are then under Settings → My gift cards.",
+      points: ["No account — choose, pay, get the link", "The gift link right after payment, here and by e-mail", "The code works on any Plately account, new ones included"],
+      title: "Choose a card", lede: "Plan, length and the address to send the link to. Paid in crypto — prices in USD, as on the invoice.",
       planLabel: "Plan", premiumBlurb: "8 meal analyses and 6 coach messages a day, reports on demand, no queue.", ultraBlurb: "16 analyses and 18 messages a day, double the report limits — for people who log everything.",
       periodLabel: "Length", days: "{days} days", perMonth: "{price} / mo", popular: "most popular", best: "best value",
-      summary: "<strong>{plan}</strong> card · <strong>{days} days</strong>", buy: "Buy as a gift →",
-      payNote: "Paid in the app (crypto). A Plately account is needed — one click to create. Prices in USD, as on the invoice.",
-      steps: ["<b>Pay in the app</b> — the button opens it with this card chosen.", "<b>You get a link</b> plately.eu/giftcards/… and a code, under Settings → My gift cards.", "<b>Send the link</b> — the recipient unwraps the gift and scratches the code."],
-      note: "Already have a code? <a href=\"/redeem\">Redeem it here</a>. More cards at a discount? Write to <a href=\"/help\">plately.eu/help</a> and pick “Business”." },
+      emailLabel: "Your e-mail", emailHint: "The gift link and the code go here. Nothing else — no newsletter.", emailBad: "Enter a valid e-mail address.",
+      summary: "<strong>{plan}</strong> card · <strong>{days} days</strong>", buy: "Buy and pay →", buying: "Creating the order…",
+      payNote: "You will be taken to the payment page (NOWPayments). After paying you come back here for the link — we e-mail it too.",
+      steps: ["<b>Pay</b> — in crypto, on the payment provider's page.", "<b>You get a link</b> plately.eu/giftcards/… — here and by e-mail, with the code.", "<b>Send the link</b> — the recipient unwraps the gift and scratches the code."],
+      note: "Already have a code? <a href=\"/redeem\">Redeem it here</a>. More cards at a discount? Write to <a href=\"/help\">plately.eu/help</a> and pick “Business”.",
+      verifyTitle: "We could not verify this session", verifyBody: "We could not confirm there is a person on the other end. Reload the page or try another browser — no private mode, no script blockers.",
+      errShopOff: "The shop is temporarily unavailable", errShopOffBody: "Payments are not switched on yet. Try later or write to plately.eu/help.", errRate: "Too many orders", errRateBody: "Too many orders were created from this address in the last hour. Wait a little.", errProvider: "The payment provider refused", errProviderBody: "The invoice could not be created. Try again in a moment; if it keeps happening, write to us.", errGeneric: "Something went wrong", errGenericBody: "Try again in a moment.",
+      orderTitle: "Your order", orderLedePending: "Waiting for the payment to be confirmed. This page refreshes itself — you can also close it, the link arrives by e-mail.", orderLedePaid: "Paid. The card is ready — the link is below and in your inbox.",
+      stPending: "Waiting for payment…", stConfirming: "Payment on its way, confirming…", stPaid: "Paid — card issued", stFailed: "The payment did not go through", stExpired: "The invoice expired — order unpaid", stRefunded: "Payment refunded", stCancelled: "Payment cancelled. You can try again.", stMissing: "We could not find that order.",
+      linkLabel: "Gift link", copy: "Copy", copied: "Copied ✓", openGift: "Open the gift →", codeLine: "Just in case, the code from the card: <code>{code}</code> — to type by hand at plately.eu/redeem.", mailed: "We sent the same to {email}.", mailedNot: "The e-mail is still on its way — the link is right here.", again: "← Buy another card" },
     de: { docTitle: "Plately-Geschenkkarte — Shop", back: "← Startseite", heroTitle: "Verschenke klügeres Essen", heroBody: "Eine Plately-Geschenkkarte ist der Plan Premium oder Ultra für einen Monat, ein Quartal oder ein Jahr. Die beschenkte Person bekommt einen Link, packt die Karte aus und rubbelt den Code frei — wie bei einer echten.",
-      points: ["Geschenk-Link direkt nach der Zahlung — verschicke ihn, wie du willst", "Der Code funktioniert auf jedem Konto, auch einem neuen", "Die Tage kommen zu dem Plan dazu, den die Person schon hat"],
-      title: "Karte wählen", lede: "Plan und Laufzeit. Bezahlt wird in der Plately-App — Geschenk-Link und Code findest du danach unter Einstellungen → Meine Geschenkkarten.",
+      points: ["Kein Konto — auswählen, bezahlen, Link bekommen", "Geschenk-Link direkt nach der Zahlung, hier und per E-Mail", "Der Code funktioniert auf jedem Plately-Konto, auch einem neuen"],
+      title: "Karte wählen", lede: "Plan, Laufzeit und die Adresse für den Link. Zahlung in Krypto — Preise in USD, wie auf der Rechnung.",
       planLabel: "Plan", premiumBlurb: "8 Mahlzeitenanalysen und 6 Coach-Nachrichten pro Tag, Berichte auf Abruf, keine Warteschlange.", ultraBlurb: "16 Analysen und 18 Nachrichten pro Tag, doppelte Berichtslimits — für alle, die alles protokollieren.",
       periodLabel: "Laufzeit", days: "{days} Tage", perMonth: "{price} / Monat", popular: "am beliebtesten", best: "am günstigsten",
-      summary: "Karte <strong>{plan}</strong> · <strong>{days} Tage</strong>", buy: "Als Geschenk kaufen →",
-      payNote: "Zahlung in der App (Krypto). Ein Plately-Konto ist nötig — mit einem Klick angelegt. Preise in USD, wie auf der Rechnung.",
-      steps: ["<b>In der App bezahlen</b> — der Button öffnet sie mit dieser Karte.", "<b>Du bekommst einen Link</b> plately.eu/giftcards/… und einen Code, unter Einstellungen → Meine Geschenkkarten.", "<b>Link verschicken</b> — die beschenkte Person packt aus und rubbelt den Code frei."],
-      note: "Schon einen Code? <a href=\"/redeem\">Hier einlösen</a>. Mehr Karten mit Rabatt? Schreib an <a href=\"/help\">plately.eu/help</a>, Kategorie „Business“." },
+      emailLabel: "Deine E-Mail", emailHint: "Hierhin gehen der Geschenk-Link und der Code. Sonst nichts — kein Newsletter.", emailBad: "Gib eine gültige E-Mail-Adresse ein.",
+      summary: "Karte <strong>{plan}</strong> · <strong>{days} Tage</strong>", buy: "Kaufen und bezahlen →", buying: "Bestellung wird angelegt…",
+      payNote: "Du kommst auf die Zahlungsseite (NOWPayments). Nach der Zahlung geht es hierher zurück zum Link — wir mailen ihn auch.",
+      steps: ["<b>Bezahlen</b> — in Krypto, auf der Seite des Zahlungsanbieters.", "<b>Du bekommst einen Link</b> plately.eu/giftcards/… — hier und per E-Mail, mit dem Code.", "<b>Link verschicken</b> — die beschenkte Person packt aus und rubbelt den Code frei."],
+      note: "Schon einen Code? <a href=\"/redeem\">Hier einlösen</a>. Mehr Karten mit Rabatt? Schreib an <a href=\"/help\">plately.eu/help</a>, Kategorie „Business“.",
+      verifyTitle: "Die Sitzung konnte nicht verifiziert werden", verifyBody: "Wir konnten nicht bestätigen, dass ein Mensch am anderen Ende sitzt. Lade die Seite neu oder versuche einen anderen Browser — ohne privaten Modus und ohne Skriptblocker.",
+      errShopOff: "Der Shop ist vorübergehend nicht verfügbar", errShopOffBody: "Zahlungen sind noch nicht eingeschaltet. Versuche es später oder schreib an plately.eu/help.", errRate: "Zu viele Bestellungen", errRateBody: "Von dieser Adresse wurden in der letzten Stunde zu viele Bestellungen angelegt. Warte kurz.", errProvider: "Der Zahlungsanbieter hat abgelehnt", errProviderBody: "Die Rechnung konnte nicht erstellt werden. Versuche es gleich noch einmal; wenn es wieder passiert, schreib uns.", errGeneric: "Etwas ist schiefgelaufen", errGenericBody: "Versuche es gleich noch einmal.",
+      orderTitle: "Deine Bestellung", orderLedePending: "Wir warten auf die Bestätigung der Zahlung. Die Seite aktualisiert sich selbst — du kannst sie auch schließen, der Link kommt per E-Mail.", orderLedePaid: "Bezahlt. Die Karte ist fertig — der Link steht unten und in deinem Postfach.",
+      stPending: "Warten auf Zahlung…", stConfirming: "Zahlung unterwegs, wird bestätigt…", stPaid: "Bezahlt — Karte ausgestellt", stFailed: "Die Zahlung ist nicht durchgegangen", stExpired: "Die Rechnung ist abgelaufen — Bestellung unbezahlt", stRefunded: "Zahlung erstattet", stCancelled: "Zahlung abgebrochen. Du kannst es noch einmal versuchen.", stMissing: "Diese Bestellung haben wir nicht gefunden.",
+      linkLabel: "Geschenk-Link", copy: "Kopieren", copied: "Kopiert ✓", openGift: "Geschenk öffnen →", codeLine: "Für alle Fälle der Code der Karte: <code>{code}</code> — von Hand einzugeben auf plately.eu/redeem.", mailed: "Dasselbe haben wir an {email} geschickt.", mailedNot: "Die E-Mail ist noch unterwegs — der Link ist hier.", again: "← Noch eine Karte kaufen" },
     uk: { docTitle: "Подарункова картка Plately — магазин", back: "← На головну", heroTitle: "Подаруйте комусь розумніше харчування", heroBody: "Подарункова картка Plately — це план Premium або Ultra на місяць, квартал чи рік. Отримувач отримує посилання, розгортає картку та стирає код — як справжню.",
-      points: ["Посилання на подарунок одразу після оплати — надішліть, як зручно", "Код працює на будь-якому обліковому записі, навіть новому", "Дні додаються до плану, який отримувач уже має"],
-      title: "Оберіть картку", lede: "План і тривалість. Оплата в застосунку Plately — посилання на подарунок і код будуть у Налаштування → Мої подарункові картки.",
+      points: ["Без облікового запису — обираєте, платите, отримуєте посилання", "Посилання на подарунок одразу після оплати, тут і на e-mail", "Код працює на будь-якому обліковому записі Plately, навіть новому"],
+      title: "Оберіть картку", lede: "План, тривалість і адреса, куди надіслати посилання. Оплата криптовалютою — ціни в USD, як у рахунку.",
       planLabel: "План", premiumBlurb: "8 аналізів страв і 6 повідомлень коучу на день, звіти на вимогу, без черги.", ultraBlurb: "16 аналізів і 18 повідомлень на день, подвійні ліміти звітів — для тих, хто записує все.",
       periodLabel: "Тривалість", days: "{days} днів", perMonth: "{price} / міс.", popular: "найпопулярніша", best: "найвигідніша",
-      summary: "Картка <strong>{plan}</strong> · <strong>{days} днів</strong>", buy: "Купити як подарунок →",
-      payNote: "Оплата в застосунку (криптовалюта). Потрібен обліковий запис Plately — створюється одним натисканням. Ціни в USD, як у рахунку.",
-      steps: ["<b>Оплатіть у застосунку</b> — кнопка відкриє його з обраною карткою.", "<b>Отримаєте посилання</b> plately.eu/giftcards/… і код у Налаштування → Мої подарункові картки.", "<b>Надішліть посилання</b> — отримувач розгорне подарунок і зітре код."],
-      note: "Уже маєте код? <a href=\"/redeem\">Активуйте його тут</a>. Більше карток зі знижкою? Напишіть на <a href=\"/help\">plately.eu/help</a>, категорія «Business»." },
+      emailLabel: "Ваш e-mail", emailHint: "Сюди прийде посилання на подарунок і код. Більше нічого — жодних розсилок.", emailBad: "Введіть коректну адресу e-mail.",
+      summary: "Картка <strong>{plan}</strong> · <strong>{days} днів</strong>", buy: "Купити й оплатити →", buying: "Створюю замовлення…",
+      payNote: "Ви перейдете на сторінку оплати (NOWPayments). Після оплати повернетеся сюди по посилання — ми також надішлемо його на e-mail.",
+      steps: ["<b>Оплатіть</b> — криптовалютою, на сторінці платіжного провайдера.", "<b>Отримаєте посилання</b> plately.eu/giftcards/… — тут і на e-mail, разом із кодом.", "<b>Надішліть посилання</b> — отримувач розгорне подарунок і зітре код."],
+      note: "Уже маєте код? <a href=\"/redeem\">Активуйте його тут</a>. Більше карток зі знижкою? Напишіть на <a href=\"/help\">plately.eu/help</a>, категорія «Business».",
+      verifyTitle: "Не вдалося перевірити сесію", verifyBody: "Ми не змогли підтвердити, що з того боку людина. Оновіть сторінку або спробуйте інший браузер — без приватного режиму та блокувальників скриптів.",
+      errShopOff: "Магазин тимчасово недоступний", errShopOffBody: "Оплати ще не ввімкнено. Спробуйте пізніше або напишіть на plately.eu/help.", errRate: "Забагато замовлень", errRateBody: "З цієї адреси за останню годину створено забагато замовлень. Зачекайте трохи.", errProvider: "Платіжний провайдер відмовив", errProviderBody: "Не вдалося створити рахунок. Спробуйте за хвилину; якщо повторюється, напишіть нам.", errGeneric: "Щось пішло не так", errGenericBody: "Спробуйте ще раз за хвилину.",
+      orderTitle: "Ваше замовлення", orderLedePending: "Чекаємо на підтвердження оплати. Сторінка оновлюється сама — можете її закрити, посилання прийде на e-mail.", orderLedePaid: "Оплачено. Картка готова — посилання нижче та у вашій скриньці.",
+      stPending: "Чекаємо на оплату…", stConfirming: "Оплата в дорозі, підтверджуємо…", stPaid: "Оплачено — картку видано", stFailed: "Оплата не пройшла", stExpired: "Рахунок прострочено — замовлення не оплачено", stRefunded: "Оплату повернуто", stCancelled: "Оплату скасовано. Можете спробувати ще раз.", stMissing: "Такого замовлення не знайдено.",
+      linkLabel: "Посилання на подарунок", copy: "Копіювати", copied: "Скопійовано ✓", openGift: "Відкрити подарунок →", codeLine: "Про всяк випадок код з картки: <code>{code}</code> — для ручного введення на plately.eu/redeem.", mailed: "Те саме ми надіслали на {email}.", mailedNot: "Лист ще в дорозі — посилання є тут.", again: "← Купити ще одну картку" },
     ru: { docTitle: "Подарочная карта Plately — магазин", back: "← На главную", heroTitle: "Подарите кому-то умное питание", heroBody: "Подарочная карта Plately — это план Premium или Ultra на месяц, квартал или год. Получатель получает ссылку, разворачивает карту и стирает код — как настоящую.",
-      points: ["Ссылка на подарок сразу после оплаты — отправьте, как удобно", "Код работает на любом аккаунте, даже новом", "Дни добавляются к плану, который у получателя уже есть"],
-      title: "Выберите карту", lede: "План и срок. Оплата в приложении Plately — ссылка на подарок и код будут в Настройки → Мои подарочные карты.",
+      points: ["Без аккаунта — выбираете, платите, получаете ссылку", "Ссылка на подарок сразу после оплаты, здесь и на e-mail", "Код работает на любом аккаунте Plately, даже новом"],
+      title: "Выберите карту", lede: "План, срок и адрес, куда отправить ссылку. Оплата криптовалютой — цены в USD, как в счёте.",
       planLabel: "План", premiumBlurb: "8 анализов блюд и 6 сообщений коучу в день, отчёты по запросу, без очереди.", ultraBlurb: "16 анализов и 18 сообщений в день, двойные лимиты отчётов — для тех, кто записывает всё.",
       periodLabel: "Срок", days: "{days} дней", perMonth: "{price} / мес.", popular: "популярная", best: "выгоднее всего",
-      summary: "Карта <strong>{plan}</strong> · <strong>{days} дней</strong>", buy: "Купить в подарок →",
-      payNote: "Оплата в приложении (криптовалюта). Нужен аккаунт Plately — создаётся в одно нажатие. Цены в USD, как в счёте.",
-      steps: ["<b>Оплатите в приложении</b> — кнопка откроет его с выбранной картой.", "<b>Получите ссылку</b> plately.eu/giftcards/… и код в Настройки → Мои подарочные карты.", "<b>Отправьте ссылку</b> — получатель развернёт подарок и сотрёт код."],
-      note: "Уже есть код? <a href=\"/redeem\">Активируйте его здесь</a>. Больше карт со скидкой? Напишите на <a href=\"/help\">plately.eu/help</a>, категория «Business»." },
+      emailLabel: "Ваш e-mail", emailHint: "Сюда придёт ссылка на подарок и код. Больше ничего — никаких рассылок.", emailBad: "Введите корректный адрес e-mail.",
+      summary: "Карта <strong>{plan}</strong> · <strong>{days} дней</strong>", buy: "Купить и оплатить →", buying: "Создаю заказ…",
+      payNote: "Вы перейдёте на страницу оплаты (NOWPayments). После оплаты вернётесь сюда за ссылкой — мы также отправим её на e-mail.",
+      steps: ["<b>Оплатите</b> — криптовалютой, на странице платёжного провайдера.", "<b>Получите ссылку</b> plately.eu/giftcards/… — здесь и на e-mail, вместе с кодом.", "<b>Отправьте ссылку</b> — получатель развернёт подарок и сотрёт код."],
+      note: "Уже есть код? <a href=\"/redeem\">Активируйте его здесь</a>. Больше карт со скидкой? Напишите на <a href=\"/help\">plately.eu/help</a>, категория «Business».",
+      verifyTitle: "Не удалось проверить сессию", verifyBody: "Мы не смогли подтвердить, что с той стороны человек. Обновите страницу или попробуйте другой браузер — без приватного режима и блокировщиков скриптов.",
+      errShopOff: "Магазин временно недоступен", errShopOffBody: "Оплата ещё не включена. Попробуйте позже или напишите на plately.eu/help.", errRate: "Слишком много заказов", errRateBody: "С этого адреса за последний час создано слишком много заказов. Подождите немного.", errProvider: "Платёжный провайдер отказал", errProviderBody: "Не удалось создать счёт. Попробуйте через минуту; если повторяется, напишите нам.", errGeneric: "Что-то пошло не так", errGenericBody: "Попробуйте ещё раз через минуту.",
+      orderTitle: "Ваш заказ", orderLedePending: "Ждём подтверждения оплаты. Страница обновляется сама — можете её закрыть, ссылка придёт на e-mail.", orderLedePaid: "Оплачено. Карта готова — ссылка ниже и в вашей почте.",
+      stPending: "Ждём оплату…", stConfirming: "Оплата в пути, подтверждаем…", stPaid: "Оплачено — карта выдана", stFailed: "Оплата не прошла", stExpired: "Счёт истёк — заказ не оплачен", stRefunded: "Оплата возвращена", stCancelled: "Оплата отменена. Можете попробовать ещё раз.", stMissing: "Такой заказ не найден.",
+      linkLabel: "Ссылка на подарок", copy: "Копировать", copied: "Скопировано ✓", openGift: "Открыть подарок →", codeLine: "На всякий случай код с карты: <code>{code}</code> — для ручного ввода на plately.eu/redeem.", mailed: "То же самое мы отправили на {email}.", mailedNot: "Письмо ещё в пути — ссылка здесь.", again: "← Купить ещё одну карту" },
     fr: { docTitle: "Carte cadeau Plately — boutique", back: "← Accueil", heroTitle: "Offrez une alimentation plus intelligente", heroBody: "Une carte cadeau Plately, c'est le forfait Premium ou Ultra pour un mois, un trimestre ou un an. La personne reçoit un lien, déballe la carte et gratte le code — comme une vraie.",
-      points: ["Le lien cadeau juste après le paiement — envoyez-le comme vous voulez", "Le code fonctionne sur n'importe quel compte, même nouveau", "Les jours s'ajoutent au forfait que la personne a déjà"],
-      title: "Choisissez une carte", lede: "Forfait et durée. Vous payez dans l'application Plately — le lien cadeau et le code sont ensuite dans Réglages → Mes cartes cadeaux.",
+      points: ["Sans compte — choisissez, payez, recevez le lien", "Le lien cadeau juste après le paiement, ici et par e-mail", "Le code fonctionne sur n'importe quel compte Plately, même nouveau"],
+      title: "Choisissez une carte", lede: "Forfait, durée et l'adresse où envoyer le lien. Paiement en crypto — prix en USD, comme sur la facture.",
       planLabel: "Forfait", premiumBlurb: "8 analyses de repas et 6 messages au coach par jour, rapports à la demande, sans file d'attente.", ultraBlurb: "16 analyses et 18 messages par jour, limites de rapports doublées — pour ceux qui notent tout.",
       periodLabel: "Durée", days: "{days} jours", perMonth: "{price} / mois", popular: "la plus choisie", best: "le meilleur prix",
-      summary: "Carte <strong>{plan}</strong> · <strong>{days} jours</strong>", buy: "Offrir cette carte →",
-      payNote: "Paiement dans l'application (crypto). Un compte Plately est nécessaire — créé en un clic. Prix en USD, comme sur la facture.",
-      steps: ["<b>Payez dans l'application</b> — le bouton l'ouvre avec cette carte choisie.", "<b>Vous recevez un lien</b> plately.eu/giftcards/… et un code, dans Réglages → Mes cartes cadeaux.", "<b>Envoyez le lien</b> — la personne déballe le cadeau et gratte le code."],
-      note: "Vous avez déjà un code ? <a href=\"/redeem\">Utilisez-le ici</a>. Plus de cartes à prix réduit ? Écrivez à <a href=\"/help\">plately.eu/help</a>, catégorie « Business »." },
+      emailLabel: "Votre e-mail", emailHint: "Le lien cadeau et le code arrivent ici. Rien d'autre — pas de newsletter.", emailBad: "Saisissez une adresse e-mail valide.",
+      summary: "Carte <strong>{plan}</strong> · <strong>{days} jours</strong>", buy: "Acheter et payer →", buying: "Création de la commande…",
+      payNote: "Vous serez redirigé vers la page de paiement (NOWPayments). Après le paiement, vous revenez ici pour le lien — nous l'envoyons aussi par e-mail.",
+      steps: ["<b>Payez</b> — en crypto, sur la page du prestataire de paiement.", "<b>Vous recevez un lien</b> plately.eu/giftcards/… — ici et par e-mail, avec le code.", "<b>Envoyez le lien</b> — la personne déballe le cadeau et gratte le code."],
+      note: "Vous avez déjà un code ? <a href=\"/redeem\">Utilisez-le ici</a>. Plus de cartes à prix réduit ? Écrivez à <a href=\"/help\">plately.eu/help</a>, catégorie « Business ».",
+      verifyTitle: "Impossible de vérifier cette session", verifyBody: "Nous n'avons pas pu confirmer qu'une personne se trouve de l'autre côté. Rechargez la page ou essayez un autre navigateur — sans mode privé ni bloqueur de scripts.",
+      errShopOff: "La boutique est momentanément indisponible", errShopOffBody: "Les paiements ne sont pas encore activés. Réessayez plus tard ou écrivez à plately.eu/help.", errRate: "Trop de commandes", errRateBody: "Trop de commandes ont été créées depuis cette adresse au cours de la dernière heure. Patientez un peu.", errProvider: "Le prestataire de paiement a refusé", errProviderBody: "La facture n'a pas pu être créée. Réessayez dans un instant ; si cela se reproduit, écrivez-nous.", errGeneric: "Un problème est survenu", errGenericBody: "Réessayez dans un instant.",
+      orderTitle: "Votre commande", orderLedePending: "En attente de la confirmation du paiement. Cette page se rafraîchit toute seule — vous pouvez aussi la fermer, le lien arrive par e-mail.", orderLedePaid: "Payé. La carte est prête — le lien est ci-dessous et dans votre boîte mail.",
+      stPending: "En attente du paiement…", stConfirming: "Paiement en cours, confirmation…", stPaid: "Payé — carte émise", stFailed: "Le paiement n'a pas abouti", stExpired: "La facture a expiré — commande non payée", stRefunded: "Paiement remboursé", stCancelled: "Paiement annulé. Vous pouvez réessayer.", stMissing: "Nous n'avons pas trouvé cette commande.",
+      linkLabel: "Lien cadeau", copy: "Copier", copied: "Copié ✓", openGift: "Ouvrir le cadeau →", codeLine: "Au cas où, le code de la carte : <code>{code}</code> — à saisir à la main sur plately.eu/redeem.", mailed: "Nous avons envoyé la même chose à {email}.", mailedNot: "L'e-mail est encore en route — le lien est ici.", again: "← Acheter une autre carte" },
     it: { docTitle: "Carta regalo Plately — negozio", back: "← Home", heroTitle: "Regala un'alimentazione più intelligente", heroBody: "Una carta regalo Plately è il piano Premium o Ultra per un mese, un trimestre o un anno. Chi la riceve ottiene un link, scarta la carta e gratta il codice — come una vera.",
-      points: ["Il link del regalo subito dopo il pagamento — invialo come preferisci", "Il codice funziona su qualsiasi account, anche nuovo", "I giorni si aggiungono al piano che la persona ha già"],
-      title: "Scegli una carta", lede: "Piano e durata. Paghi nell'app Plately — il link del regalo e il codice sono poi in Impostazioni → Le mie carte regalo.",
+      points: ["Senza account — scegli, paghi, ricevi il link", "Il link del regalo subito dopo il pagamento, qui e via e-mail", "Il codice funziona su qualsiasi account Plately, anche nuovo"],
+      title: "Scegli una carta", lede: "Piano, durata e l'indirizzo a cui inviare il link. Pagamento in crypto — prezzi in USD, come in fattura.",
       planLabel: "Piano", premiumBlurb: "8 analisi dei pasti e 6 messaggi al coach al giorno, report su richiesta, senza coda.", ultraBlurb: "16 analisi e 18 messaggi al giorno, limiti dei report raddoppiati — per chi registra tutto.",
       periodLabel: "Durata", days: "{days} giorni", perMonth: "{price} / mese", popular: "la più scelta", best: "più conveniente",
-      summary: "Carta <strong>{plan}</strong> · <strong>{days} giorni</strong>", buy: "Regala questa carta →",
-      payNote: "Pagamento nell'app (crypto). Serve un account Plately — si crea con un clic. Prezzi in USD, come in fattura.",
-      steps: ["<b>Paga nell'app</b> — il pulsante la apre con questa carta già scelta.", "<b>Ricevi un link</b> plately.eu/giftcards/… e un codice, in Impostazioni → Le mie carte regalo.", "<b>Invia il link</b> — chi lo riceve scarta il regalo e gratta il codice."],
-      note: "Hai già un codice? <a href=\"/redeem\">Riscattalo qui</a>. Più carte a prezzo scontato? Scrivi a <a href=\"/help\">plately.eu/help</a>, categoria “Business”." },
+      emailLabel: "La tua e-mail", emailHint: "Qui arrivano il link del regalo e il codice. Nient'altro — nessuna newsletter.", emailBad: "Inserisci un indirizzo e-mail valido.",
+      summary: "Carta <strong>{plan}</strong> · <strong>{days} giorni</strong>", buy: "Acquista e paga →", buying: "Creo l'ordine…",
+      payNote: "Verrai portato alla pagina di pagamento (NOWPayments). Dopo il pagamento torni qui per il link — lo inviamo anche via e-mail.",
+      steps: ["<b>Paga</b> — in crypto, sulla pagina del fornitore di pagamento.", "<b>Ricevi un link</b> plately.eu/giftcards/… — qui e via e-mail, con il codice.", "<b>Invia il link</b> — chi lo riceve scarta il regalo e gratta il codice."],
+      note: "Hai già un codice? <a href=\"/redeem\">Riscattalo qui</a>. Più carte a prezzo scontato? Scrivi a <a href=\"/help\">plately.eu/help</a>, categoria “Business”.",
+      verifyTitle: "Impossibile verificare la sessione", verifyBody: "Non siamo riusciti a confermare che dall'altra parte ci sia una persona. Ricarica la pagina o prova un altro browser — senza modalità privata e senza blocco degli script.",
+      errShopOff: "Il negozio è momentaneamente non disponibile", errShopOffBody: "I pagamenti non sono ancora attivi. Riprova più tardi o scrivi a plately.eu/help.", errRate: "Troppi ordini", errRateBody: "Da questo indirizzo sono stati creati troppi ordini nell'ultima ora. Aspetta un po'.", errProvider: "Il fornitore di pagamento ha rifiutato", errProviderBody: "Non è stato possibile creare la fattura. Riprova tra un momento; se si ripete, scrivici.", errGeneric: "Qualcosa è andato storto", errGenericBody: "Riprova tra un momento.",
+      orderTitle: "Il tuo ordine", orderLedePending: "In attesa della conferma del pagamento. Questa pagina si aggiorna da sola — puoi anche chiuderla, il link arriva via e-mail.", orderLedePaid: "Pagato. La carta è pronta — il link è qui sotto e nella tua casella.",
+      stPending: "In attesa del pagamento…", stConfirming: "Pagamento in arrivo, confermiamo…", stPaid: "Pagato — carta emessa", stFailed: "Il pagamento non è andato a buon fine", stExpired: "La fattura è scaduta — ordine non pagato", stRefunded: "Pagamento rimborsato", stCancelled: "Pagamento annullato. Puoi riprovare.", stMissing: "Non abbiamo trovato questo ordine.",
+      linkLabel: "Link del regalo", copy: "Copia", copied: "Copiato ✓", openGift: "Apri il regalo →", codeLine: "Per sicurezza, il codice della carta: <code>{code}</code> — da digitare a mano su plately.eu/redeem.", mailed: "Abbiamo inviato lo stesso a {email}.", mailedNot: "L'e-mail è ancora in viaggio — il link è qui.", again: "← Compra un'altra carta" },
     es: { docTitle: "Tarjeta regalo Plately — tienda", back: "← Inicio", heroTitle: "Regala una nutrición más inteligente", heroBody: "Una tarjeta regalo Plately es el plan Premium o Ultra para un mes, un trimestre o un año. Quien la recibe obtiene un enlace, desenvuelve la tarjeta y rasca el código — como una de verdad.",
-      points: ["El enlace del regalo justo después de pagar — envíalo como quieras", "El código funciona en cualquier cuenta, también en una nueva", "Los días se suman al plan que esa persona ya tenga"],
-      title: "Elige una tarjeta", lede: "Plan y duración. Pagas en la app Plately — el enlace del regalo y el código están después en Ajustes → Mis tarjetas regalo.",
+      points: ["Sin cuenta — eliges, pagas, recibes el enlace", "El enlace del regalo justo después de pagar, aquí y por correo", "El código funciona en cualquier cuenta Plately, también en una nueva"],
+      title: "Elige una tarjeta", lede: "Plan, duración y la dirección a la que enviar el enlace. Pago en cripto — precios en USD, como en la factura.",
       planLabel: "Plan", premiumBlurb: "8 análisis de comidas y 6 mensajes al coach al día, informes bajo demanda, sin cola.", ultraBlurb: "16 análisis y 18 mensajes al día, el doble de informes — para quien lo registra todo.",
       periodLabel: "Duración", days: "{days} días", perMonth: "{price} / mes", popular: "la más elegida", best: "mejor precio",
-      summary: "Tarjeta <strong>{plan}</strong> · <strong>{days} días</strong>", buy: "Regalar esta tarjeta →",
-      payNote: "Pago en la app (cripto). Hace falta una cuenta Plately — se crea con un clic. Precios en USD, como en la factura.",
-      steps: ["<b>Paga en la app</b> — el botón la abre con esta tarjeta elegida.", "<b>Recibes un enlace</b> plately.eu/giftcards/… y un código, en Ajustes → Mis tarjetas regalo.", "<b>Envía el enlace</b> — quien lo reciba desenvuelve el regalo y rasca el código."],
-      note: "¿Ya tienes un código? <a href=\"/redeem\">Canjéalo aquí</a>. ¿Más tarjetas con descuento? Escribe a <a href=\"/help\">plately.eu/help</a>, categoría “Business”." },
+      emailLabel: "Tu correo", emailHint: "Aquí llegan el enlace del regalo y el código. Nada más — sin boletines.", emailBad: "Escribe una dirección de correo válida.",
+      summary: "Tarjeta <strong>{plan}</strong> · <strong>{days} días</strong>", buy: "Comprar y pagar →", buying: "Creando el pedido…",
+      payNote: "Irás a la página de pago (NOWPayments). Tras pagar vuelves aquí a por el enlace — también lo enviamos por correo.",
+      steps: ["<b>Paga</b> — en cripto, en la página del proveedor de pagos.", "<b>Recibes un enlace</b> plately.eu/giftcards/… — aquí y por correo, con el código.", "<b>Envía el enlace</b> — quien lo reciba desenvuelve el regalo y rasca el código."],
+      note: "¿Ya tienes un código? <a href=\"/redeem\">Canjéalo aquí</a>. ¿Más tarjetas con descuento? Escribe a <a href=\"/help\">plately.eu/help</a>, categoría “Business”.",
+      verifyTitle: "No pudimos verificar esta sesión", verifyBody: "No pudimos confirmar que haya una persona al otro lado. Recarga la página o prueba con otro navegador — sin modo privado ni bloqueadores de scripts.",
+      errShopOff: "La tienda no está disponible por el momento", errShopOffBody: "Los pagos aún no están activados. Prueba más tarde o escribe a plately.eu/help.", errRate: "Demasiados pedidos", errRateBody: "Desde esta dirección se han creado demasiados pedidos en la última hora. Espera un poco.", errProvider: "El proveedor de pagos lo rechazó", errProviderBody: "No se pudo crear la factura. Inténtalo de nuevo en un momento; si se repite, escríbenos.", errGeneric: "Algo ha fallado", errGenericBody: "Inténtalo de nuevo en un momento.",
+      orderTitle: "Tu pedido", orderLedePending: "Esperando la confirmación del pago. Esta página se actualiza sola — también puedes cerrarla, el enlace llega por correo.", orderLedePaid: "Pagado. La tarjeta está lista — el enlace está abajo y en tu correo.",
+      stPending: "Esperando el pago…", stConfirming: "Pago en camino, confirmando…", stPaid: "Pagado — tarjeta emitida", stFailed: "El pago no se completó", stExpired: "La factura caducó — pedido sin pagar", stRefunded: "Pago reembolsado", stCancelled: "Pago cancelado. Puedes intentarlo de nuevo.", stMissing: "No encontramos ese pedido.",
+      linkLabel: "Enlace del regalo", copy: "Copiar", copied: "Copiado ✓", openGift: "Abrir el regalo →", codeLine: "Por si acaso, el código de la tarjeta: <code>{code}</code> — para escribirlo a mano en plately.eu/redeem.", mailed: "Hemos enviado lo mismo a {email}.", mailedNot: "El correo aún está en camino — el enlace está aquí.", again: "← Comprar otra tarjeta" },
     pt: { docTitle: "Cartão-presente Plately — loja", back: "← Início", heroTitle: "Ofereça uma alimentação mais inteligente", heroBody: "Um cartão-presente Plately é o plano Premium ou Ultra por um mês, um trimestre ou um ano. Quem o recebe obtém uma ligação, desembrulha o cartão e raspa o código — como um verdadeiro.",
-      points: ["A ligação do presente logo após o pagamento — envie-a como quiser", "O código funciona em qualquer conta, mesmo nova", "Os dias somam-se ao plano que a pessoa já tem"],
-      title: "Escolha um cartão", lede: "Plano e duração. Paga na app Plately — a ligação do presente e o código ficam depois em Definições → Os meus cartões-presente.",
+      points: ["Sem conta — escolhe, paga, recebe a ligação", "A ligação do presente logo após o pagamento, aqui e por e-mail", "O código funciona em qualquer conta Plately, mesmo nova"],
+      title: "Escolha um cartão", lede: "Plano, duração e o endereço para onde enviar a ligação. Pagamento em cripto — preços em USD, como na fatura.",
       planLabel: "Plano", premiumBlurb: "8 análises de refeições e 6 mensagens ao coach por dia, relatórios a pedido, sem fila.", ultraBlurb: "16 análises e 18 mensagens por dia, o dobro dos relatórios — para quem regista tudo.",
       periodLabel: "Duração", days: "{days} dias", perMonth: "{price} / mês", popular: "mais escolhido", best: "melhor preço",
-      summary: "Cartão <strong>{plan}</strong> · <strong>{days} dias</strong>", buy: "Oferecer este cartão →",
-      payNote: "Pagamento na app (cripto). É precisa uma conta Plately — cria-se com um clique. Preços em USD, como na fatura.",
-      steps: ["<b>Pague na app</b> — o botão abre-a com este cartão escolhido.", "<b>Recebe uma ligação</b> plately.eu/giftcards/… e um código, em Definições → Os meus cartões-presente.", "<b>Envie a ligação</b> — quem a recebe desembrulha o presente e raspa o código."],
-      note: "Já tem um código? <a href=\"/redeem\">Resgate-o aqui</a>. Mais cartões com desconto? Escreva para <a href=\"/help\">plately.eu/help</a>, categoria “Business”." },
+      emailLabel: "O seu e-mail", emailHint: "Para aqui vão a ligação do presente e o código. Nada mais — sem newsletter.", emailBad: "Introduza um endereço de e-mail válido.",
+      summary: "Cartão <strong>{plan}</strong> · <strong>{days} dias</strong>", buy: "Comprar e pagar →", buying: "A criar a encomenda…",
+      payNote: "Será levado à página de pagamento (NOWPayments). Depois de pagar volta aqui para a ligação — também a enviamos por e-mail.",
+      steps: ["<b>Pague</b> — em cripto, na página do fornecedor de pagamentos.", "<b>Recebe uma ligação</b> plately.eu/giftcards/… — aqui e por e-mail, com o código.", "<b>Envie a ligação</b> — quem a recebe desembrulha o presente e raspa o código."],
+      note: "Já tem um código? <a href=\"/redeem\">Resgate-o aqui</a>. Mais cartões com desconto? Escreva para <a href=\"/help\">plately.eu/help</a>, categoria “Business”.",
+      verifyTitle: "Não foi possível verificar esta sessão", verifyBody: "Não conseguimos confirmar que há uma pessoa do outro lado. Recarregue a página ou tente outro navegador — sem modo privado e sem bloqueadores de scripts.",
+      errShopOff: "A loja está temporariamente indisponível", errShopOffBody: "Os pagamentos ainda não estão ativos. Tente mais tarde ou escreva para plately.eu/help.", errRate: "Demasiadas encomendas", errRateBody: "Foram criadas demasiadas encomendas a partir deste endereço na última hora. Aguarde um pouco.", errProvider: "O fornecedor de pagamentos recusou", errProviderBody: "Não foi possível criar a fatura. Tente de novo daqui a pouco; se se repetir, escreva-nos.", errGeneric: "Algo correu mal", errGenericBody: "Tente de novo daqui a pouco.",
+      orderTitle: "A sua encomenda", orderLedePending: "À espera da confirmação do pagamento. Esta página atualiza-se sozinha — também pode fechá-la, a ligação chega por e-mail.", orderLedePaid: "Pago. O cartão está pronto — a ligação está abaixo e na sua caixa de correio.",
+      stPending: "À espera do pagamento…", stConfirming: "Pagamento a caminho, a confirmar…", stPaid: "Pago — cartão emitido", stFailed: "O pagamento não foi concluído", stExpired: "A fatura expirou — encomenda por pagar", stRefunded: "Pagamento reembolsado", stCancelled: "Pagamento cancelado. Pode tentar de novo.", stMissing: "Não encontrámos essa encomenda.",
+      linkLabel: "Ligação do presente", copy: "Copiar", copied: "Copiado ✓", openGift: "Abrir o presente →", codeLine: "Por precaução, o código do cartão: <code>{code}</code> — para introduzir à mão em plately.eu/redeem.", mailed: "Enviámos o mesmo para {email}.", mailedNot: "O e-mail ainda vai a caminho — a ligação está aqui.", again: "← Comprar outro cartão" },
     ja: { docTitle: "Plately ギフトカード — ショップ", back: "← ホーム", heroTitle: "大切な人に、もっと賢い食事を", heroBody: "Plately ギフトカードは、Premium または Ultra プランを 1 か月・3 か月・1 年分贈れるカードです。受け取った人はリンクを開き、カードを開けてスクラッチを削ります — 本物のカードのように。",
-      points: ["支払い直後にギフトリンクが届く — 好きな方法で送れます", "コードはどのアカウントでも使えます（新規でも）", "相手がすでにプランを持っていれば、日数が加算されます"],
-      title: "カードを選ぶ", lede: "プランと期間を選びます。お支払いは Plately アプリ内で — ギフトリンクとコードは 設定 → マイ ギフトカード に表示されます。",
+      points: ["アカウント不要 — 選んで、支払って、リンクを受け取る", "支払い直後にギフトリンクをここでもメールでも", "コードは新規を含むどの Plately アカウントでも使えます"],
+      title: "カードを選ぶ", lede: "プラン、期間、リンクの送り先。暗号資産でのお支払い — 価格は請求書と同じく USD 表示です。",
       planLabel: "プラン", premiumBlurb: "1 日 8 回の食事分析と 6 回のコーチメッセージ、オンデマンドのレポート、待ち時間なし。", ultraBlurb: "1 日 16 回の分析と 18 回のメッセージ、レポート上限は 2 倍 — すべてを記録する人に。",
       periodLabel: "期間", days: "{days} 日", perMonth: "{price} / 月", popular: "人気", best: "最もお得",
-      summary: "<strong>{plan}</strong> カード · <strong>{days} 日</strong>", buy: "ギフトとして購入 →",
-      payNote: "アプリ内で支払い（暗号資産）。Plately アカウントが必要です — ワンクリックで作成できます。価格は請求書と同じく USD 表示です。",
-      steps: ["<b>アプリで支払う</b> — ボタンを押すと、このカードが選ばれた状態でアプリが開きます。", "<b>リンクが届く</b> plately.eu/giftcards/… とコードが 設定 → マイ ギフトカード に表示されます。", "<b>リンクを送る</b> — 受け取った人がプレゼントを開けてコードを削ります。"],
-      note: "すでにコードをお持ちですか？ <a href=\"/redeem\">こちらで引き換え</a>。まとめ買い割引は <a href=\"/help\">plately.eu/help</a> の「Business」カテゴリへ。" },
+      emailLabel: "メールアドレス", emailHint: "ギフトリンクとコードをここに送ります。それ以外は何も送りません。", emailBad: "有効なメールアドレスを入力してください。",
+      summary: "<strong>{plan}</strong> カード · <strong>{days} 日</strong>", buy: "購入して支払う →", buying: "注文を作成中…",
+      payNote: "支払いページ（NOWPayments）に移動します。支払い後にここへ戻るとリンクが表示されます — メールでもお送りします。",
+      steps: ["<b>支払う</b> — 決済プロバイダーのページで、暗号資産で。", "<b>リンクを受け取る</b> plately.eu/giftcards/… — ここでもメールでも、コード付きで。", "<b>リンクを送る</b> — 受け取った人がプレゼントを開けてコードを削ります。"],
+      note: "すでにコードをお持ちですか？ <a href=\"/redeem\">こちらで引き換え</a>。まとめ買い割引は <a href=\"/help\">plately.eu/help</a> の「Business」カテゴリへ。",
+      verifyTitle: "セッションを確認できませんでした", verifyBody: "画面の向こうに人がいることを確認できませんでした。ページを再読み込みするか、別のブラウザをお試しください — プライベートモードやスクリプトブロッカーは使わずに。",
+      errShopOff: "ショップは一時的に利用できません", errShopOffBody: "支払いはまだ有効になっていません。後でお試しいただくか、plately.eu/help までご連絡ください。", errRate: "注文が多すぎます", errRateBody: "このアドレスから 1 時間以内に作成された注文が多すぎます。少しお待ちください。", errProvider: "決済プロバイダーが拒否しました", errProviderBody: "請求書を作成できませんでした。少ししてからもう一度お試しください。繰り返す場合はお問い合わせください。", errGeneric: "問題が発生しました", errGenericBody: "少ししてからもう一度お試しください。",
+      orderTitle: "ご注文", orderLedePending: "支払いの確認を待っています。このページは自動で更新されます — 閉じても、リンクはメールで届きます。", orderLedePaid: "お支払い完了。カードの準備ができました — リンクは下と受信箱にあります。",
+      stPending: "支払いを待っています…", stConfirming: "支払い処理中、確認しています…", stPaid: "支払い済み — カード発行済み", stFailed: "支払いが完了しませんでした", stExpired: "請求書の期限が切れました — 未払いの注文", stRefunded: "返金されました", stCancelled: "支払いがキャンセルされました。もう一度お試しいただけます。", stMissing: "その注文は見つかりませんでした。",
+      linkLabel: "ギフトリンク", copy: "コピー", copied: "コピーしました ✓", openGift: "プレゼントを開く →", codeLine: "念のため、カードのコード：<code>{code}</code> — plately.eu/redeem で手入力できます。", mailed: "同じ内容を {email} に送りました。", mailedNot: "メールはまだ配信中です — リンクはここにあります。", again: "← もう 1 枚買う" },
     zh: { docTitle: "Plately 礼品卡 — 商店", back: "← 首页", heroTitle: "送给 TA 更聪明的饮食", heroBody: "Plately 礼品卡包含一个月、一季度或一年的 Premium 或 Ultra 套餐。收礼人打开链接，拆开卡片，刮开兑换码 — 就像真正的礼品卡。",
-      points: ["付款后立即获得礼物链接 — 以任何方式发送", "兑换码适用于任何账户，包括新账户", "天数会累加到收礼人已有的套餐上"],
-      title: "选择卡片", lede: "选择套餐和时长。在 Plately 应用内付款 — 礼物链接和兑换码随后会显示在 设置 → 我的礼品卡 中。",
+      points: ["无需账户 — 选择、付款、获得链接", "付款后立即获得礼物链接，页面上和邮件里都有", "兑换码适用于任何 Plately 账户，包括新账户"],
+      title: "选择卡片", lede: "选择套餐、时长和接收链接的邮箱。加密货币付款 — 价格以美元计，与发票一致。",
       planLabel: "套餐", premiumBlurb: "每天 8 次餐食分析和 6 条教练消息，随时生成报告，无需排队。", ultraBlurb: "每天 16 次分析和 18 条消息，报告上限翻倍 — 适合记录一切的人。",
       periodLabel: "时长", days: "{days} 天", perMonth: "{price} / 月", popular: "最受欢迎", best: "最划算",
-      summary: "<strong>{plan}</strong> 卡 · <strong>{days} 天</strong>", buy: "作为礼物购买 →",
-      payNote: "在应用内付款（加密货币）。需要 Plately 账户 — 一键即可创建。价格以美元计，与发票一致。",
-      steps: ["<b>在应用内付款</b> — 按钮会打开应用并选中这张卡。", "<b>获得链接</b> plately.eu/giftcards/… 和兑换码，位于 设置 → 我的礼品卡。", "<b>发送链接</b> — 收礼人拆开礼物并刮开兑换码。"],
-      note: "已有兑换码？<a href=\"/redeem\">在这里兑换</a>。批量优惠请通过 <a href=\"/help\">plately.eu/help</a> 的“Business”类别联系我们。" },
+      emailLabel: "你的邮箱", emailHint: "礼物链接和兑换码会发送到这里。仅此而已 — 没有订阅邮件。", emailBad: "请输入有效的邮箱地址。",
+      summary: "<strong>{plan}</strong> 卡 · <strong>{days} 天</strong>", buy: "购买并付款 →", buying: "正在创建订单…",
+      payNote: "你将进入付款页面（NOWPayments）。付款后返回此处获取链接 — 我们也会发送到邮箱。",
+      steps: ["<b>付款</b> — 在支付服务商页面用加密货币付款。", "<b>获得链接</b> plately.eu/giftcards/… — 页面上和邮件里都有，附带兑换码。", "<b>发送链接</b> — 收礼人拆开礼物并刮开兑换码。"],
+      note: "已有兑换码？<a href=\"/redeem\">在这里兑换</a>。批量优惠请通过 <a href=\"/help\">plately.eu/help</a> 的“Business”类别联系我们。",
+      verifyTitle: "无法验证此会话", verifyBody: "我们无法确认屏幕另一端是真人。请刷新页面或换一个浏览器 — 不要使用隐私模式或脚本拦截器。",
+      errShopOff: "商店暂时不可用", errShopOffBody: "付款功能尚未开启。请稍后再试，或通过 plately.eu/help 联系我们。", errRate: "订单过多", errRateBody: "过去一小时内从此地址创建的订单过多。请稍等片刻。", errProvider: "支付服务商拒绝了请求", errProviderBody: "无法创建发票。请稍后重试；如果反复出现，请联系我们。", errGeneric: "出了点问题", errGenericBody: "请稍后重试。",
+      orderTitle: "你的订单", orderLedePending: "正在等待付款确认。本页会自动刷新 — 也可以关闭，链接会通过邮件送达。", orderLedePaid: "已付款。卡片已就绪 — 链接在下方，也在你的邮箱里。",
+      stPending: "等待付款…", stConfirming: "付款处理中，正在确认…", stPaid: "已付款 — 卡片已签发", stFailed: "付款未成功", stExpired: "发票已过期 — 订单未支付", stRefunded: "付款已退回", stCancelled: "付款已取消。你可以再试一次。", stMissing: "未找到该订单。",
+      linkLabel: "礼物链接", copy: "复制", copied: "已复制 ✓", openGift: "打开礼物 →", codeLine: "以防万一，卡片上的兑换码：<code>{code}</code> — 可在 plately.eu/redeem 手动输入。", mailed: "我们已将相同内容发送至 {email}。", mailedNot: "邮件还在路上 — 链接就在这里。", again: "← 再买一张" },
     ko: { docTitle: "Plately 기프트 카드 — 상점", back: "← 홈", heroTitle: "소중한 사람에게 더 똑똑한 식단을", heroBody: "Plately 기프트 카드는 한 달, 한 분기 또는 일 년 동안의 Premium 또는 Ultra 플랜이에요. 받는 사람은 링크를 열어 카드를 풀고 코드를 긁어요 — 진짜 카드처럼.",
-      points: ["결제 직후 선물 링크 제공 — 원하는 방법으로 보내세요", "코드는 새 계정을 포함해 어떤 계정에서도 사용 가능", "받는 사람이 이미 플랜이 있으면 일수가 더해져요"],
-      title: "카드 선택", lede: "플랜과 기간을 고르세요. 결제는 Plately 앱에서 — 선물 링크와 코드는 설정 → 내 기프트 카드에서 확인할 수 있어요.",
+      points: ["계정 없이 — 고르고, 결제하고, 링크를 받아요", "결제 직후 선물 링크를 여기서도, 이메일로도", "코드는 새 계정을 포함해 어떤 Plately 계정에서도 사용 가능"],
+      title: "카드 선택", lede: "플랜, 기간, 그리고 링크를 받을 주소. 암호화폐로 결제 — 가격은 청구서와 같이 USD로 표시돼요.",
       planLabel: "플랜", premiumBlurb: "하루 8회 식사 분석과 6개의 코치 메시지, 요청 시 리포트, 대기 없음.", ultraBlurb: "하루 16회 분석과 18개의 메시지, 리포트 한도 2배 — 모든 것을 기록하는 분에게.",
       periodLabel: "기간", days: "{days}일", perMonth: "{price} / 월", popular: "인기", best: "가장 저렴",
-      summary: "<strong>{plan}</strong> 카드 · <strong>{days}일</strong>", buy: "선물로 구매 →",
-      payNote: "앱에서 결제(암호화폐). Plately 계정이 필요해요 — 클릭 한 번으로 만들 수 있어요. 가격은 청구서와 같이 USD로 표시돼요.",
-      steps: ["<b>앱에서 결제</b> — 버튼을 누르면 이 카드가 선택된 상태로 앱이 열려요.", "<b>링크 받기</b> plately.eu/giftcards/… 와 코드가 설정 → 내 기프트 카드에 표시돼요.", "<b>링크 보내기</b> — 받는 사람이 선물을 풀고 코드를 긁어요."],
-      note: "이미 코드가 있나요? <a href=\"/redeem\">여기에서 사용하세요</a>. 대량 구매 할인은 <a href=\"/help\">plately.eu/help</a>의 “Business” 카테고리로 문의하세요." }
+      emailLabel: "이메일", emailHint: "선물 링크와 코드가 이곳으로 와요. 그 외에는 아무것도 보내지 않아요.", emailBad: "올바른 이메일 주소를 입력하세요.",
+      summary: "<strong>{plan}</strong> 카드 · <strong>{days}일</strong>", buy: "구매하고 결제 →", buying: "주문 생성 중…",
+      payNote: "결제 페이지(NOWPayments)로 이동해요. 결제 후 이곳으로 돌아오면 링크가 보여요 — 이메일로도 보내 드려요.",
+      steps: ["<b>결제</b> — 결제 제공업체 페이지에서 암호화폐로.", "<b>링크 받기</b> plately.eu/giftcards/… — 여기서도, 이메일로도, 코드와 함께.", "<b>링크 보내기</b> — 받는 사람이 선물을 풀고 코드를 긁어요."],
+      note: "이미 코드가 있나요? <a href=\"/redeem\">여기에서 사용하세요</a>. 대량 구매 할인은 <a href=\"/help\">plately.eu/help</a>의 “Business” 카테고리로 문의하세요.",
+      verifyTitle: "세션을 확인할 수 없어요", verifyBody: "화면 건너편에 사람이 있는지 확인하지 못했어요. 페이지를 새로고침하거나 다른 브라우저를 사용해 보세요 — 시크릿 모드나 스크립트 차단기는 끄고요.",
+      errShopOff: "상점을 잠시 이용할 수 없어요", errShopOffBody: "결제가 아직 활성화되지 않았어요. 나중에 다시 시도하거나 plately.eu/help로 문의하세요.", errRate: "주문이 너무 많아요", errRateBody: "이 주소에서 지난 한 시간 동안 너무 많은 주문이 생성되었어요. 잠시 기다려 주세요.", errProvider: "결제 제공업체가 거부했어요", errProviderBody: "청구서를 만들 수 없었어요. 잠시 후 다시 시도하세요. 반복되면 문의해 주세요.", errGeneric: "문제가 생겼어요", errGenericBody: "잠시 후 다시 시도하세요.",
+      orderTitle: "주문", orderLedePending: "결제 확인을 기다리고 있어요. 이 페이지는 자동으로 새로고침돼요 — 닫아도 링크는 이메일로 와요.", orderLedePaid: "결제 완료. 카드가 준비됐어요 — 링크는 아래와 메일함에 있어요.",
+      stPending: "결제를 기다리는 중…", stConfirming: "결제 진행 중, 확인하고 있어요…", stPaid: "결제 완료 — 카드 발급됨", stFailed: "결제가 완료되지 않았어요", stExpired: "청구서가 만료됐어요 — 미결제 주문", stRefunded: "결제가 환불됐어요", stCancelled: "결제가 취소됐어요. 다시 시도할 수 있어요.", stMissing: "해당 주문을 찾을 수 없어요.",
+      linkLabel: "선물 링크", copy: "복사", copied: "복사됨 ✓", openGift: "선물 열기 →", codeLine: "혹시 몰라서, 카드 코드: <code>{code}</code> — plately.eu/redeem에 직접 입력할 수 있어요.", mailed: "같은 내용을 {email}로 보냈어요.", mailedNot: "이메일은 아직 가는 중이에요 — 링크는 여기 있어요.", again: "← 카드 한 장 더 구매" }
   };
 
   var $ = function (id) { return document.getElementById(id); };
   var lang = 'en', plan = 'premium', period = 'yearly';
+  var PERIODS = ['monthly', 'quarterly', 'yearly'];
+  // Prices come from the server (GET /api/gift/session): the number on the
+  // button is the number the invoice is raised for, from one table.
+  var shop = { configured: false, prices: null, days: { monthly: 31, quarterly: 92, yearly: 366 }, promoPercent: 0 };
+  var ts = { siteKey: null, widget: null, token: null, pending: null };
+  var busy = false;
 
   function t(key, vars) {
     var str = (T[lang] && T[lang][key]) || T.en[key] || key;
@@ -248,39 +360,188 @@
     return str.replace(/\{(\w+)\}/g, function (m, k) { return vars && k in vars ? String(vars[k]) : m; });
   }
   function money(n) { return '$' + (Number.isInteger(n) ? String(n) : n.toFixed(2)); }
+  function promo(n) { return Math.round(n * (100 - shop.promoPercent)) / 100; }
   function planName(p) { return p === 'ultra' ? 'Ultra' : 'Premium'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // --- the shop -----------------------------------------------------------------
 
   function draw() {
     var d = T[lang];
     document.documentElement.lang = lang;
     document.title = d.docTitle;
-    ['back', 'heroTitle', 'heroBody', 'title', 'lede', 'planLabel', 'periodLabel', 'buy'].forEach(function (k) { $(k).textContent = d[k]; });
+    ['back', 'heroTitle', 'heroBody', 'title', 'lede', 'planLabel', 'periodLabel', 'emailLabel', 'emailHint', 'verifyTitle', 'verifyBody', 'linkLabel', 'again'].forEach(function (k) { $(k).textContent = d[k]; });
+    $('buy').textContent = busy ? d.buying : d.buy;
+    $('copyLink').textContent = d.copy;
+    $('openGift').textContent = d.openGift;
     $('points').innerHTML = d.points.map(function (s) { return '<li>' + s + '</li>'; }).join('');
     $('blurb').textContent = plan === 'ultra' ? d.ultraBlurb : d.premiumBlurb;
     document.querySelectorAll('#planSeg button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.plan === plan ? 'true' : 'false'); });
 
+    var prices = shop.prices;
     $('periods').innerHTML = PERIODS.map(function (p) {
-      var sticker = PRICES[plan][p], price = promo(sticker);
-      var per = money(Math.round(price / (DAYS[p] / 30.4) * 100) / 100);
+      var sticker = prices ? prices[plan][p] : null, price = sticker === null ? null : promo(sticker);
+      var per = price === null ? '…' : money(Math.round(price / (shop.days[p] / 30.4) * 100) / 100);
       var tag = p === 'yearly' ? '<span class="chip chip-ok">' + t('best') + '</span>' : p === 'quarterly' ? '<span class="chip">' + t('popular') + '</span>' : '';
-      var was = PROMO_PERCENT > 0 ? '<span class="was">' + money(sticker) + '</span><span class="chip chip-ok promo">-' + PROMO_PERCENT + '%</span> ' : '';
+      var was = sticker !== null && shop.promoPercent > 0 ? '<span class="was">' + money(sticker) + '</span><span class="chip chip-ok promo">-' + shop.promoPercent + '%</span> ' : '';
       return '<button type="button" class="period" data-period="' + p + '" aria-pressed="' + (p === period) + '">' +
         '<span class="dot" aria-hidden="true"></span>' +
-        '<span><span class="days">' + t('days', { days: DAYS[p] }) + '</span>' + tag + '<span class="sub" style="display:block">' + t('perMonth', { price: per }) + '</span></span>' +
-        '<span class="price">' + was + money(price) + '</span></button>';
+        '<span><span class="days">' + t('days', { days: shop.days[p] }) + '</span>' + tag + '<span class="sub" style="display:block">' + t('perMonth', { price: per }) + '</span></span>' +
+        '<span class="price">' + was + (price === null ? '…' : money(price)) + '</span></button>';
     }).join('');
     document.querySelectorAll('.period').forEach(function (b) { b.addEventListener('click', function () { period = b.dataset.period; draw(); }); });
 
-    $('summary').innerHTML = t('summary', { plan: planName(plan), days: DAYS[period] });
-    $('total').textContent = money(promo(PRICES[plan][period]));
-    $('buy').href = APP + '?gift=' + plan + '&period=' + period;
+    $('summary').innerHTML = t('summary', { plan: planName(plan), days: shop.days[period] });
+    $('total').textContent = prices ? money(promo(prices[plan][period])) : '…';
     $('payNote').textContent = d.payNote;
     $('steps').innerHTML = d.steps.map(function (s, i) { return '<li><i>' + (i + 1) + '</i><span>' + s + '</span></li>'; }).join('');
     $('note').innerHTML = d.note;
     $('lang').value = lang;
+    $('buy').disabled = busy || !prices;
+    if (order.id) drawOrder();
   }
 
   document.querySelectorAll('#planSeg button').forEach(function (b) { b.addEventListener('click', function () { plan = b.dataset.plan; draw(); }); });
+
+  function hidePanels() { $('verifyPanel').hidden = true; $('errPanel').hidden = true; $('verifyWhy').hidden = true; }
+  function showVerify(why) {
+    hidePanels();
+    if (why) { $('verifyWhy').textContent = why; $('verifyWhy').hidden = false; }
+    $('verifyPanel').hidden = false;
+  }
+  function showErr(kind, detail) {
+    hidePanels();
+    var key = { shop_off: 'errShopOff', rate_limited: 'errRate', provider_error: 'errProvider', provider_unreachable: 'errProvider', bad_email: 'errGeneric' }[kind] || 'errGeneric';
+    $('errTitle').textContent = kind === 'bad_email' ? t('emailBad') : t(key);
+    $('errBody').textContent = kind === 'bad_email' ? '' : t(key + 'Body') + (detail ? ' (' + detail + ')' : '');
+    $('errPanel').hidden = false;
+  }
+
+  // --- Turnstile, the same way the gift page does it: invisible, run on the
+  //     click, and the server refuses a checkout without its token. ----------
+
+  function loadTurnstile() {
+    return new Promise(function (resolve, reject) {
+      if (window.turnstile && window.turnstile.render) return resolve();
+      var CALLBACK = '__platelyShopTurnstile';
+      var timer = setTimeout(function () { reject(new Error('turnstile did not load')); }, 12000);
+      window[CALLBACK] = function () { clearTimeout(timer); resolve(); };
+      var script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=' + CALLBACK;
+      script.async = true; script.defer = true;
+      script.onerror = function () { clearTimeout(timer); reject(new Error('turnstile blocked')); };
+      document.head.appendChild(script);
+    });
+  }
+  function settle(err, token) { var p = ts.pending; if (!p) return; ts.pending = null; clearTimeout(p.timer); if (err) p.reject(err); else p.resolve(token); }
+  function mountTurnstile() {
+    if (!ts.siteKey) return Promise.resolve();
+    return loadTurnstile().then(function () {
+      ts.widget = window.turnstile.render($('ts-widget'), {
+        sitekey: ts.siteKey, theme: 'dark', size: 'flexible', action: 'gift-shop', execution: 'execute', appearance: 'interaction-only',
+        callback: function (token) { ts.token = token; settle(null, token); },
+        'expired-callback': function () { ts.token = null; },
+        'timeout-callback': function () { settle(new Error('timeout')); },
+        'error-callback': function (code) { settle(new Error(code ? String(code) : 'the check could not run')); }
+      });
+    });
+  }
+  function challenge() {
+    if (!ts.siteKey) return Promise.resolve(null);
+    return new Promise(function (resolve, reject) {
+      var start = function () {
+        if (ts.widget === null || !window.turnstile) return reject(new Error('the check is not available'));
+        ts.pending = { resolve: resolve, reject: reject, timer: setTimeout(function () { settle(new Error('timeout')); }, 25000) };
+        try { if (ts.token) { window.turnstile.reset(ts.widget); ts.token = null; } window.turnstile.execute(ts.widget); } catch (err) { settle(err); }
+      };
+      if (ts.widget === null) mountTurnstile().then(start, reject); else start();
+    });
+  }
+
+  // --- buying -----------------------------------------------------------------------
+
+  $('buy').addEventListener('click', function () {
+    if (busy || !shop.prices) return;
+    hidePanels();
+    var email = String($('email').value || '').trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showErr('bad_email'); $('email').focus(); return; }
+    if (!shop.configured) { showErr('shop_off'); return; }
+    busy = true; draw();
+    challenge().then(function (token) {
+      return fetch('/api/gift/checkout', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: plan, period: period, email: email, lang: lang, turnstileToken: token })
+      }).then(function (res) { return res.json().catch(function () { return {}; }).then(function (d) { return { status: res.status, data: d }; }); });
+    }).then(function (r) {
+      busy = false; draw();
+      var d = r.data || {};
+      if (r.status === 403 && d.error === 'verification') return showVerify(d.reason);
+      if (r.status >= 200 && r.status < 300 && d.checkoutUrl) {
+        try { localStorage.setItem('plately_gift_order', d.orderId); } catch (e) {}
+        location.href = d.checkoutUrl;
+        return;
+      }
+      showErr(d.error || 'generic', d.detail);
+    }).catch(function (err) {
+      busy = false; draw();
+      var msg = err && err.message ? err.message : String(err);
+      if (/failed to fetch|networkerror|load failed/i.test(msg)) return showErr('generic');
+      showVerify(msg);
+    });
+  });
+
+  // --- the order view -----------------------------------------------------------------
+  //
+  // The provider sends the buyer back to /giftcards?order=<id>. The id is a
+  // random UUID only the buyer has, and the page polls it until the card is
+  // issued — a crypto payment can take minutes to confirm.
+
+  var order = { id: null, data: null, cancelled: false, timer: null, polls: 0 };
+
+  function drawOrder() {
+    var d = order.data;
+    $('shopView').hidden = true;
+    $('orderView').hidden = false;
+    $('orderTitle').textContent = t('orderTitle');
+    var status = d && d.found ? d.status : (d ? 'missing' : 'pending');
+    if (order.cancelled && status === 'pending') status = 'cancelled';
+    var keys = { pending: 'stPending', confirming: 'stConfirming', paid: 'stPaid', failed: 'stFailed', expired: 'stExpired', refunded: 'stRefunded', cancelled: 'stCancelled', missing: 'stMissing' };
+    $('orderText').textContent = t(keys[status] || 'stPending');
+    var box = $('orderStatus');
+    box.className = 'status' + (status === 'paid' ? ' ok' : (status === 'failed' || status === 'expired' || status === 'missing' || status === 'cancelled') ? ' bad' : '');
+    $('orderSpin').hidden = !(status === 'pending' || status === 'confirming');
+    $('orderLede').textContent = status === 'paid' ? t('orderLedePaid') : t('orderLedePending');
+    var paid = status === 'paid' && d.link;
+    $('orderPaid').hidden = !paid;
+    if (paid) {
+      $('orderLink').textContent = d.link;
+      $('openGift').href = d.link;
+      $('codeLine').innerHTML = d.code ? t('codeLine', { code: esc(d.code) }) : '';
+      $('mailedLine').textContent = d.mailed ? t('mailed', { email: d.email || '' }) : t('mailedNot');
+    }
+  }
+
+  function pollOrder() {
+    fetch('/api/gift/order?id=' + encodeURIComponent(order.id), { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        order.data = d;
+        drawOrder();
+        var s = d && d.found ? d.status : 'missing';
+        // Keep asking while the money can still arrive; give up after an hour.
+        if ((s === 'pending' || s === 'confirming') && ++order.polls < 900) order.timer = setTimeout(pollOrder, s === 'confirming' ? 3000 : 5000);
+      })
+      .catch(function () { order.timer = setTimeout(pollOrder, 8000); });
+  }
+
+  $('copyLink').addEventListener('click', function () {
+    var link = $('orderLink').textContent;
+    if (!link) return;
+    var done = function () { $('copyLink').textContent = t('copied'); setTimeout(function () { $('copyLink').textContent = t('copy'); }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(done, done); else done();
+  });
+
+  // --- boot --------------------------------------------------------------------------
 
   (function initLang() {
     var sel = $('lang');
@@ -294,14 +555,26 @@
       for (var i = 0; i < wants.length && !pick; i++) if (T[wants[i]]) pick = wants[i];
     }
     lang = pick || 'en';
-    // ?plan=ultra&period=quarterly preselects, for a link from anywhere else on the site.
     try {
       var u = new URL(location.href);
-      if (PRICES[u.searchParams.get('plan')]) plan = u.searchParams.get('plan');
-      if (DAYS[u.searchParams.get('period')]) period = u.searchParams.get('period');
+      if (/^(premium|ultra)$/.test(u.searchParams.get('plan') || '')) plan = u.searchParams.get('plan');
+      if (/^(monthly|quarterly|yearly)$/.test(u.searchParams.get('period') || '')) period = u.searchParams.get('period');
+      var o = String(u.searchParams.get('order') || '').toLowerCase();
+      if (/^[0-9a-f-]{36}$/.test(o)) { order.id = o; order.cancelled = u.searchParams.get('cancel') === '1'; }
     } catch (e) {}
     draw();
+    if (order.id) { drawOrder(); pollOrder(); }
   })();
+
+  fetch('/api/gift/session', { headers: { 'Accept': 'application/json' } })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      ts.siteKey = data.turnstileSiteKey || null;
+      if (data.shop) { shop.configured = Boolean(data.shop.configured); shop.prices = data.shop.prices || null; shop.days = data.shop.days || shop.days; shop.promoPercent = Number(data.shop.promoPercent) || 0; }
+      draw();
+      return mountTurnstile();
+    })
+    .catch(function () { draw(); });
 </script>
 </body>
 </html>
