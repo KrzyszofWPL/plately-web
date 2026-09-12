@@ -8,12 +8,18 @@ projektowe; strona czyta wyłącznie zoptymalizowane kopie z `public/giftcard/`.
 | `PSD.psd` | projekt z warstwami — edytuj ten |
 | `Giftcard.png` | pełna, wypełniona wersja (podgląd, jak ma wyglądać ULTRA / 366 DNI) |
 | `Semi.png` | karta + „PLATELY” + logo, **bez** polskich napisów — z tego jest `public/giftcard/front.webp` |
-| `Raw.png` | samo tło — z tego jest `public/giftcard/back.webp` (rewers z kodem) |
+| `Raw.png` | samo tło — jego **kanał alfa** (rogi i otwór na wieszak) daje biały rewers `public/giftcard/back.webp`; sam obraz nie jest używany |
+| `Wrapped.png` | zapakowana karta (czerwony papier, biała kokarda) — stan przed rozpakowaniem, `public/giftcard/wrapped.webp` |
 
 Napisy („KOD CYFROWY”, plan i liczba dni, hasło na dole) strona nakłada sama,
 tekstem HTML na `front.webp` — dzięki temu ta sama grafika obsługuje Premium
 i Ultra, każdą długość i oba języki. Pozycje i rozmiary w `.over` w
-`giftcards.html` są odwzorowane z `Giftcard.png`.
+`giftcards.html` są odwzorowane z `Giftcard.png`: bloki w rogach są
+wyśrodkowane same w sobie („KOD” nad „CYFROWY”), a hasło na dole ma kilka
+warstw cienia — to odpowiednik potrójnej kopii warstwy z PSD.
+
+Rewers jest biały i rysowany w całości w HTML (regulamin, kroki, kody
+kreskowe, pasek magnetyczny, zdrapka z kodem) — z PSD bierze tylko wykrój.
 
 ## Po zmianie projektu
 
@@ -23,9 +29,13 @@ rogi i otwór na wieszak), a potem przelicz kopie dla strony:
 ```bash
 python -c "
 from PIL import Image
-for src, dst in (('brand/giftcard/Semi.png','public/giftcard/front.webp'),('brand/giftcard/Raw.png','public/giftcard/back.webp')):
-    im = Image.open(src).convert('RGBA'); w, h = im.size
-    im.resize((800, round(h*800/w)), Image.LANCZOS).save(dst, 'WEBP', quality=86, method=6)
+def out(im, dst, q=86):
+    w, h = im.size; im.resize((800, round(h*800/w)), Image.LANCZOS).save(dst, 'WEBP', quality=q, method=6)
+out(Image.open('brand/giftcard/Semi.png').convert('RGBA'), 'public/giftcard/front.webp')
+out(Image.open('brand/giftcard/Wrapped.png').convert('RGBA'), 'public/giftcard/wrapped.webp', 88)
+raw = Image.open('brand/giftcard/Raw.png').convert('RGBA')
+white = Image.new('RGBA', raw.size, (250, 250, 248, 255)); white.putalpha(raw.split()[3])
+out(white, 'public/giftcard/back.webp', 90)
 "
 ```
 
