@@ -62,7 +62,7 @@ export function replySubject(subject, number) {
  * they are talking to is a machine.
  */
 export async function sendMail({ to, subject, text, html, replyTo, inReplyTo, references, from, fromName, autoSubmitted }) {
-  const domain = (process.env.SUPPORT_MAIL_DOMAIN || "plately.eu").trim();
+  const domain = (process.env.SUPPORT_MAIL_DOMAIN || "help.plately.eu").trim();
   const address = (from || process.env.SUPPORT_FROM_EMAIL || `contact@${domain}`).trim();
   const name = (fromName || process.env.SUPPORT_FROM_NAME || "Plately Support").trim();
   const messageId = `<${crypto.randomUUID()}@${domain}>`;

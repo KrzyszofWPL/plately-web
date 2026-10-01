@@ -236,8 +236,8 @@ Vercel → projekt `plately` → **Settings → Environment Variables**. Dodaj d
 | `PEPPER` | **zwykle już istnieje** — zostaw. Inaczej: drugi wygenerowany ciąg |
 | `TURNSTILE_SITE_KEY` | z kroku 3 |
 | `TURNSTILE_SECRET_KEY` | z kroku 3 |
-| `SUPPORT_MAIL_DOMAIN` | `plately.eu` |
-| `SUPPORT_FROM_EMAIL` | `contact@plately.eu` |
+| `SUPPORT_MAIL_DOMAIN` | `help.plately.eu` |
+| `SUPPORT_FROM_EMAIL` | `contact@help.plately.eu` |
 | `SUPPORT_FROM_NAME` | `Plately Support` |
 
 `RESEND_*` dodasz w krokach 7–8. `GLOBAL_CONFIG`, `VERCEL_API_TOKEN`, `ADMIN_*` już tam są —
